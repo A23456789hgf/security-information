@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(netstat -ano)",
+      "Bash(findstr :8000)",
+      "Bash(findstr \":800\")",
+      "Bash(php artisan:*)",
+      "Bash(php -m)",
+      "Bash(php:*)"
+    ]
+  }
+}

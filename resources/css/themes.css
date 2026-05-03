@@ -1,0 +1,164 @@
+/* --- تعريف المتغيرات المحسنة (حسب الطلب: حقول غامقة بالنهار، فاتحة بالليل) --- */
+:root {
+  /* ألوان الوضع النهاري (خلفية الصفحة فاتحة، الحقول غامقة) */
+  --day-primary: #2563EB;
+  --day-secondary: #10B981;
+  --day-accent: #EF4444;
+  --day-bg: #FFFFFF;
+  /* خلفية الصفحة فاتحة */
+  --day-bg-secondary: #F1F5F9;
+  --day-text: #0F172A;
+  /* نص عادي غامق */
+  --day-text-secondary: #475569;
+  --day-border: #CBD5E1;
+  --day-input-bg: #1E293B;
+  /* ✅ خلفية الحقل: غامقة (كما تطلب) */
+  --day-input-text: #F8FAFC;
+  /* ✅ نص الحقل: فاتح */
+  --day-label: #0F172A;
+  /* أسماء الحقول غامقة (تتناسب مع خلفية الصفحة الفاتحة) */
+
+  /* ألوان الوضع الليلي (خلفية الصفحة داكنة، الحقول فاتحة) */
+  --night-primary: #3B82F6;
+  --night-secondary: #34D399;
+  --night-accent: #F87171;
+  --night-bg: #0F172A;
+  /* خلفية الصفحة داكنة */
+  --night-bg-secondary: #1E293B;
+  --night-text: #F1F5F9;
+  /* نص عادي فاتح */
+  --night-text-secondary: #94A3B8;
+  --night-border: #334155;
+  --night-input-bg: #F8FAFC;
+  /* ✅ خلفية الحقل: فاتحة */
+  --night-input-text: #0F172A;
+  /* ✅ نص الحقل: غامق */
+  --night-label: #E2E8F0;
+  /* أسماء الحقول فاتحة (تتناسب مع الخلفية الداكنة) */
+}
+
+/* --- تطبيق الثيمات على عنصر body (أو html) --- */
+body[data-theme="day"] {
+  --primary: var(--day-primary);
+  --secondary: var(--day-secondary);
+  --accent: var(--day-accent);
+  --bg: var(--day-bg);
+  --bg-secondary: var(--day-bg-secondary);
+  --text: var(--day-text);
+  --text-secondary: var(--day-text-secondary);
+  --border: var(--day-border);
+  --input-bg: var(--day-input-bg);
+  --input-text: var(--day-input-text);
+  --label-color: var(--day-label);
+}
+
+body[data-theme="night"] {
+  --primary: var(--night-primary);
+  --secondary: var(--night-secondary);
+  --accent: var(--night-accent);
+  --bg: var(--night-bg);
+  --bg-secondary: var(--night-bg-secondary);
+  --text: var(--night-text);
+  --text-secondary: var(--night-text-secondary);
+  --border: var(--night-border);
+  --input-bg: var(--night-input-bg);
+  --input-text: var(--night-input-text);
+  --label-color: var(--night-label);
+}
+
+/* دعم التفضيل التلقائي للنظام (إذا لم يحدد المستخدم ثيماً) */
+@media (prefers-color-scheme: dark) {
+  body:not([data-theme="day"]) {
+    --primary: var(--night-primary);
+    --secondary: var(--night-secondary);
+    --accent: var(--night-accent);
+    --bg: var(--night-bg);
+    --bg-secondary: var(--night-bg-secondary);
+    --text: var(--night-text);
+    --text-secondary: var(--night-text-secondary);
+    --border: var(--night-border);
+    --input-bg: var(--night-input-bg);
+    --input-text: var(--night-input-text);
+    --label-color: var(--night-label);
+  }
+}
+
+/* --- تنسيقات عامة --- */
+body {
+  background-color: var(--bg);
+  color: var(--text);
+  font-family: 'Inter', 'Tajawal', system-ui, sans-serif;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* حماية أيقونات Font Awesome من الكتابة فوقها بخط عربي أو خطوط أخرى */
+.fa, .fas, .far, .fab, .fal, .fad,
+[class*="fa-"],
+i[class*="fa"] {
+  font-family: "Font Awesome 6 Free", "Font Awesome 6 Brands" !important;
+}
+
+/* التسميات (labels) */
+label,
+.form-label,
+.col-form-label {
+  color: var(--label-color);
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
+/* حقول الإدخال */
+.input-field,
+.form-control,
+.form-select,
+input:not([type="checkbox"]):not([type="radio"]),
+select,
+textarea {
+  background-color: var(--input-bg) !important;
+  color: var(--input-text) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 12px !important;
+  padding: 0.75rem 1rem !important;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.input-field:focus,
+.form-control:focus,
+.form-select:focus,
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--primary) !important;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15) !important;
+}
+
+/* مثال للبطاقة */
+.card {
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+/* زر احترافي */
+.button-primary {
+  background-color: var(--primary);
+  color: #FFFFFF;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.1s, opacity 0.2s;
+}
+
+.button-primary:active {
+  transform: scale(0.98);
+}
+
+.button-primary:hover {
+  opacity: 0.9;
+}
