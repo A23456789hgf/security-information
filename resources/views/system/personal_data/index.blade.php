@@ -27,16 +27,22 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-5 text-md-end mt-3 mt-md-0">
-                <div class="flex flex-wrap gap-2 justify-content-md-end">
+            <div class="col-md-5 mt-3 mt-md-0">
+                <div class="flex flex-wrap gap-2 justify-start md:justify-end w-full">
+                    <a href="{{ route('system.personal-data.export') }}"
+                        class="btn btn-success rounded-pill px-3 sm:px-4 py-2 shadow-sm d-flex align-items-center gap-1.5 text-xs sm:text-sm">
+                        <i class="fas fa-file-excel"></i> <span class="hidden sm:inline">تصدير</span> (Excel)
+                    </a>
+                    <a href="{{ route('system.personal-data.import') }}"
+                        class="btn btn-info text-white rounded-pill px-3 sm:px-4 py-2 shadow-sm d-flex align-items-center gap-1.5 text-xs sm:text-sm">
+                        <i class="fas fa-file-import"></i> استيراد
+                    </a>
                     <a href="{{ route('system.personal-data.fast-entry') }}"
-                        class="px-4 py-2 bg-amber-500 text-white rounded-2xl font-bold hover:bg-amber-600 transition-all shadow-lg shadow-amber-100 flex items-center gap-2"
-                        style="font-size: 0.85rem;">
+                        class="btn btn-warning rounded-pill px-3 sm:px-4 py-2 shadow-sm d-flex align-items-center gap-1.5 text-xs sm:text-sm">
                         <i class="fas fa-bolt"></i> إدخال سريع
                     </a>
                     <a href="{{ route('system.personal-data.create') }}"
-                        class="px-4 py-2 bg-blue-600 text-white rounded-2xl font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-100 flex items-center gap-2"
-                        style="font-size: 0.85rem;">
+                        class="btn btn-primary rounded-pill px-3 sm:px-4 py-2 shadow-sm d-flex align-items-center gap-1.5 text-xs sm:text-sm font-bold">
                         <i class="fas fa-plus-circle"></i> إضافة سجل جديد
                     </a>
                 </div>
@@ -76,7 +82,7 @@
                 </div>
                 <div class="col-md-2">
                     <button type="submit"
-                        class="w-full py-2 bg-slate-800 text-white rounded-2xl font-bold hover:bg-slate-900 transition-all text-sm">
+                        class="btn btn-secondary w-100 rounded-pill py-2 shadow-sm fw-bold" style="font-size: 0.85rem;">
                         تصفية النتائج
                     </button>
                 </div>
@@ -94,7 +100,7 @@
         {{-- جدول البيانات - مع إزالة أي overflow hidden --}}
         <div class="bg-white rounded-3xl soft-shadow border border-slate-100" style="overflow: visible !important;">
             <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0" style="font-size: 0.85rem;">
+                <table class="table table-hover align-middle mb-0 w-100" style="font-size: 1rem;">
                     <thead class="bg-slate-50/80 border-b border-slate-100">
                         <tr>
                             <th class="ps-6 py-4 text-slate-400 font-bold uppercase tracking-wider text-[10px]"
@@ -122,61 +128,9 @@
                                             class="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center font-bold text-xs">
                                             {{ substr($record->name ?? '-', 0, 2) }}
                                         </div>
-                                        <!-- <div>
-                                                                                    <p class="font-bold text-slate-700 mb-0">{{ $record->name }}</p>
-                                                                                    <div
-                                                                                        class="mt-2 grid grid-cols-2 gap-x-4 gap-y-1 text-[10px] bg-slate-50 p-2 rounded-xl border border-slate-100">
-                                                                                        <div class="flex items-center gap-1 text-slate-500">
-                                                                                            <i class="fas fa-user-tag w-4"></i>
-                                                                                            <span class="font-bold">الاسم الجهادي:</span>
-                                                                                            {{ $record->jihadi_name ?? '-' }}
-                                                                                        </div>
-                                                                                        <div class="flex items-center gap-1 text-slate-500">
-                                                                                            <i class="fas fa-id-badge w-4"></i>
-                                                                                            <span class="font-bold">الرقم العسكري:</span>
-                                                                                            {{ $record->military_number ?? '-' }}
-                                                                                        </div>
-                                                                                        <div class="flex items-center gap-1 text-slate-500">
-                                                                                            <i class="fas fa-tint w-4 text-rose-500"></i>
-                                                                                            <span class="font-bold">فصيلة الدم:</span>
-                                                                                            {{ $record->bloodType->type ?? '-' }}
-                                                                                        </div>
-                                                                                        <div class="flex items-center gap-1 text-slate-500">
-                                                                                            <i class="fas fa-calendar w-4"></i>
-                                                                                            <span class="font-bold">تاريخ الميلاد:</span>
-                                                                                            {{ $record->date_of_birth_gregorian ? $record->date_of_birth_gregorian->format('Y-m-d') : '-' }}
-                                                                                        </div>
-                                                                                        <div class="flex items-center gap-1 text-slate-500">
-                                                                                            <i class="fas fa-ring w-4"></i>
-                                                                                            <span class="font-bold">الحالة الاجتماعية:</span>
-                                                                                            {{ $record->maritalStatus->name ?? '-' }}
-                                                                                        </div>
-                                                                                        <div class="flex items-center gap-1 text-slate-500">
-                                                                                            <i class="fas fa-map-marker-alt w-4"></i>
-                                                                                            <span class="font-bold">مكان الميلاد:</span>
-                                                                                            {{ $record->placeOfBirthDirectorate->name ?? '-' }}
-                                                                                        </div>
-                                                                                        <div class="flex items-center gap-1 text-slate-500">
-                                                                                            <i class="fas fa-id-card w-4"></i>
-                                                                                            <span class="font-bold">رقم الهوية:</span>
-                                                                                            {{ $record->national_id_number ?? '-' }}
-                                                                                        </div>
-                                                                                        <div class="flex items-center gap-1 text-slate-500">
-                                                                                            <i class="fas fa-phone w-4"></i>
-                                                                                            <span class="font-bold">هاتف 1:</span> {{ $record->phone_1 ?? '-' }}
-                                                                                        </div>
-                                                                                        <div class="flex items-center gap-1 text-slate-500">
-                                                                                            <i class="fas fa-mobile-alt w-4"></i>
-                                                                                            <span class="font-bold">هاتف 2:</span> {{ $record->phone_2 ?? '-' }}
-                                                                                        </div>
-                                                                                        <div
-                                                                                            class="flex items-center gap-1 text-slate-500 col-span-2 border-t border-slate-200 mt-1 pt-1">
-                                                                                            <i class="fas fa-home w-4"></i>
-                                                                                            <span class="font-bold">العنوان:</span>
-                                                                                            {{ ($record->governorate->name ?? '') . ' - ' . ($record->directorate->name ?? '') . ' - ' . ($record->village->name ?? '') }}
-                                                                                        </div>
-                                                                                    </div>
-                                                                                </div> -->
+                                        <div>
+                                            <p class="font-bold text-slate-700 mb-0">{{ $record->name }}</p>
+                                        </div>
                                     </div>
                                 </td>
                                 <td>
@@ -211,28 +165,16 @@
                                     <div class="flex justify-end items-center gap-2">
                                         <!-- زر العرض -->
                                         <a href="{{ route('system.personal-data.show', $record) }}"
-                                            class="w-9 h-9 flex items-center justify-center rounded-lg bg-blue-100 text-blue-700 hover:bg-blue-600 hover:text-white shadow-sm transition-all"
+                                            class="btn btn-sm btn-primary rounded-lg d-flex align-items-center justify-content-center p-2 shadow-sm"
                                             title="عرض">
-                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"
-                                                class="w-5 h-5">
-                                                <path d="M10 12.5a2.5 2.5 0 100-5 2.5 2.5 0 000 5z" />
-                                                <path fill-rule="evenodd"
-                                                    d="M.664 10.59a1.651 1.651 0 010-1.186A10.004 10.004 0 0110 3c4.257 0 7.893 2.66 9.336 6.41.147.381.146.804 0 1.186A10.004 10.004 0 0110 17c-4.257 0-7.893-2.66-9.336-6.41zM14 10a4 4 0 11-8 0 4 4 0 018 0z"
-                                                    clip-rule="evenodd" />
-                                            </svg>
+                                            <i class="fas fa-eye"></i>
                                         </a>
 
                                         <!-- زر التعديل -->
                                         <a href="{{ route('system.personal-data.edit', $record) }}"
-                                            class="w-9 h-9 flex items-center justify-center rounded-lg bg-amber-100 text-amber-700 hover:bg-amber-600 hover:text-white shadow-sm transition-all"
+                                            class="btn btn-sm btn-warning rounded-lg d-flex align-items-center justify-content-center p-2 shadow-sm"
                                             title="تعديل">
-                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"
-                                                class="w-5 h-5">
-                                                <path
-                                                    d="M5.433 13.917l1.262-3.155A4 4 0 017.58 9.42l6.92-6.918a2.121 2.121 0 013 3l-6.92 6.918c-.383.383-.84.685-1.343.886l-3.154 1.262a.5.5 0 01-.65-.65z" />
-                                                <path
-                                                    d="M3.5 5.75c0-.69.56-1.25 1.25-1.25H10A.75.75 0 0010 3H4.75A2.75 2.75 0 002 5.75v9.5A2.75 2.75 0 004.75 18h9.5A2.75 2.75 0 0017 15.25V10a.75.75 0 00-1.5 0v5.25c0 .69-.56 1.25-1.25 1.25h-9.5c-.69 0-1.25-.56-1.25-1.25v-9.5z" />
-                                            </svg>
+                                            <i class="fas fa-edit"></i>
                                         </a>
 
                                         <!-- زر الحذف -->
@@ -241,30 +183,19 @@
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit"
-                                                class="w-9 h-9 flex items-center justify-center rounded-lg bg-rose-100 text-rose-700 hover:bg-rose-600 hover:text-white shadow-sm transition-all"
+                                                class="btn btn-sm btn-danger rounded-lg d-flex align-items-center justify-content-center p-2 shadow-sm"
                                                 title="حذف">
-                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"
-                                                    class="w-5 h-5">
-                                                    <path fill-rule="evenodd"
-                                                        d="M8.75 1A2.75 2.75 0 006 3.75V4H5a2 2 0 00-2 2v.25C3 6.664 3.336 7 3.75 7h12.5a.75.75 0 000-1.5h-.25V4A2.75 2.75 0 0013.25 1h-4.5zM6 5.5v-1.75C6 3.224 6.448 2.75 7 2.75h6c.552 0 1 .474 1 1V5.5H6z"
-                                                        clip-rule="evenodd" />
-                                                    <path
-                                                        d="M4 8.25V15.5A2.75 2.75 0 006.75 18.25h6.5A2.75 2.75 0 0016 15.5V8.25H4zM7.5 10a.75.75 0 01.75.75v4.5a.75.75 0 01-1.5 0v-4.5A.75.75 0 017.5 10zm5.25.75a.75.75 0 00-1.5 0v4.5a.75.75 0 001.5 0v-4.5z" />
-                                                </svg>
+                                                <i class="fas fa-trash"></i>
                                             </button>
                                         </form>
 
-                                        <!-- زر الإضافات السريعة (dropdown) - مع تحسينات z-index -->
+                                        <!-- زر الإضافات السريعة (dropdown) -->
                                         <div class="dropdown d-inline-block" style="position: relative; z-index: 1;">
                                             <button
-                                                class="w-9 h-9 flex items-center justify-center rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 transition-all border-0 shadow-sm focus:ring-2 focus:ring-slate-300"
+                                                class="btn btn-sm btn-secondary rounded-lg d-flex align-items-center justify-content-center p-2 shadow-sm"
                                                 type="button" data-bs-toggle="dropdown" aria-expanded="false"
                                                 title="إجراءات إضافية">
-                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                                    stroke-width="2.5" stroke="currentColor" class="w-4 h-4">
-                                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                                        d="M12 4.5v15m7.5-7.5h-15" />
-                                                </svg>
+                                                <i class="fas fa-bars"></i>
                                             </button>
 
                                             <!-- القائمة المنسدلة مع z-index عالٍ جدًا -->
@@ -279,8 +210,7 @@
                                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                                             stroke-width="1.5" stroke="currentColor"
                                                             class="w-4 h-4 text-blue-500">
-                                                            <path stroke-linecap="round" stroke-linejoin="round"
-                                                                d="M6.72 13.89l-4.72-4.72g1.5-1.5L6.72 10.89l4.72-4.72m-12 0l4.72 4.72-4.72 4.72" />
+
                                                             <path
                                                                 d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"
                                                                 stroke-linecap="round" stroke-linejoin="round" />
@@ -296,8 +226,7 @@
                                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                                             stroke-width="1.5" stroke="currentColor"
                                                             class="w-4 h-4 text-blue-500">
-                                                            <path stroke-linecap="round" stroke-linejoin="round"
-                                                                d="M6.72 13.89l-4.72-4.72g1.5-1.5L6.72 10.89l4.72-4.72m-12 0l4.72 4.72-4.72 4.72" />
+
                                                             <path
                                                                 d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"
                                                                 stroke-linecap="round" stroke-linejoin="round" />
@@ -314,8 +243,7 @@
                                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                                             stroke-width="1.5" stroke="currentColor"
                                                             class="w-4 h-4 text-blue-500">
-                                                            <path stroke-linecap="round" stroke-linejoin="round"
-                                                                d="M6.72 13.89l-4.72-4.72g1.5-1.5L6.72 10.89l4.72-4.72m-12 0l4.72 4.72-4.72 4.72" />
+
                                                             <path
                                                                 d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"
                                                                 stroke-linecap="round" stroke-linejoin="round" />
@@ -383,6 +311,20 @@
                                                                 d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" />
                                                         </svg>
                                                         إضافة زوجة
+                                                    </a>
+                                                </li>
+
+                                                {{-- خيار الأهل والأقارب --}}
+                                                <li>
+                                                    <a class="dropdown-item rounded-xl py-2.5 px-3 flex items-center gap-3 hover:bg-indigo-50 hover:text-indigo-600 transition-colors font-bold"
+                                                        href="{{ route('system.relatives.create', ['personal_data_id' => $record->id]) }}">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                                            stroke-width="1.5" stroke="currentColor"
+                                                            class="w-4 h-4 text-indigo-500">
+                                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                                d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
+                                                        </svg>
+                                                        الأهل والأقارب
                                                     </a>
                                                 </li>
                                             </ul>

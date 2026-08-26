@@ -2,8 +2,8 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
 return new class extends Migration
@@ -22,16 +22,16 @@ return new class extends Migration
         $pages = DB::table('dynamic_pages')->get();
         foreach ($pages as $page) {
             $sectionName = $page->section ?: 'نماذج عامة';
-            
+
             $sectionId = DB::table('sections')->where('name', $sectionName)->value('id');
-            
-            if (!$sectionId) {
+
+            if (! $sectionId) {
                 // Generate a simple slug
                 $slug = Str::slug($sectionName);
                 if (empty($slug) || DB::table('sections')->where('slug', $slug)->exists()) {
-                    $slug = 'sec-' . Str::random(5);
+                    $slug = 'sec-'.Str::random(5);
                 }
-                
+
                 $sectionId = DB::table('sections')->insertGetId([
                     'name' => $sectionName,
                     'slug' => $slug,
@@ -40,7 +40,7 @@ return new class extends Migration
                     'updated_at' => now(),
                 ]);
             }
-            
+
             DB::table('dynamic_pages')->where('id', $page->id)->update(['section_id' => $sectionId]);
         }
 

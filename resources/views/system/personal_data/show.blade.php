@@ -33,7 +33,6 @@
                 <div class="flex flex-wrap gap-2">
                     <button onclick="window.print()" class="px-5 py-2.5 bg-white border border-slate-200 text-slate-600 rounded-2xl font-bold hover:bg-slate-50 transition-all shadow-sm flex items-center gap-2">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M6.72 13.89l-4.72-4.72g1.5-1.5L6.72 10.89l4.72-4.72m-12 0l4.72 4.72-4.72 4.72" />
                             <path d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" stroke-linecap="round" stroke-linejoin="round" />
                         </svg>
                         طباعة الوثيقة
@@ -177,6 +176,62 @@
                             </div>
                         </div>
                     </div>
+
+                    {{-- الأهل والأقارب --}}
+                    @if($personalData->relatives && $personalData->relatives->count() > 0)
+                        <div class="bg-white rounded-[2.5rem] soft-shadow border border-slate-100 overflow-hidden">
+                            <div class="px-8 py-6 border-b border-slate-50 flex items-center justify-between bg-slate-50/50">
+                                <h5 class="text-lg font-bold text-slate-800 header-font flex items-center gap-3">
+                                    <span class="w-2 h-6 bg-indigo-600 rounded-full"></span>
+                                    الأهل والأقارب ({{ $personalData->relatives->count() }})
+                                </h5>
+                                <a href="{{ route('system.relatives.create', ['personal_data_id' => $personalData->id]) }}"
+                                    class="text-xs text-indigo-600 hover:text-indigo-800 font-bold flex items-center gap-1">
+                                    <i class="fas fa-plus"></i> إضافة
+                                </a>
+                            </div>
+                            <div class="p-6">
+                                <div class="overflow-x-auto">
+                                    <table class="w-full text-right text-xs">
+                                        <thead>
+                                            <tr class="border-b border-slate-100 text-slate-400 font-bold">
+                                                <th class="py-2.5 px-3">الاسم الكامل</th>
+                                                <th class="py-2.5 px-3">العمر</th>
+                                                <th class="py-2.5 px-3">صلة القرابة</th>
+                                                <th class="py-2.5 px-3">العمل الحالي</th>
+                                                <th class="py-2.5 px-3">العقائدي</th>
+                                                <th class="py-2.5 px-3">الانتماء السياسي</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="divide-y divide-slate-50">
+                                            @foreach($personalData->relatives as $rel)
+                                                <tr class="hover:bg-slate-50/50">
+                                                    <td class="py-3 px-3 font-bold text-slate-800">{{ $rel->full_name }}</td>
+                                                    <td class="py-3 px-3 text-slate-600">{{ $rel->age ? $rel->age . ' سنة' : '-' }}</td>
+                                                    <td class="py-3 px-3">
+                                                        <span class="px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 font-bold text-[11px]">
+                                                            {{ $rel->kinship->name ?? '-' }}
+                                                        </span>
+                                                    </td>
+                                                    <td class="py-3 px-3 text-slate-600">{{ $rel->current_job ?? '-' }}</td>
+                                                    <td class="py-3 px-3">
+                                                        <span class="px-2.5 py-1 rounded-full bg-purple-50 text-purple-700 font-bold text-[11px]">
+                                                            {{ $rel->ideologicalAffiliation->name ?? '-' }}
+                                                        </span>
+                                                    </td>
+                                                    <td class="py-3 px-3">
+                                                        <span class="px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 font-bold text-[11px]">
+                                                            {{ $rel->politicalAffiliation->name ?? '-' }}
+                                                        </span>
+                                                    </td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    @endif
                 </div>
             </div>
 

@@ -65,7 +65,7 @@ return new class extends Migration
             $table->string('referral_authority')->nullable(); // الجهة المحال إليها القضية
             $table->string('case_classification')->nullable(); // تصنيف القضية
             $table->text('additional_notes')->nullable(); // ملاحظات إضافية
-            
+
             $table->timestamps();
         });
     }

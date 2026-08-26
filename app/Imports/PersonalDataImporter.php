@@ -4,25 +4,32 @@ namespace App\Imports;
 
 use App\Models\ImportProgress;
 use App\Models\PersonalData;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
-use Maatwebsite\Excel\Concerns\ToCollection;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
+use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithChunkReading;
 use Maatwebsite\Excel\Concerns\WithStartRow;
 
 class PersonalDataImporter implements ToCollection, WithChunkReading, WithStartRow
 {
     private $sessionId;
+
     private $mapping;
+
     private $mode;
+
     private $config;
+
     private $progress;
+
     private $startRow;
 
     private $created = 0;
+
     private $updated = 0;
+
     private $failed = 0;
+
     private $errors = [];
 
     // Caches for lookups
@@ -40,10 +47,11 @@ class PersonalDataImporter implements ToCollection, WithChunkReading, WithStartR
 
     private function normalizeArabic($str)
     {
-        $str = trim((string)$str);
+        $str = trim((string) $str);
         $str = str_replace(['أ', 'إ', 'آ'], 'ا', $str);
         $str = str_replace('ة', 'ه', $str);
         $str = str_replace('ى', 'ي', $str);
+
         return $str;
     }
 
@@ -59,7 +67,9 @@ class PersonalDataImporter implements ToCollection, WithChunkReading, WithStartR
 
         foreach ($rows as $rowIndex => $row) {
             $rowArray = $row->toArray();
-            if (empty(array_filter($rowArray))) continue;
+            if (empty(array_filter($rowArray))) {
+                continue;
+            }
 
             $rowData = [];
             $rowErrors = [];
@@ -67,18 +77,22 @@ class PersonalDataImporter implements ToCollection, WithChunkReading, WithStartR
             // We need a specific order to resolve hierarchical names (Gov -> Dir -> Sub -> Village)
             $locationFields = [
                 'governorate_id', 'directorate_id', 'sub_area_id', 'village_id',
-                'place_of_birth_governorate_id', 'place_of_birth_directorate_id', 
-                'place_of_birth_sub_area_id', 'place_of_birth_village_id'
+                'place_of_birth_governorate_id', 'place_of_birth_directorate_id',
+                'place_of_birth_sub_area_id', 'place_of_birth_village_id',
             ];
 
             // First pass: non-location fields
             foreach ($fieldsConfig as $field => $label) {
-                if (in_array($field, $locationFields)) continue;
+                if (in_array($field, $locationFields)) {
+                    continue;
+                }
 
                 $colIndex = $this->mapping[$field] ?? null;
-                $val = ($colIndex !== null && isset($rowArray[$colIndex])) ? trim((string)$rowArray[$colIndex]) : '';
+                $val = ($colIndex !== null && isset($rowArray[$colIndex])) ? trim((string) $rowArray[$colIndex]) : '';
 
-                if (empty($val)) continue;
+                if (empty($val)) {
+                    continue;
+                }
 
                 if (str_ends_with($field, '_id')) {
                     $id = $this->resolveId($field, $val, $rowData);
@@ -94,12 +108,16 @@ class PersonalDataImporter implements ToCollection, WithChunkReading, WithStartR
 
             // Second pass: location fields in hierarchy
             foreach ($locationFields as $field) {
-                if (!isset($fieldsConfig[$field])) continue;
+                if (! isset($fieldsConfig[$field])) {
+                    continue;
+                }
 
                 $colIndex = $this->mapping[$field] ?? null;
-                $val = ($colIndex !== null && isset($rowArray[$colIndex])) ? trim((string)$rowArray[$colIndex]) : '';
+                $val = ($colIndex !== null && isset($rowArray[$colIndex])) ? trim((string) $rowArray[$colIndex]) : '';
 
-                if (empty($val)) continue;
+                if (empty($val)) {
+                    continue;
+                }
 
                 $id = $this->resolveLocationId($field, $val, $rowData);
                 if ($id) {
@@ -116,13 +134,13 @@ class PersonalDataImporter implements ToCollection, WithChunkReading, WithStartR
                 } catch (\Exception $e) {
                     $this->failed++;
                     if (count($this->errors) < 100) {
-                        $this->errors[] = "خطأ حفظ في الصف " . ($rowIndex + $this->startRow) . ": " . $e->getMessage();
+                        $this->errors[] = 'خطأ حفظ في الصف '.($rowIndex + $this->startRow).': '.$e->getMessage();
                     }
                 }
             } else {
                 $this->failed++;
                 if (count($this->errors) < 100) {
-                    $this->errors[] = "الصف " . ($rowIndex + $this->startRow) . ": " . implode(", ", $rowErrors);
+                    $this->errors[] = 'الصف '.($rowIndex + $this->startRow).': '.implode(', ', $rowErrors);
                 }
             }
         }
@@ -146,31 +164,35 @@ class PersonalDataImporter implements ToCollection, WithChunkReading, WithStartR
             'financial_status_id' => ['table' => 'financial_statuses', 'column' => 'name'],
         ];
 
-        if (!isset($tableMapping[$field])) return null;
+        if (! isset($tableMapping[$field])) {
+            return null;
+        }
 
         $table = $tableMapping[$field]['table'];
         $column = $tableMapping[$field]['column'];
 
-        if (!isset($this->caches[$table])) {
-            $this->caches[$table] = DB::table($table)->get(['id', $column])->mapWithKeys(function($item) use ($column) {
+        if (! isset($this->caches[$table])) {
+            $this->caches[$table] = DB::table($table)->get(['id', $column])->mapWithKeys(function ($item) use ($column) {
                 return [$this->normalizeArabic($item->$column) => $item->id];
             })->toArray();
         }
 
         $normVal = $this->normalizeArabic($val);
+
         return $this->caches[$table][$normVal] ?? (is_numeric($val) ? DB::table($table)->where('id', $val)->value('id') : null);
     }
 
     private function resolveLocationId($field, $val, $rowData)
     {
         $normVal = $this->normalizeArabic($val);
-        
+
         if ($field === 'governorate_id' || $field === 'place_of_birth_governorate_id') {
-            if (!isset($this->caches['governorates'])) {
-                $this->caches['governorates'] = DB::table('governorates')->get(['id', 'name'])->mapWithKeys(function($i) {
+            if (! isset($this->caches['governorates'])) {
+                $this->caches['governorates'] = DB::table('governorates')->get(['id', 'name'])->mapWithKeys(function ($i) {
                     return [$this->normalizeArabic($i->name) => $i->id];
                 })->toArray();
             }
+
             return $this->caches['governorates'][$normVal] ?? (is_numeric($val) ? $val : null);
         }
 
@@ -182,9 +204,12 @@ class PersonalDataImporter implements ToCollection, WithChunkReading, WithStartR
             foreach ($rows as $d) {
                 if ($this->normalizeArabic($d->name) === $normVal || $d->id == $val) {
                     // If parent is known, enforce it; otherwise take best match
-                    if (!$parentId || $d->governorate_id == $parentId) return $d->id;
+                    if (! $parentId || $d->governorate_id == $parentId) {
+                        return $d->id;
+                    }
                 }
             }
+
             return null;
         }
 
@@ -195,9 +220,12 @@ class PersonalDataImporter implements ToCollection, WithChunkReading, WithStartR
             $rows = DB::table('sub_areas')->get(['id', 'name', 'directorate_id']);
             foreach ($rows as $s) {
                 if ($this->normalizeArabic($s->name) === $normVal || $s->id == $val) {
-                    if (!$parentId || $s->directorate_id == $parentId) return $s->id;
+                    if (! $parentId || $s->directorate_id == $parentId) {
+                        return $s->id;
+                    }
                 }
             }
+
             return null;
         }
 
@@ -208,9 +236,12 @@ class PersonalDataImporter implements ToCollection, WithChunkReading, WithStartR
             $rows = DB::table('villages')->get(['id', 'name', 'sub_area_id']);
             foreach ($rows as $v) {
                 if ($this->normalizeArabic($v->name) === $normVal || $v->id == $val) {
-                    if (!$parentId || $v->sub_area_id == $parentId) return $v->id;
+                    if (! $parentId || $v->sub_area_id == $parentId) {
+                        return $v->id;
+                    }
                 }
             }
+
             return null;
         }
 
@@ -221,13 +252,21 @@ class PersonalDataImporter implements ToCollection, WithChunkReading, WithStartR
     {
         $query = PersonalData::query();
         foreach ($identityKeys as $k) {
-            if (isset($rowData[$k])) $query->where($k, $rowData[$k]);
+            if (isset($rowData[$k])) {
+                $query->where($k, $rowData[$k]);
+            }
         }
 
         $record = $query->first();
 
-        if ($this->mode === 'append' && $record) return;
-        if ($this->mode === 'update' && !$record) { $this->failed++; return; }
+        if ($this->mode === 'append' && $record) {
+            return;
+        }
+        if ($this->mode === 'update' && ! $record) {
+            $this->failed++;
+
+            return;
+        }
 
         if ($record) {
             $record->update($rowData);
@@ -259,7 +298,7 @@ class PersonalDataImporter implements ToCollection, WithChunkReading, WithStartR
                 'created_count' => $this->created,
                 'updated_count' => $this->updated,
                 'failed_count' => $this->failed,
-                'errors' => array_unique($this->errors)
+                'errors' => array_unique($this->errors),
             ]);
         }
     }

@@ -1,1 +1,3 @@
-<?php // file cleared
+<?php
+
+// file cleared

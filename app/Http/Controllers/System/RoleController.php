@@ -2,12 +2,10 @@
 
 namespace App\Http\Controllers\System;
 
-use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use App\Models\Role;
-use Spatie\Permission\Models\Permission;
-use App\Models\Page;
 use App\Helpers\PermissionHelper;
+use App\Http\Controllers\Controller;
+use App\Models\Role;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class RoleController extends Controller
@@ -15,29 +13,31 @@ class RoleController extends Controller
     public function index()
     {
         $roles = Role::with('permissions')->get();
+
         return view('system.roles.index', compact('roles'));
     }
 
     public function create()
     {
         $permissions = PermissionHelper::getGrouped();
+
         return view('system.roles.create', compact('permissions'));
     }
 
     public function store(Request $request)
     {
         $request->validate([
-            'name'        => 'required|unique:roles,name',
+            'name' => 'required|unique:roles,name',
             'permissions' => 'required|array|min:1',
-            'scopes'      => 'nullable|array',
-            'scopes.*'    => 'in:all,own,none',
+            'scopes' => 'nullable|array',
+            'scopes.*' => 'in:all,own,none',
         ]);
 
         DB::transaction(function () use ($request) {
             $role = Role::create([
-                'name'       => $request->name,
+                'name' => $request->name,
                 'guard_name' => 'web',
-                'scopes'     => $request->scopes ?? [],
+                'scopes' => $request->scopes ?? [],
             ]);
             $role->syncPermissions($request->permissions);
         });
@@ -47,24 +47,25 @@ class RoleController extends Controller
 
     public function edit(Role $role)
     {
-        $permissions    = PermissionHelper::getGrouped();
+        $permissions = PermissionHelper::getGrouped();
         $rolePermissions = $role->permissions->pluck('name')->toArray();
-        $roleScopes     = is_array($role->scopes) ? $role->scopes : (json_decode($role->scopes, true) ?? []);
+        $roleScopes = is_array($role->scopes) ? $role->scopes : (json_decode($role->scopes, true) ?? []);
+
         return view('system.roles.edit', compact('role', 'permissions', 'rolePermissions', 'roleScopes'));
     }
 
     public function update(Request $request, Role $role)
     {
         $request->validate([
-            'name'        => 'required|unique:roles,name,' . $role->id,
+            'name' => 'required|unique:roles,name,'.$role->id,
             'permissions' => 'required|array|min:1',
-            'scopes'      => 'nullable|array',
-            'scopes.*'    => 'in:all,own,none',
+            'scopes' => 'nullable|array',
+            'scopes.*' => 'in:all,own,none',
         ]);
 
         DB::transaction(function () use ($request, $role) {
             $role->update([
-                'name'   => $request->name,
+                'name' => $request->name,
                 'scopes' => $request->scopes ?? [],
             ]);
             $role->syncPermissions($request->permissions);
@@ -79,6 +80,7 @@ class RoleController extends Controller
             return back()->with('error', 'لا يمكن حذف دور المسؤول العام');
         }
         $role->delete();
+
         return back()->with('success', 'تم حذف الدور بنجاح');
     }
 }

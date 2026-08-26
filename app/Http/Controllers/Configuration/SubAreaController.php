@@ -3,19 +3,20 @@
 namespace App\Http\Controllers\Configuration;
 
 use App\Http\Controllers\Controller;
-use App\Models\SubArea;
-use App\Models\Governorate;
 use App\Models\Directorate;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
+use App\Models\Governorate;
+use App\Models\SubArea;
 use App\Traits\HandlesConfigurationImportExport;
+use Illuminate\Http\Request;
 
 class SubAreaController extends Controller
 {
     use HandlesConfigurationImportExport;
 
     protected $modelClass = SubArea::class;
+
     protected $routeName = 'configuration.sub-areas';
+
     protected $field = 'name';
 
     public function index(Request $request)
@@ -25,12 +26,12 @@ class SubAreaController extends Controller
         if ($request->has('search')) {
             $search = $request->get('search');
             $query->where('name', 'like', "%{$search}%")
-                  ->orWhereHas('governorate', function($q) use ($search) {
-                      $q->where('name', 'like', "%{$search}%");
-                  })
-                  ->orWhereHas('directorate', function($q) use ($search) {
-                      $q->where('name', 'like', "%{$search}%");
-                  });
+                ->orWhereHas('governorate', function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%");
+                })
+                ->orWhereHas('directorate', function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%");
+                });
         }
 
         if ($request->has('governorate_id') && $request->governorate_id) {
@@ -54,6 +55,7 @@ class SubAreaController extends Controller
     public function create()
     {
         $governorates = Governorate::all();
+
         return view('configuration.sub_areas.create', compact('governorates'));
     }
 
@@ -62,7 +64,7 @@ class SubAreaController extends Controller
         $request->validate([
             'governorate_id' => 'required|exists:governorates,id',
             'directorate_id' => 'required|exists:directorates,id',
-            'name' => 'required|string|max:255|unique:sub_areas,name,NULL,id,directorate_id,' . $request->directorate_id,
+            'name' => 'required|string|max:255|unique:sub_areas,name,NULL,id,directorate_id,'.$request->directorate_id,
         ]);
 
         SubArea::create($request->all());
@@ -74,6 +76,7 @@ class SubAreaController extends Controller
     {
         $governorates = Governorate::all();
         $directorates = Directorate::where('governorate_id', $subArea->governorate_id)->get();
+
         return view('configuration.sub_areas.edit', compact('subArea', 'governorates', 'directorates'));
     }
 
@@ -82,7 +85,7 @@ class SubAreaController extends Controller
         $request->validate([
             'governorate_id' => 'required|exists:governorates,id',
             'directorate_id' => 'required|exists:directorates,id',
-            'name' => 'required|string|max:255|unique:sub_areas,name,' . $subArea->id . ',id,directorate_id,' . $request->directorate_id,
+            'name' => 'required|string|max:255|unique:sub_areas,name,'.$subArea->id.',id,directorate_id,'.$request->directorate_id,
         ]);
 
         $subArea->update($request->all());
@@ -93,12 +96,14 @@ class SubAreaController extends Controller
     public function destroy(SubArea $subArea)
     {
         $subArea->delete();
+
         return redirect()->route('configuration.sub-areas.index')->with('success', 'تم حذف العزلة/المنطقة بنجاح');
     }
 
     public function getDirectorates($governorateId)
     {
         $directorates = Directorate::where('governorate_id', $governorateId)->get();
+
         return response()->json($directorates);
     }
 
@@ -113,9 +118,9 @@ class SubAreaController extends Controller
             'fields' => [
                 'governorate_id' => 'المحافظة',
                 'directorate_id' => 'المديرية',
-                'name' => 'العزلة / المنطقة'
+                'name' => 'العزلة / المنطقة',
             ],
-            'identity' => ['directorate_id', 'name']
+            'identity' => ['directorate_id', 'name'],
         ];
     }
 
@@ -130,7 +135,7 @@ class SubAreaController extends Controller
         $mode = session("pending_config_import_{$slug}_mode", 'append');
         $startRow = session("pending_config_import_{$slug}_start_row", 2);
 
-        if (!$filePath || !file_exists(storage_path('app/' . $filePath))) {
+        if (! $filePath || ! file_exists(storage_path('app/'.$filePath))) {
             return response()->json(['success' => false, 'message' => 'الملف غير موجود، حاول التحديث وإعادة الرفع.']);
         }
 
@@ -149,14 +154,14 @@ class SubAreaController extends Controller
                 'model' => $this->modelClass,
                 'fields' => $this->getImportConfig()['fields'],
                 'identity' => $this->getImportConfig()['identity'] ?? [],
-                'routeName' => $this->routeName ?? "configuration.$slug"
+                'routeName' => $this->routeName ?? "configuration.$slug",
             ];
 
             \App\Jobs\ProcessConfigurationImportJob::dispatch(
-                $sessionId, 
-                $filePath, 
-                $mapping, 
-                $mode, 
+                $sessionId,
+                $filePath,
+                $mapping,
+                $mode,
                 $config,
                 $startRow,
                 \App\Imports\SubAreaImporter::class // Use optimized importer
@@ -167,18 +172,18 @@ class SubAreaController extends Controller
                 "pending_config_import_{$slug}_headers",
                 "pending_config_import_{$slug}_mapping",
                 "pending_config_import_{$slug}_mode",
-                "pending_config_import_{$slug}_start_row"
+                "pending_config_import_{$slug}_start_row",
             ]);
 
             return response()->json([
-                'success' => true, 
+                'success' => true,
                 'message' => 'تم بدء الاستيراد السريع في الخلفية.',
                 'session_id' => $sessionId,
-                'is_async' => true
+                'is_async' => true,
             ]);
 
         } catch (\Exception $e) {
-            return response()->json(['success' => false, 'message' => 'حدث خطأ أثناء بدء الاستيراد: ' . $e->getMessage()]);
+            return response()->json(['success' => false, 'message' => 'حدث خطأ أثناء بدء الاستيراد: '.$e->getMessage()]);
         }
     }
 }

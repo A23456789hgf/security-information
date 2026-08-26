@@ -8,8 +8,6 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 use Maatwebsite\Excel\Facades\Excel;
 
 class ProcessConfigurationImportJob implements ShouldQueue
@@ -19,21 +17,27 @@ class ProcessConfigurationImportJob implements ShouldQueue
     public $timeout = 3600;
 
     private $sessionId;
+
     private $filePath;
+
     private $mapping;
+
     private $mode;
+
     private $config;
+
     private $startRow;
+
     private $importerClass;
 
     /**
-     * @param string $sessionId
-     * @param string $filePath
-     * @param array $mapping
-     * @param string $mode
-     * @param array $config [model, fields, identity, routeName]
-     * @param int $startRow
-     * @param string|null $importerClass
+     * @param  string  $sessionId
+     * @param  string  $filePath
+     * @param  array  $mapping
+     * @param  string  $mode
+     * @param  array  $config  [model, fields, identity, routeName]
+     * @param  int  $startRow
+     * @param  string|null  $importerClass
      */
     public function __construct($sessionId, $filePath, $mapping, $mode, $config, $startRow = 2, $importerClass = null)
     {
@@ -49,22 +53,25 @@ class ProcessConfigurationImportJob implements ShouldQueue
     public function handle()
     {
         $progress = ImportProgress::where('session_id', $this->sessionId)->first();
-        if (!$progress) return;
+        if (! $progress) {
+            return;
+        }
 
         $progress->update(['status' => 'processing']);
 
-        $fullPath = storage_path('app/' . $this->filePath);
-        if (!file_exists($fullPath)) {
+        $fullPath = storage_path('app/'.$this->filePath);
+        if (! file_exists($fullPath)) {
             $progress->update(['status' => 'failed', 'errors' => ['الملف غير موجود']]);
+
             return;
         }
 
         try {
             // Memory efficient import using chunks
             $importer = new $this->importerClass(
-                $this->sessionId, 
-                $this->mapping, 
-                $this->mode, 
+                $this->sessionId,
+                $this->mapping,
+                $this->mode,
                 $this->config,
                 $this->startRow
             );
@@ -80,7 +87,7 @@ class ProcessConfigurationImportJob implements ShouldQueue
         } catch (\Exception $e) {
             $progress->update([
                 'status' => 'failed',
-                'errors' => ["خطأ النظام: " . $e->getMessage()]
+                'errors' => ['خطأ النظام: '.$e->getMessage()],
             ]);
         }
     }

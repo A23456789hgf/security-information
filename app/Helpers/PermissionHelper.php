@@ -3,51 +3,53 @@
 namespace App\Helpers;
 
 use App\Models\Page;
+use Illuminate\Support\Facades\Cache;
 use Spatie\Permission\Models\Permission;
 
 class PermissionHelper
 {
     public static function getGrouped()
     {
-        $allPermissions = Permission::all();
-        
-        // 1. Dynamic Domains Grouping
-        $domains = [
-            'system' => 'إدارة النظام',
-            'configuration' => 'الإعدادات العامة (التكويد)',
-        ];
-
-        $grouped = [];
-        foreach ($domains as $dir => $label) {
-            $grouped[$label] = self::scanDirectory($dir);
-        }
-
-        // 2. Add Dynamic Page Permissions (from database)
-        $dynamicPages = Page::all();
-        $dynamicGroupLabel = 'صفحات مخصصة (ديناميكية)';
-        if ($dynamicPages->isNotEmpty()) {
-            foreach ($dynamicPages as $page) {
-                $pagePermissions = [];
-                foreach (['view', 'create', 'edit', 'delete'] as $op) {
-                    $permName = "{$op}_{$page->slug}";
-                    $permission = Permission::firstOrCreate(['name' => $permName, 'guard_name' => 'web']);
-                    $pagePermissions[$op] = $permission;
-                }
-                $grouped[$dynamicGroupLabel][] = [
-                    'name' => $page->name,
-                    'slug' => $page->slug,
-                    'permissions' => $pagePermissions
-                ];
+        return Cache::remember('permissions_grouped', 3600, function () {
+            // 1. Dynamic Domains Grouping
+            $domains = [
+                'system' => 'إدارة النظام',
+                'configuration' => 'الإعدادات العامة (التكويد)',
+            ];
+            $grouped = [];
+            foreach ($domains as $dir => $label) {
+                $grouped[$label] = self::scanDirectory($dir);
             }
-        }
 
-        return $grouped;
+            // 2. Add Dynamic Page Permissions (from database)
+            $dynamicPages = Page::all();
+            $dynamicGroupLabel = 'صفحات مخصصة (ديناميكية)';
+            if ($dynamicPages->isNotEmpty()) {
+                foreach ($dynamicPages as $page) {
+                    $pagePermissions = [];
+                    foreach (['view', 'create', 'edit', 'delete'] as $op) {
+                        $permName = "{$op}_{$page->slug}";
+                        $permission = Permission::firstOrCreate(['name' => $permName, 'guard_name' => 'web']);
+                        $pagePermissions[$op] = $permission;
+                    }
+                    $grouped[$dynamicGroupLabel][] = [
+                        'name' => $page->name,
+                        'slug' => $page->slug,
+                        'permissions' => $pagePermissions,
+                    ];
+                }
+            }
+
+            return $grouped;
+        });
     }
 
     private static function scanDirectory($directory)
     {
-        $viewPath = resource_path('views/' . $directory);
-        if (!is_dir($viewPath)) return [];
+        $viewPath = resource_path('views/'.$directory);
+        if (! is_dir($viewPath)) {
+            return [];
+        }
 
         $translations = [
             // Configuration
@@ -89,13 +91,15 @@ class PermissionHelper
         ];
 
         $items = [];
-        $dirs = array_filter(glob($viewPath . '/*'), 'is_dir');
+        $dirs = array_filter(glob($viewPath.'/*'), 'is_dir');
 
         foreach ($dirs as $dir) {
             $folderName = basename($dir);
-            if ($folderName === 'partials') continue;
+            if ($folderName === 'partials') {
+                continue;
+            }
 
-            $slug = $directory . '_' . $folderName;
+            $slug = $directory.'_'.$folderName;
             $displayName = $translations[$folderName] ?? $folderName;
 
             $pagePermissions = [];
@@ -108,12 +112,10 @@ class PermissionHelper
             $items[] = [
                 'name' => $displayName,
                 'slug' => $slug,
-                'permissions' => $pagePermissions
+                'permissions' => $pagePermissions,
             ];
         }
 
         return $items;
     }
-
-
 }

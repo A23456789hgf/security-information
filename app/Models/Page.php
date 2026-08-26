@@ -22,12 +22,14 @@ class Page extends Model
     protected static function booted()
     {
         static::created(function ($page) {
+            \Illuminate\Support\Facades\Cache::forget('sidebar_dynamic_sections');
             foreach (['view', 'create', 'edit', 'delete'] as $op) {
                 Permission::firstOrCreate(['name' => "{$op}_{$page->slug}", 'guard_name' => 'web']);
             }
         });
 
         static::updated(function ($page) {
+            \Illuminate\Support\Facades\Cache::forget('sidebar_dynamic_sections');
             if ($page->isDirty('slug')) {
                 $oldSlug = $page->getOriginal('slug');
                 foreach (['view', 'create', 'edit', 'delete'] as $op) {
@@ -40,6 +42,7 @@ class Page extends Model
         });
 
         static::deleted(function ($page) {
+            \Illuminate\Support\Facades\Cache::forget('sidebar_dynamic_sections');
             foreach (['view', 'create', 'edit', 'delete'] as $op) {
                 Permission::where('name', "{$op}_{$page->slug}")->delete();
             }

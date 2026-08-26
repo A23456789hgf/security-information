@@ -11,11 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
- Schema::create('blood_types', function (Blueprint $table) {
-    $table->id();
-    $table->string('type')->unique(); // فصيلة الدم
-    $table->timestamps();
-});
+        Schema::create('blood_types', function (Blueprint $table) {
+            $table->id();
+            $table->string('type')->unique(); // فصيلة الدم
+            $table->timestamps();
+        });
 
     }
 

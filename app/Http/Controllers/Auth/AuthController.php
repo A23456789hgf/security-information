@@ -17,6 +17,7 @@ class AuthController extends Controller
         if (Auth::check()) {
             return redirect()->route('dashboard');
         }
+
         return view('auth.login');
     }
 
@@ -30,7 +31,7 @@ class AuthController extends Controller
             'password' => ['required'],
         ]);
 
-        $remember = $request->has('remember');
+        $remember = $request->boolean('remember', true);
 
         if (Auth::attempt($credentials, $remember)) {
             $request->session()->regenerate();

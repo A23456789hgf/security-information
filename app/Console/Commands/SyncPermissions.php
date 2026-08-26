@@ -2,8 +2,8 @@
 
 namespace App\Console\Commands;
 
-use Illuminate\Console\Command;
 use App\Models\Page;
+use Illuminate\Console\Command;
 use Spatie\Permission\Models\Permission;
 
 class SyncPermissions extends Command
@@ -35,11 +35,11 @@ class SyncPermissions extends Command
             foreach ($ops as $op) {
                 $name = "{$op}_{$page->slug}";
                 $permission = Permission::where('name', $name)->where('guard_name', 'web')->first();
-                
-                if (!$permission) {
+
+                if (! $permission) {
                     Permission::create([
                         'name' => $name,
-                        'guard_name' => 'web'
+                        'guard_name' => 'web',
                     ]);
                     $this->info("Created permission: {$name}");
                     $count++;

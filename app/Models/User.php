@@ -7,12 +7,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
-
 use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
-    use HasApiTokens, HasFactory, Notifiable, HasRoles;
+    use HasApiTokens, HasFactory, HasRoles, Notifiable;
 
     /**
      * The attributes that are mass assignable.
@@ -33,6 +32,14 @@ class User extends Authenticatable
     public function internal_entity()
     {
         return $this->belongsTo(InternalEntity::class, 'internal_entity_id');
+    }
+
+    /**
+     * Accessor for administrative_scope_id (alias for internal_entity_id)
+     */
+    public function getAdministrativeScopeIdAttribute()
+    {
+        return $this->internal_entity_id;
     }
 
     /**

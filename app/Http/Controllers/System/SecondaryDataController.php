@@ -2,13 +2,17 @@
 
 namespace App\Http\Controllers\System;
 
+use App\Exports\UniversalExport;
 use App\Http\Controllers\Controller;
-use App\Models\BloodType;
-use App\Models\MaritalStatus;
+use App\Models\HealthStatus;
+use App\Models\IdeologicalAffiliation;
 use App\Models\PersonalData;
-use App\Models\Qualification;
+use App\Models\PoliticalAffiliation;
+use App\Models\PreviousJihadistAction;
+use App\Models\SecondaryAffiliation;
 use App\Models\SecondaryData;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class SecondaryDataController extends Controller
 {
@@ -17,7 +21,49 @@ class SecondaryDataController extends Controller
      */
     public function index(Request $request)
     {
-        $query = SecondaryData::with(['personalData', 'weapons']);
+        $query = SecondaryData::with([
+            'personalData.bloodType',
+            'personalData.maritalStatus',
+            'personalData.placeOfBirthDirectorate',
+            'personalData.governorate',
+            'personalData.directorate',
+            'personalData.village',
+            'healthStatus',
+            'weapons',
+            'affiliations.ideologicalAffiliation',
+            'affiliations.politicalAffiliation',
+            'previousJihadistActions',
+        ]);
+
+        if ($search = $request->input('search')) {
+            $query->whereHas('personalData', function ($q) use ($search) {
+                $q->where('name', 'like', "%$search%")
+                    ->orWhere('jihadi_name', 'like', "%$search%")
+                    ->orWhere('military_number', 'like', "%$search%");
+            });
+        }
+
+        if ($request->filled('health_status_id')) {
+            $query->where('health_status_id', $request->health_status_id);
+        }
+
+        $perPage = $request->input('per_page', 50);
+        $secondaryDataList = $query->paginate($perPage)->withQueryString();
+        $healthStatuses = HealthStatus::orderBy('name')->pluck('name', 'id');
+
+        return view('system.secondary_data.index', compact('secondaryDataList', 'healthStatuses'));
+    }
+
+    public function export(Request $request)
+    {
+        $query = SecondaryData::with([
+            'personalData',
+            'healthStatus',
+            'weapons',
+            'affiliations.ideologicalAffiliation',
+            'affiliations.politicalAffiliation',
+            'previousJihadistActions',
+        ]);
 
         if ($search = $request->input('search')) {
             $query->whereHas('personalData', function ($q) use ($search) {
@@ -26,10 +72,43 @@ class SecondaryDataController extends Controller
             });
         }
 
-        $perPage = $request->input('per_page', 50);
-        $secondaryDataList = $query->paginate($perPage);
+        if ($request->filled('health_status_id')) {
+            $query->where('health_status_id', $request->health_status_id);
+        }
 
-        return view('system.secondary_data.index', compact('secondaryDataList'));
+        $headings = [
+            'ID',
+            'الاسم الكامل',
+            'الاسم الجهادي',
+            'الحالة الصحية',
+            'عدد الأولاد الذكور',
+            'عدد الأولاد الإناث',
+            'إجمالي الأولاد',
+            'تاريخ الالتحاق/الانطلاقة',
+            'المشرف المباشر',
+            'عدد الأسلحة',
+            'عدد الانتماءات السابقة',
+            'عدد الأنشطة الجهادية السابقة',
+            'النشاط الحالي',
+        ];
+
+        return (new UniversalExport($query, $headings, function ($row) {
+            return [
+                $row->id,
+                $row->personalData->name ?? '-',
+                $row->personalData->jihadi_name ?? '-',
+                $row->healthStatus->name ?? '-',
+                $row->male_children_count ?? 0,
+                $row->female_children_count ?? 0,
+                $row->total_children_count ?? (($row->male_children_count ?? 0) + ($row->female_children_count ?? 0)),
+                $row->start_date ? $row->start_date->format('Y-m-d') : '-',
+                $row->direct_supervisor ?? '-',
+                $row->weapons->count(),
+                $row->affiliations->count(),
+                $row->previousJihadistActions->count(),
+                $row->current_jihadist_activity ?? '-',
+            ];
+        }))->download('secondary_data_'.date('Y-m-d').'.xlsx');
     }
 
     /**
@@ -37,18 +116,18 @@ class SecondaryDataController extends Controller
      */
     public function create(Request $request)
     {
-        $personalDataList = PersonalData::pluck('name', 'id');
+        $personalDataList = PersonalData::orderBy('name')->pluck('name', 'id');
         $selectedPersonalDataId = $request->query('personal_data_id');
-        $bloodTypes = BloodType::pluck('type', 'id');
-        $maritalStatuses = MaritalStatus::pluck('status', 'id');
-        $qualifications = Qualification::pluck('name', 'id');
+        $healthStatuses = HealthStatus::orderBy('name')->pluck('name', 'id');
+        $ideologicalAffiliations = IdeologicalAffiliation::orderBy('name')->pluck('name', 'id');
+        $politicalAffiliations = PoliticalAffiliation::orderBy('name')->pluck('name', 'id');
 
         return view('system.secondary_data.create', compact(
             'personalDataList',
             'selectedPersonalDataId',
-            'bloodTypes',
-            'maritalStatuses',
-            'qualifications'
+            'healthStatuses',
+            'ideologicalAffiliations',
+            'politicalAffiliations'
         ));
     }
 
@@ -59,32 +138,111 @@ class SecondaryDataController extends Controller
     {
         $request->validate([
             'personal_data_id' => 'required|exists:personal_data,id',
+            'health_status_id' => 'nullable|exists:health_statuses,id',
+            'male_children_count' => 'nullable|integer|min:0|max:100',
+            'female_children_count' => 'nullable|integer|min:0|max:100',
             'start_date' => 'nullable|date',
             'previous_jihadist_activity' => 'nullable|string',
             'current_jihadist_activity' => 'nullable|string',
             'direct_supervisor' => 'nullable|string|max:255',
+
+            // Weapons
             'weapons' => 'nullable|array',
             'weapons.*.weapon_type' => 'nullable|string|max:255',
             'weapons.*.number' => 'nullable|string|max:255',
             'weapons.*.ownership' => 'nullable|string|max:255',
             'weapons.*.tracking' => 'nullable|string|max:255',
+
+            // Affiliations (Political & Ideological)
+            'affiliations' => 'nullable|array',
+            'affiliations.*.party' => 'nullable|string|max:255',
+            'affiliations.*.ideological_affiliation_id' => 'nullable|exists:ideological_affiliations,id',
+            'affiliations.*.political_affiliation_id' => 'nullable|exists:political_affiliations,id',
+            'affiliations.*.affiliation_date' => 'nullable|date',
+            'affiliations.*.duration' => 'nullable|string|max:255',
+            'affiliations.*.workplace' => 'nullable|string|max:255',
+            'affiliations.*.job_type' => 'nullable|string|max:255',
+            'affiliations.*.direct_supervisor' => 'nullable|string|max:255',
+            'affiliations.*.leaving_date' => 'nullable|date',
+            'affiliations.*.leaving_reason' => 'nullable|string',
+
+            // Previous Jihadist Actions
+            'previous_jihadist_actions' => 'nullable|array',
+            'previous_jihadist_actions.*.activity' => 'nullable|string|max:500',
+            'previous_jihadist_actions.*.activity_date' => 'nullable|date',
+            'previous_jihadist_actions.*.duration' => 'nullable|string|max:255',
+            'previous_jihadist_actions.*.location' => 'nullable|string|max:255',
+            'previous_jihadist_actions.*.direct_supervisor' => 'nullable|string|max:255',
+            'previous_jihadist_actions.*.leaving_reason' => 'nullable|string',
         ]);
 
-        $secondaryData = SecondaryData::updateOrCreate(
-            ['personal_data_id' => $request->personal_data_id],
-            $request->only(['start_date', 'previous_jihadist_activity', 'current_jihadist_activity', 'direct_supervisor'])
-        );
+        $maleCount = (int) $request->input('male_children_count', 0);
+        $femaleCount = (int) $request->input('female_children_count', 0);
+        $totalCount = $maleCount + $femaleCount;
 
-        // Clear existing weapons if updating
-        $secondaryData->weapons()->delete();
+        DB::transaction(function () use ($request, $maleCount, $femaleCount, $totalCount) {
+            $secondaryData = SecondaryData::updateOrCreate(
+                ['personal_data_id' => $request->personal_data_id],
+                [
+                    'health_status_id' => $request->health_status_id ?: null,
+                    'male_children_count' => $maleCount,
+                    'female_children_count' => $femaleCount,
+                    'total_children_count' => $totalCount,
+                    'start_date' => $request->start_date,
+                    'previous_jihadist_activity' => $request->previous_jihadist_activity,
+                    'current_jihadist_activity' => $request->current_jihadist_activity,
+                    'direct_supervisor' => $request->direct_supervisor,
+                ]
+            );
 
-        if ($request->has('weapons')) {
-            foreach ($request->weapons as $weaponData) {
-                if (!empty($weaponData['weapon_type']) || !empty($weaponData['number'])) {
-                    $secondaryData->weapons()->create($weaponData);
+            // Sync Weapons
+            $secondaryData->weapons()->delete();
+            if ($request->has('weapons')) {
+                foreach ($request->weapons as $weaponData) {
+                    if (! empty($weaponData['weapon_type']) || ! empty($weaponData['number'])) {
+                        $secondaryData->weapons()->create($weaponData);
+                    }
                 }
             }
-        }
+
+            // Sync Political & Ideological Affiliations
+            $secondaryData->affiliations()->delete();
+            if ($request->has('affiliations')) {
+                foreach ($request->affiliations as $aff) {
+                    if (! empty($aff['party']) || ! empty($aff['ideological_affiliation_id']) || ! empty($aff['political_affiliation_id']) || ! empty($aff['workplace']) || ! empty($aff['job_type']) || ! empty($aff['direct_supervisor'])) {
+                        $secondaryData->affiliations()->create([
+                            'party' => $aff['party'] ?? null,
+                            'ideological_affiliation_id' => $aff['ideological_affiliation_id'] ?: null,
+                            'political_affiliation_id' => $aff['political_affiliation_id'] ?: null,
+                            'affiliation_date' => $aff['affiliation_date'] ?: null,
+                            'duration' => $aff['duration'] ?? null,
+                            'workplace' => $aff['workplace'] ?? null,
+                            'job_type' => $aff['job_type'] ?? null,
+                            'direct_supervisor' => $aff['direct_supervisor'] ?? null,
+                            'leaving_date' => $aff['leaving_date'] ?: null,
+                            'leaving_reason' => $aff['leaving_reason'] ?? null,
+                        ]);
+                    }
+                }
+            }
+
+            // Sync Previous Jihadist Actions
+            $secondaryData->previousJihadistActions()->delete();
+            if ($request->has('previous_jihadist_actions')) {
+                foreach ($request->previous_jihadist_actions as $act) {
+                    if (! empty($act['activity']) || ! empty($act['location']) || ! empty($act['direct_supervisor'])) {
+                        $secondaryData->previousJihadistActions()->create([
+                            'activity' => $act['activity'] ?? null,
+                            'activity_date' => $act['activity_date'] ?: null,
+                            'duration' => $act['duration'] ?? null,
+                            'location' => $act['location'] ?? null,
+                            'direct_supervisor' => $act['direct_supervisor'] ?? null,
+                            'leaving_reason' => $act['leaving_reason'] ?? null,
+                        ]);
+                    }
+                }
+            }
+        });
 
         return redirect()->route('system.secondary-data.index')
             ->with('success', 'تم حفظ البيانات الثانوية بنجاح');
@@ -95,7 +253,19 @@ class SecondaryDataController extends Controller
      */
     public function show(SecondaryData $secondaryData)
     {
-        $secondaryData->load(['personalData', 'weapons']);
+        $secondaryData->load([
+            'personalData.bloodType',
+            'personalData.maritalStatus',
+            'personalData.placeOfBirthDirectorate',
+            'personalData.governorate',
+            'personalData.directorate',
+            'personalData.village',
+            'healthStatus',
+            'weapons',
+            'affiliations.ideologicalAffiliation',
+            'affiliations.politicalAffiliation',
+            'previousJihadistActions',
+        ]);
 
         return view('system.secondary_data.show', compact('secondaryData'));
     }
@@ -105,10 +275,27 @@ class SecondaryDataController extends Controller
      */
     public function edit(SecondaryData $secondaryData)
     {
-        $secondaryData->load(['personalData', 'weapons']);
-        $personalDataList = PersonalData::pluck('name', 'id');
+        $secondaryData->load([
+            'personalData',
+            'healthStatus',
+            'weapons',
+            'affiliations.ideologicalAffiliation',
+            'affiliations.politicalAffiliation',
+            'previousJihadistActions',
+        ]);
 
-        return view('system.secondary_data.edit', compact('secondaryData', 'personalDataList'));
+        $personalDataList = PersonalData::orderBy('name')->pluck('name', 'id');
+        $healthStatuses = HealthStatus::orderBy('name')->pluck('name', 'id');
+        $ideologicalAffiliations = IdeologicalAffiliation::orderBy('name')->pluck('name', 'id');
+        $politicalAffiliations = PoliticalAffiliation::orderBy('name')->pluck('name', 'id');
+
+        return view('system.secondary_data.edit', compact(
+            'secondaryData',
+            'personalDataList',
+            'healthStatuses',
+            'ideologicalAffiliations',
+            'politicalAffiliations'
+        ));
     }
 
     /**
@@ -118,35 +305,109 @@ class SecondaryDataController extends Controller
     {
         $request->validate([
             'personal_data_id' => 'required|exists:personal_data,id',
+            'health_status_id' => 'nullable|exists:health_statuses,id',
+            'male_children_count' => 'nullable|integer|min:0|max:100',
+            'female_children_count' => 'nullable|integer|min:0|max:100',
             'start_date' => 'nullable|date',
             'previous_jihadist_activity' => 'nullable|string',
             'current_jihadist_activity' => 'nullable|string',
             'direct_supervisor' => 'nullable|string|max:255',
+
+            // Weapons
             'weapons' => 'nullable|array',
             'weapons.*.weapon_type' => 'nullable|string|max:255',
             'weapons.*.number' => 'nullable|string|max:255',
             'weapons.*.ownership' => 'nullable|string|max:255',
             'weapons.*.tracking' => 'nullable|string|max:255',
+
+            // Affiliations (Political & Ideological)
+            'affiliations' => 'nullable|array',
+            'affiliations.*.party' => 'nullable|string|max:255',
+            'affiliations.*.ideological_affiliation_id' => 'nullable|exists:ideological_affiliations,id',
+            'affiliations.*.political_affiliation_id' => 'nullable|exists:political_affiliations,id',
+            'affiliations.*.affiliation_date' => 'nullable|date',
+            'affiliations.*.duration' => 'nullable|string|max:255',
+            'affiliations.*.workplace' => 'nullable|string|max:255',
+            'affiliations.*.job_type' => 'nullable|string|max:255',
+            'affiliations.*.direct_supervisor' => 'nullable|string|max:255',
+            'affiliations.*.leaving_date' => 'nullable|date',
+            'affiliations.*.leaving_reason' => 'nullable|string',
+
+            // Previous Jihadist Actions
+            'previous_jihadist_actions' => 'nullable|array',
+            'previous_jihadist_actions.*.activity' => 'nullable|string|max:500',
+            'previous_jihadist_actions.*.activity_date' => 'nullable|date',
+            'previous_jihadist_actions.*.duration' => 'nullable|string|max:255',
+            'previous_jihadist_actions.*.location' => 'nullable|string|max:255',
+            'previous_jihadist_actions.*.direct_supervisor' => 'nullable|string|max:255',
+            'previous_jihadist_actions.*.leaving_reason' => 'nullable|string',
         ]);
 
-        $secondaryData->update($request->only([
-            'personal_data_id',
-            'start_date',
-            'previous_jihadist_activity',
-            'current_jihadist_activity',
-            'direct_supervisor',
-        ]));
+        $maleCount = (int) $request->input('male_children_count', 0);
+        $femaleCount = (int) $request->input('female_children_count', 0);
+        $totalCount = $maleCount + $femaleCount;
 
-        // Clear existing weapons and re-add
-        $secondaryData->weapons()->delete();
+        DB::transaction(function () use ($request, $secondaryData, $maleCount, $femaleCount, $totalCount) {
+            $secondaryData->update([
+                'personal_data_id' => $request->personal_data_id,
+                'health_status_id' => $request->health_status_id ?: null,
+                'male_children_count' => $maleCount,
+                'female_children_count' => $femaleCount,
+                'total_children_count' => $totalCount,
+                'start_date' => $request->start_date,
+                'previous_jihadist_activity' => $request->previous_jihadist_activity,
+                'current_jihadist_activity' => $request->current_jihadist_activity,
+                'direct_supervisor' => $request->direct_supervisor,
+            ]);
 
-        if ($request->has('weapons')) {
-            foreach ($request->weapons as $weaponData) {
-                if (!empty($weaponData['weapon_type']) || !empty($weaponData['number'])) {
-                    $secondaryData->weapons()->create($weaponData);
+            // Sync Weapons
+            $secondaryData->weapons()->delete();
+            if ($request->has('weapons')) {
+                foreach ($request->weapons as $weaponData) {
+                    if (! empty($weaponData['weapon_type']) || ! empty($weaponData['number'])) {
+                        $secondaryData->weapons()->create($weaponData);
+                    }
                 }
             }
-        }
+
+            // Sync Political & Ideological Affiliations
+            $secondaryData->affiliations()->delete();
+            if ($request->has('affiliations')) {
+                foreach ($request->affiliations as $aff) {
+                    if (! empty($aff['party']) || ! empty($aff['ideological_affiliation_id']) || ! empty($aff['political_affiliation_id']) || ! empty($aff['workplace']) || ! empty($aff['job_type']) || ! empty($aff['direct_supervisor'])) {
+                        $secondaryData->affiliations()->create([
+                            'party' => $aff['party'] ?? null,
+                            'ideological_affiliation_id' => $aff['ideological_affiliation_id'] ?: null,
+                            'political_affiliation_id' => $aff['political_affiliation_id'] ?: null,
+                            'affiliation_date' => $aff['affiliation_date'] ?: null,
+                            'duration' => $aff['duration'] ?? null,
+                            'workplace' => $aff['workplace'] ?? null,
+                            'job_type' => $aff['job_type'] ?? null,
+                            'direct_supervisor' => $aff['direct_supervisor'] ?? null,
+                            'leaving_date' => $aff['leaving_date'] ?: null,
+                            'leaving_reason' => $aff['leaving_reason'] ?? null,
+                        ]);
+                    }
+                }
+            }
+
+            // Sync Previous Jihadist Actions
+            $secondaryData->previousJihadistActions()->delete();
+            if ($request->has('previous_jihadist_actions')) {
+                foreach ($request->previous_jihadist_actions as $act) {
+                    if (! empty($act['activity']) || ! empty($act['location']) || ! empty($act['direct_supervisor'])) {
+                        $secondaryData->previousJihadistActions()->create([
+                            'activity' => $act['activity'] ?? null,
+                            'activity_date' => $act['activity_date'] ?: null,
+                            'duration' => $act['duration'] ?? null,
+                            'location' => $act['location'] ?? null,
+                            'direct_supervisor' => $act['direct_supervisor'] ?? null,
+                            'leaving_reason' => $act['leaving_reason'] ?? null,
+                        ]);
+                    }
+                }
+            }
+        });
 
         return redirect()->route('system.secondary-data.index')
             ->with('success', 'تم تحديث البيانات الثانوية بنجاح');

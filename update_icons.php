@@ -1,7 +1,7 @@
 <?php
 
 $iterator = new RecursiveIteratorIterator(
-    new RecursiveDirectoryIterator(__DIR__ . '/resources/views')
+    new RecursiveDirectoryIterator(__DIR__.'/resources/views')
 );
 
 $files = [];
@@ -9,8 +9,8 @@ foreach ($iterator as $file) {
     if ($file->isFile() && $file->getBasename() === 'index.blade.php') {
         // Only target system and configuration folders
         $path = $file->getPathname();
-        if (strpos($path, 'resources' . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . 'system') !== false ||
-            strpos($path, 'resources' . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . 'configuration') !== false) {
+        if (strpos($path, 'resources'.DIRECTORY_SEPARATOR.'views'.DIRECTORY_SEPARATOR.'system') !== false ||
+            strpos($path, 'resources'.DIRECTORY_SEPARATOR.'views'.DIRECTORY_SEPARATOR.'configuration') !== false) {
             $files[] = $path;
         }
     }
@@ -23,8 +23,12 @@ $svgEdit = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="cu
 $svgDelete = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5"><path fill-rule="evenodd" d="M8.75 1A2.75 2.75 0 006 3.75V4H5a2 2 0 00-2 2v.25C3 6.664 3.336 7 3.75 7h12.5a.75.75 0 000-1.5h-.25V4A2.75 2.75 0 0013.25 1h-4.5zM6 5.5v-1.75C6 3.224 6.448 2.75 7 2.75h6c.552 0 1 .474 1 1V5.5H6z" clip-rule="evenodd" /><path d="M4 8.25V15.5A2.75 2.75 0 006.75 18.25h6.5A2.75 2.75 0 0016 15.5V8.25H4zM7.5 10a.75.75 0 01.75.75v4.5a.75.75 0 01-1.5 0v-4.5A.75.75 0 017.5 10zm5.25.75a.75.75 0 00-1.5 0v4.5a.75.75 0 001.5 0v-4.5z" /></svg>';
 
 foreach ($files as $file) {
-    if (strpos($file, 'personal_data') !== false) continue;
-    if (strpos($file, 'wives') !== false) continue; // Already manually updated
+    if (strpos($file, 'personal_data') !== false) {
+        continue;
+    }
+    if (strpos($file, 'wives') !== false) {
+        continue;
+    } // Already manually updated
 
     $content = file_get_contents($file);
     $original = $content;
@@ -82,21 +86,21 @@ foreach ($files as $file) {
     // Edit icon
     $content = preg_replace(
         '/<a href="([^"]+)"\s*class="w-9 h-9 flex items-center justify-center rounded-xl bg-amber-50 text-amber-600 hover:bg-amber-500 hover:text-white transition-all shadow-sm"\s*title="تعديل">\s*<i class="fas fa-edit text-sm"><\/i>\s*<\/a>/s',
-        '<a href="$1" class="w-9 h-9 flex items-center justify-center rounded-lg bg-amber-100 text-amber-700 hover:bg-amber-600 hover:text-white shadow-sm transition-all" title="تعديل">' . "\n                                            " . $svgEdit . "\n                                        " . '</a>',
+        '<a href="$1" class="w-9 h-9 flex items-center justify-center rounded-lg bg-amber-100 text-amber-700 hover:bg-amber-600 hover:text-white shadow-sm transition-all" title="تعديل">'."\n                                            ".$svgEdit."\n                                        ".'</a>',
         $content
     );
 
     // Delete icon
     $content = preg_replace(
         '/<button type="submit"\s*class="w-9 h-9 flex items-center justify-center rounded-xl bg-rose-50 text-rose-600 hover:bg-rose-500 hover:text-white transition-all shadow-sm"\s*title="حذف">\s*<i class="fas fa-trash text-sm"><\/i>\s*<\/button>/s',
-        '<button type="submit" class="w-9 h-9 flex items-center justify-center rounded-lg bg-rose-100 text-rose-700 hover:bg-rose-600 hover:text-white shadow-sm transition-all" title="حذف">' . "\n                                                " . $svgDelete . "\n                                            " . '</button>',
+        '<button type="submit" class="w-9 h-9 flex items-center justify-center rounded-lg bg-rose-100 text-rose-700 hover:bg-rose-600 hover:text-white shadow-sm transition-all" title="حذف">'."\n                                                ".$svgDelete."\n                                            ".'</button>',
         $content
     );
 
     // View icon (if any)
     $content = preg_replace(
         '/<a href="([^"]+)"\s*class="w-9 h-9 flex items-center justify-center rounded-xl bg-blue-50 text-blue-600 hover:bg-blue-500 hover:text-white transition-all shadow-sm"\s*title="عرض">\s*<i class="fas fa-eye text-sm"><\/i>\s*<\/a>/s',
-        '<a href="$1" class="w-9 h-9 flex items-center justify-center rounded-lg bg-blue-100 text-blue-700 hover:bg-blue-600 hover:text-white shadow-sm transition-all" title="عرض">' . "\n                                            " . $svgView . "\n                                        " . '</a>',
+        '<a href="$1" class="w-9 h-9 flex items-center justify-center rounded-lg bg-blue-100 text-blue-700 hover:bg-blue-600 hover:text-white shadow-sm transition-all" title="عرض">'."\n                                            ".$svgView."\n                                        ".'</a>',
         $content
     );
 

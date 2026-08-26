@@ -3,9 +3,8 @@
 @section('title', 'استيراد بيانات - ' . $title)
 
 @section('content')
-<!-- Select2 CSS -->
-<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
+<!-- Select2 CSS (Local) -->
+<link href="{{ asset('vendor/select2/select2.min.css') }}" rel="stylesheet" />
 
 <div class="container-fluid mt-4" dir="rtl">
     <div class="row mb-4">
@@ -301,8 +300,8 @@
 </style>
 
 @push('scripts')
-<!-- Select2 JS -->
-<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<!-- Select2 JS (Local) -->
+<script src="{{ asset('vendor/select2/select2.min.js') }}"></script>
 <script>
 $(document).ready(function() {
     let type = '{{ $type }}';

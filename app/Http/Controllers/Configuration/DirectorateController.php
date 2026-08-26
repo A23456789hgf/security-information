@@ -8,11 +8,16 @@ use Illuminate\Http\Request;
 
 class DirectorateController extends BaseConfigurationController
 {
-    protected $modelClass        = Directorate::class;
-    protected $viewPath          = 'configuration.directorates';
-    protected $routeName         = 'configuration.directorates';
-    protected $field             = 'name';
-    protected $variableName      = 'directorate';
+    protected $modelClass = Directorate::class;
+
+    protected $viewPath = 'configuration.directorates';
+
+    protected $routeName = 'configuration.directorates';
+
+    protected $field = 'name';
+
+    protected $variableName = 'directorate';
+
     protected $pluralVariableName = 'directorates';
 
     public function index(Request $request)
@@ -35,31 +40,35 @@ class DirectorateController extends BaseConfigurationController
         $governorates = Governorate::all();
 
         $routeName = $this->routeName;
-        return view($this->viewPath . '.index', compact('directorates', 'governorates', 'routeName'));
+
+        return view($this->viewPath.'.index', compact('directorates', 'governorates', 'routeName'));
     }
 
     public function create()
     {
         $governorates = Governorate::all();
-        return view($this->viewPath . '.create', compact('governorates'));
+
+        return view($this->viewPath.'.create', compact('governorates'));
     }
 
     public function store(Request $request)
     {
         $request->validate([
             'governorate_id' => 'required|exists:governorates,id',
-            'name'           => 'required|string|max:255|unique:directorates,name,NULL,id,governorate_id,' . $request->governorate_id,
+            'name' => 'required|string|max:255|unique:directorates,name,NULL,id,governorate_id,'.$request->governorate_id,
         ]);
 
         Directorate::create($request->only('governorate_id', 'name'));
-        return redirect()->route($this->routeName . '.index')->with('success', 'تمت الإضافة بنجاح');
+
+        return redirect()->route($this->routeName.'.index')->with('success', 'تمت الإضافة بنجاح');
     }
 
     public function edit($id)
     {
-        $directorate  = Directorate::findOrFail($id);
+        $directorate = Directorate::findOrFail($id);
         $governorates = Governorate::all();
-        return view($this->viewPath . '.edit', compact('directorate', 'governorates'));
+
+        return view($this->viewPath.'.edit', compact('directorate', 'governorates'));
     }
 
     public function update(Request $request, $id)
@@ -67,24 +76,26 @@ class DirectorateController extends BaseConfigurationController
         $directorate = Directorate::findOrFail($id);
         $request->validate([
             'governorate_id' => 'required|exists:governorates,id',
-            'name'           => 'required|string|max:255|unique:directorates,name,' . $id . ',id,governorate_id,' . $request->governorate_id,
+            'name' => 'required|string|max:255|unique:directorates,name,'.$id.',id,governorate_id,'.$request->governorate_id,
         ]);
 
         $directorate->update($request->only('governorate_id', 'name'));
-        return redirect()->route($this->routeName . '.index')->with('success', 'تم التحديث بنجاح');
+
+        return redirect()->route($this->routeName.'.index')->with('success', 'تم التحديث بنجاح');
     }
 
     public function destroy($id)
     {
         Directorate::findOrFail($id)->delete();
-        return redirect()->route($this->routeName . '.index')->with('success', 'تم الحذف بنجاح');
+
+        return redirect()->route($this->routeName.'.index')->with('success', 'تم الحذف بنجاح');
     }
 
     protected function getImportConfig()
     {
         return [
             'fields' => ['governorate_id' => 'المحافظة', 'name' => 'المديرية'],
-            'identity' => ['governorate_id', 'name']
+            'identity' => ['governorate_id', 'name'],
         ];
     }
 }

@@ -16,12 +16,15 @@ class DataDifferentiationController extends Controller
         $tableId = session('current_data_table_id');
         if ($tableId) {
             $table = \App\Models\DataTable::find($tableId);
-            if ($table) return $table;
+            if ($table) {
+                return $table;
+            }
         }
-        
+
         $table = \App\Models\DataTable::where('type', request('origin', 'default'))->latest()->first();
         if ($table) {
             session(['current_data_table_id' => $table->id]);
+
             return $table;
         }
 
@@ -33,11 +36,11 @@ class DataDifferentiationController extends Controller
      */
     private function getOrCreateResultsTable($primaryTable)
     {
-        if (!$primaryTable) {
+        if (! $primaryTable) {
             return \App\Models\DataTable::create([
-                'name' => 'Differentiation Results ' . now()->format('Y-m-d H:i'),
+                'name' => 'Differentiation Results '.now()->format('Y-m-d H:i'),
                 'type' => 'differentiation-results',
-                'column_headers' => []
+                'column_headers' => [],
             ]);
         }
 
@@ -46,12 +49,12 @@ class DataDifferentiationController extends Controller
             ->latest()
             ->first();
 
-        if (!$resultsTable) {
+        if (! $resultsTable) {
             $resultsTable = \App\Models\DataTable::create([
-                'name' => 'Differentiation Results ' . now()->format('Y-m-d H:i'),
+                'name' => 'Differentiation Results '.now()->format('Y-m-d H:i'),
                 'type' => 'differentiation-results',
                 'parent_table_id' => $primaryTable->id,
-                'column_headers' => []
+                'column_headers' => [],
             ]);
         }
 
@@ -66,13 +69,13 @@ class DataDifferentiationController extends Controller
         $table = $this->getCurrentTable();
         $primaryColumns = $table ? $table->column_headers : [];
         $primaryData = $table ? $table->records()->orderBy('sequence')->get()->pluck('data')->toArray() : [];
-        
+
         $resultsTableId = session('differentiation_results_table_id');
         $resultsTable = null;
         if ($resultsTableId) {
             $resultsTable = \App\Models\DataTable::find($resultsTableId);
         }
-        
+
         if ($resultsTable) {
             $secondaryColumns = $resultsTable->column_headers ?? [];
             $secondaryData = $resultsTable->records()->orderBy('sequence')->get()->pluck('data')->toArray();
@@ -82,12 +85,12 @@ class DataDifferentiationController extends Controller
             $secondaryData = session('secondary_data', []);
             $results = session('differentiation_results', null);
         }
-        
+
         return view('data.differentiation.index', compact(
-            'primaryColumns', 
-            'primaryData', 
-            'secondaryColumns', 
-            'secondaryData', 
+            'primaryColumns',
+            'primaryData',
+            'secondaryColumns',
+            'secondaryData',
             'results'
         ));
     }
@@ -98,7 +101,7 @@ class DataDifferentiationController extends Controller
     public function analyze(Request $request)
     {
         $request->validate([
-            'excel_file' => 'required|file|mimes:xlsx,xls,csv'
+            'excel_file' => 'required|file|mimes:xlsx,xls,csv',
         ]);
 
         $file = $request->file('excel_file');
@@ -114,18 +117,18 @@ class DataDifferentiationController extends Controller
         $primaryColumns = $table ? $table->column_headers : [];
 
         $results = $this->performDifferentiation($primaryData, $secondaryData, $primaryColumns);
-        
+
         $resultsTable = $this->getOrCreateResultsTable($table);
         $resultsTable->update([
             'column_headers' => $secondaryHeaders,
-            'differentiation_results' => $results
+            'differentiation_results' => $results,
         ]);
 
         $resultsTable->records()->delete();
         foreach ($secondaryData as $index => $row) {
             $resultsTable->records()->create([
                 'data' => $row,
-                'sequence' => $index
+                'sequence' => $index,
             ]);
         }
 
@@ -137,7 +140,7 @@ class DataDifferentiationController extends Controller
         return response()->json([
             'success' => true,
             'results' => $results,
-            'secondary_count' => count($secondaryData)
+            'secondary_count' => count($secondaryData),
         ]);
     }
 
@@ -219,7 +222,7 @@ class DataDifferentiationController extends Controller
                 }
 
                 // With last difference variants
-                if (!$lastFieldMatch) {
+                if (! $lastFieldMatch) {
                     if ($matchCount === 1) {
                         $results['single_last_diff']['count']++;
                         $results['single_last_diff']['matches'][] = ['primary' => $priIndex, 'secondary' => $secIndex];
@@ -257,9 +260,9 @@ class DataDifferentiationController extends Controller
                 }
             }
         }
-        
+
         foreach ($secondaryData as $secIndex => $secRow) {
-            if (!isset($matchedSecondary[$secIndex])) {
+            if (! isset($matchedSecondary[$secIndex])) {
                 $results['net']['count']++;
                 $results['net']['matches'][] = ['secondary' => $secIndex];
             }
@@ -275,13 +278,13 @@ class DataDifferentiationController extends Controller
     {
         $count = 0;
         $minLength = min(count($row1), count($row2));
-        
+
         for ($i = 0; $i < $minLength; $i++) {
             if ($this->normalizeValue($row1[$i]) === $this->normalizeValue($row2[$i])) {
                 $count++;
             }
         }
-        
+
         return $count;
     }
 
@@ -290,11 +293,13 @@ class DataDifferentiationController extends Controller
      */
     private function checkLastFieldMatch($row1, $row2)
     {
-        if (empty($row1) || empty($row2)) return false;
-        
+        if (empty($row1) || empty($row2)) {
+            return false;
+        }
+
         $last1 = $this->normalizeValue(end($row1));
         $last2 = $this->normalizeValue(end($row2));
-        
+
         return $last1 === $last2;
     }
 
@@ -305,13 +310,13 @@ class DataDifferentiationController extends Controller
     {
         $totalDiff = 0;
         $minLength = min(count($row1), count($row2));
-        
+
         for ($i = 0; $i < $minLength; $i++) {
             $val1 = $this->normalizeValue($row1[$i]);
             $val2 = $this->normalizeValue($row2[$i]);
             $totalDiff += levenshtein($val1, $val2);
         }
-        
+
         return $totalDiff;
     }
 
@@ -320,8 +325,11 @@ class DataDifferentiationController extends Controller
      */
     private function normalizeValue($value)
     {
-        if ($value === null) return '';
-        return mb_strtolower(trim((string)$value));
+        if ($value === null) {
+            return '';
+        }
+
+        return mb_strtolower(trim((string) $value));
     }
 
     /**
@@ -334,13 +342,13 @@ class DataDifferentiationController extends Controller
             $resultsTable = \App\Models\DataTable::find($resultsTableId);
             if ($resultsTable && $resultsTable->differentiation_results) {
                 return response()->json([
-                    'results' => $resultsTable->differentiation_results
+                    'results' => $resultsTable->differentiation_results,
                 ]);
             }
         }
-        
+
         return response()->json([
-            'results' => session('differentiation_results', null)
+            'results' => session('differentiation_results', null),
         ]);
     }
 
@@ -350,13 +358,13 @@ class DataDifferentiationController extends Controller
     public function getMatchDetail(Request $request)
     {
         $type = $request->input('type');
-        
+
         $resultsTableId = session('differentiation_results_table_id');
         $resultsTable = null;
         if ($resultsTableId) {
             $resultsTable = \App\Models\DataTable::find($resultsTableId);
         }
-        
+
         if ($resultsTable) {
             $secondaryData = $resultsTable->records()->orderBy('sequence')->get()->pluck('data')->toArray();
             $secondaryColumns = $resultsTable->column_headers ?? [];
@@ -366,19 +374,19 @@ class DataDifferentiationController extends Controller
             $secondaryColumns = session('secondary_columns', []);
             $results = session('differentiation_results', []);
         }
-        
+
         $table = $this->getCurrentTable();
         $primaryData = $table ? $table->records()->orderBy('sequence')->get()->pluck('data')->toArray() : [];
         $primaryColumns = $table ? $table->column_headers : [];
-        
+
         $details = [];
-        
+
         if (isset($results[$type])) {
             foreach ($results[$type]['matches'] as $match) {
                 $detail = [
                     'primary' => isset($match['primary']) ? $primaryData[$match['primary']] ?? null : null,
                     'secondary' => isset($match['secondary']) ? $secondaryData[$match['secondary']] ?? null : null,
-                    'secondary_index' => $match['secondary'] ?? null
+                    'secondary_index' => $match['secondary'] ?? null,
                 ];
                 $details[] = $detail;
             }
@@ -389,7 +397,7 @@ class DataDifferentiationController extends Controller
             'label' => $results[$type]['label'] ?? '',
             'details' => $details,
             'primary_columns' => $primaryColumns,
-            'secondary_columns' => $secondaryColumns
+            'secondary_columns' => $secondaryColumns,
         ]);
     }
 
@@ -400,16 +408,16 @@ class DataDifferentiationController extends Controller
     {
         $table = $this->getCurrentTable();
         $secondaryData = session('secondary_data', []);
-        
+
         if (empty($secondaryData)) {
             return response()->json(['success' => false, 'message' => 'لا توجد بيانات مرجعية للدمج']);
         }
 
-        if (!$table) {
+        if (! $table) {
             $table = \App\Models\DataTable::create([
-                'name' => 'Integrated Data ' . now()->format('Y-m-d H:i'),
+                'name' => 'Integrated Data '.now()->format('Y-m-d H:i'),
                 'type' => request('origin', 'default'),
-                'column_headers' => session('secondary_columns', [])
+                'column_headers' => session('secondary_columns', []),
             ]);
             session(['current_data_table_id' => $table->id]);
         }
@@ -419,12 +427,12 @@ class DataDifferentiationController extends Controller
         foreach ($secondaryData as $index => $row) {
             $table->records()->create([
                 'data' => $row,
-                'sequence' => $lastSequence + $index + 1
+                'sequence' => $lastSequence + $index + 1,
             ]);
         }
 
         $primaryData = $table->records()->orderBy('sequence')->get()->pluck('data')->toArray();
-        
+
         session(['data_rows' => $primaryData]);
 
         return response()->json(['success' => true, 'message' => 'تم دمج جميع البيانات بنجاح']);
@@ -437,14 +445,14 @@ class DataDifferentiationController extends Controller
     {
         $indices = $request->input('indices', []);
         $secondaryData = session('secondary_data', []);
-        
+
         $table = $this->getCurrentTable();
-        
-        if (!$table) {
+
+        if (! $table) {
             $table = \App\Models\DataTable::create([
-                'name' => 'Integrated Data ' . now()->format('Y-m-d H:i'),
+                'name' => 'Integrated Data '.now()->format('Y-m-d H:i'),
                 'type' => request('origin', 'default'),
-                'column_headers' => session('secondary_columns', [])
+                'column_headers' => session('secondary_columns', []),
             ]);
             session(['current_data_table_id' => $table->id]);
         }
@@ -456,15 +464,16 @@ class DataDifferentiationController extends Controller
             if (isset($secondaryData[$index])) {
                 $table->records()->create([
                     'data' => $secondaryData[$index],
-                    'sequence' => $lastSequence + $addedCount + 1
+                    'sequence' => $lastSequence + $addedCount + 1,
                 ]);
                 $addedCount++;
             }
         }
 
         $primaryData = $table->records()->orderBy('sequence')->get()->pluck('data')->toArray();
-        
+
         session(['data_rows' => $primaryData]);
+
         return response()->json(['success' => true, 'message' => 'تم دمج السجلات المختارة بنجاح']);
     }
 
@@ -476,12 +485,12 @@ class DataDifferentiationController extends Controller
         $name = $request->input('name', 'عمود جديد');
         $columns = session('secondary_columns', []);
         $data = session('secondary_data', []);
-        
+
         $columns[] = $name;
         foreach ($data as &$row) {
             $row[] = '';
         }
-        
+
         $resultsTableId = session('differentiation_results_table_id');
         if ($resultsTableId) {
             $resultsTable = \App\Models\DataTable::find($resultsTableId);
@@ -494,10 +503,10 @@ class DataDifferentiationController extends Controller
                 }
             }
         }
-        
+
         session(['secondary_columns' => $columns]);
         session(['secondary_data' => $data]);
-        
+
         return response()->json(['success' => true]);
     }
 }

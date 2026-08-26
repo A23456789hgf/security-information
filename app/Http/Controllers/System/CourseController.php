@@ -2,13 +2,14 @@
 
 namespace App\Http\Controllers\System;
 
+use App\Exports\UniversalExport;
 use App\Http\Controllers\Controller;
 use App\Models\Course;
 use App\Models\CourseType;
-use App\Models\FillingAgency;
-use App\Models\PersonalData;
-use App\Models\Governorate;
 use App\Models\Directorate;
+use App\Models\FillingAgency;
+use App\Models\Governorate;
+use App\Models\PersonalData;
 use App\Models\SubArea;
 use App\Models\Village;
 use Illuminate\Http\Request;
@@ -20,14 +21,14 @@ class CourseController extends Controller
         $query = Course::with('personalData', 'courseType', 'sendingEntity');
 
         if ($search = $request->input('search')) {
-            $query->where(function($q) use ($search) {
-                $q->whereHas('personalData', function($subQuery) use ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->whereHas('personalData', function ($subQuery) use ($search) {
                     $subQuery->where('name', 'like', "%$search%");
                 })
-                ->orWhereHas('courseType', function($subQuery) use ($search) {
-                    $subQuery->where('name', 'like', "%$search%");
-                })
-                ->orWhere('course_administrator', 'like', "%$search%");
+                    ->orWhereHas('courseType', function ($subQuery) use ($search) {
+                        $subQuery->where('name', 'like', "%$search%");
+                    })
+                    ->orWhere('course_administrator', 'like', "%$search%");
             });
         }
 
@@ -44,6 +45,39 @@ class CourseController extends Controller
         return view('system.courses.index', compact('courses'));
     }
 
+    public function export(Request $request)
+    {
+        $query = Course::with(['personalData', 'courseType', 'sendingEntity']);
+
+        if ($search = $request->input('search')) {
+            $query->whereHas('personalData', function ($q) use ($search) {
+                $q->where('name', 'like', "%$search%");
+            });
+        }
+
+        $headings = [
+            'ID',
+            'اسم المتدرب',
+            'نوع الدورة',
+            'تاريخ الدورة',
+            'المدة',
+            'جهة الإرسال',
+            'مشرف الدورة',
+        ];
+
+        return (new UniversalExport($query, $headings, function ($row) {
+            return [
+                $row->id,
+                $row->personalData->name ?? '-',
+                $row->courseType->name ?? '-',
+                $row->course_date_gregorian,
+                $row->course_duration,
+                $row->sendingEntity->name ?? '-',
+                $row->course_administrator,
+            ];
+        }))->download('courses_'.date('Y-m-d').'.xlsx');
+    }
+
     public function create(Request $request)
     {
         $personalDataList = PersonalData::orderBy('name')->pluck('name', 'id');
@@ -54,7 +88,7 @@ class CourseController extends Controller
         $directorates = Directorate::pluck('name', 'id');
         $subAreas = SubArea::pluck('name', 'id');
         $villages = Village::pluck('name', 'id');
-        
+
         $selectedPersonalDataId = $request->query('personal_data_id');
 
         return view('system.courses.create', compact(
@@ -133,6 +167,7 @@ class CourseController extends Controller
     public function destroy(Course $course)
     {
         $course->delete();
+
         return redirect()->route('system.courses.index')->with('success', 'تم حذف الدورة بنجاح');
     }
 

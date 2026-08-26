@@ -2,8 +2,8 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
 use App\Models\MilitaryDistrict;
+use Illuminate\Database\Seeder;
 
 class MilitaryDistrictSeeder extends Seeder
 {
@@ -13,8 +13,8 @@ class MilitaryDistrictSeeder extends Seeder
     public function run(): void
     {
         $districts = [
-            'المنطقة العسكرية الأولى',
-            'المنطقة العسكرية الثانية',
+            // 'المنطقة العسكرية الأولى',
+            // 'المنطقة العسكرية الثانية',
             'المنطقة العسكرية الثالثة',
             'المنطقة العسكرية الرابعة',
             'المنطقة العسكرية الخامسة',

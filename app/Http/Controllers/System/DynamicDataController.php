@@ -12,7 +12,7 @@ class DynamicDataController extends Controller
 {
     public function show(Page $page)
     {
-        if (!$page->is_active) {
+        if (! $page->is_active) {
             abort(404);
         }
 
@@ -28,6 +28,7 @@ class DynamicDataController extends Controller
     public function create(Page $page)
     {
         $page->load('fields');
+
         return view('system.dynamic_data.create', compact('page'));
     }
 
@@ -37,7 +38,7 @@ class DynamicDataController extends Controller
         $rules = [];
         foreach ($fields as $field) {
             if ($field->is_required) {
-                $rules['fields.' . $field->id] = 'required';
+                $rules['fields.'.$field->id] = 'required';
             }
         }
 
@@ -51,7 +52,7 @@ class DynamicDataController extends Controller
 
             foreach ($request->input('fields', []) as $fieldId => $value) {
                 $field = $fields->find($fieldId);
-                
+
                 if ($field->type === 'file' && $request->hasFile("fields.{$fieldId}")) {
                     $value = $request->file("fields.{$fieldId}")->store('dynamic_files', 'public');
                 }
@@ -82,7 +83,7 @@ class DynamicDataController extends Controller
         $rules = [];
         foreach ($fields as $field) {
             if ($field->is_required) {
-                $rules['fields.' . $field->id] = 'required';
+                $rules['fields.'.$field->id] = 'required';
             }
         }
 
@@ -110,6 +111,7 @@ class DynamicDataController extends Controller
     public function destroy(Page $page, Record $record)
     {
         $record->delete();
+
         return back()->with('success', 'تم حذف السجل بنجاح');
     }
 }

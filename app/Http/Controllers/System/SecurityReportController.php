@@ -2,9 +2,10 @@
 
 namespace App\Http\Controllers\System;
 
+use App\Exports\UniversalExport;
 use App\Http\Controllers\Controller;
-use App\Models\SecurityReport;
 use App\Models\InternalEntity;
+use App\Models\SecurityReport;
 use Illuminate\Http\Request;
 
 class SecurityReportController extends Controller
@@ -19,14 +20,48 @@ class SecurityReportController extends Controller
         if ($request->has('search')) {
             $search = $request->get('search');
             $query->where('full_name', 'like', "%{$search}%")
-                  ->orWhere('report_name', 'like', "%{$search}%")
-                  ->orWhere('id_number', 'like', "%{$search}%")
-                  ->orWhere('military_number', 'like', "%{$search}%");
+                ->orWhere('report_name', 'like', "%{$search}%")
+                ->orWhere('id_number', 'like', "%{$search}%")
+                ->orWhere('military_number', 'like', "%{$search}%");
         }
 
         $perPage = $request->input('per_page', 50);
         $reports = $query->with('entity')->latest()->paginate($perPage);
+
         return view('system.reports.index', compact('reports'));
+    }
+
+    public function export(Request $request)
+    {
+        $query = SecurityReport::query();
+
+        if ($request->has('search')) {
+            $search = $request->get('search');
+            $query->where('full_name', 'like', "%{$search}%")
+                ->orWhere('report_name', 'like', "%{$search}%");
+        }
+
+        $headings = [
+            'ID',
+            'الاسم الكامل',
+            'موضوع البلاغ',
+            'تاريخ البلاغ',
+            'الجهة',
+            'الرقم الوطني',
+            'الرقم العسكري',
+        ];
+
+        return (new UniversalExport($query, $headings, function ($row) {
+            return [
+                $row->id,
+                $row->full_name,
+                $row->report_name,
+                $row->report_date,
+                $row->entity->name ?? '-',
+                $row->id_number,
+                $row->military_number,
+            ];
+        }))->download('security_reports_'.date('Y-m-d').'.xlsx');
     }
 
     /**
@@ -36,6 +71,7 @@ class SecurityReportController extends Controller
     {
         $entities = InternalEntity::all();
         $personalDataList = \App\Models\PersonalData::pluck('name', 'id');
+
         return view('system.reports.create', compact('entities', 'personalDataList'));
     }
 
@@ -72,6 +108,7 @@ class SecurityReportController extends Controller
     {
         $entities = InternalEntity::all();
         $personalDataList = \App\Models\PersonalData::pluck('name', 'id');
+
         return view('system.reports.edit', compact('securityReport', 'entities', 'personalDataList'));
     }
 
@@ -118,28 +155,28 @@ class SecurityReportController extends Controller
     public function upload(Request $request)
     {
         $request->validate([
-            'excel_file' => 'required|file|mimes:xlsx,xls,csv'
+            'excel_file' => 'required|file|mimes:xlsx,xls,csv',
         ]);
 
         $file = $request->file('excel_file');
-        
+
         try {
             $data = \Maatwebsite\Excel\Facades\Excel::toArray(new class {}, $file);
             $rows = $data[0] ?? [];
-            
+
             if (empty($rows)) {
                 return response()->json(['success' => false, 'message' => 'الملف فارغ']);
             }
 
             // Detect headers
             $headers = [];
-            while (!empty($rows)) {
+            while (! empty($rows)) {
                 $potentialHeaders = array_shift($rows);
-                $validColumns = array_filter($potentialHeaders, function($h) { 
-                    return !is_null($h) && trim((string)$h) !== ''; 
+                $validColumns = array_filter($potentialHeaders, function ($h) {
+                    return ! is_null($h) && trim((string) $h) !== '';
                 });
-                
-                if (!empty($validColumns)) {
+
+                if (! empty($validColumns)) {
                     $headers = $potentialHeaders;
                     break;
                 }
@@ -157,11 +194,11 @@ class SecurityReportController extends Controller
                 'success' => true,
                 'columns' => $headers,
                 'preview_data' => array_slice($rows, 0, 5),
-                'total_rows' => count($rows)
+                'total_rows' => count($rows),
             ]);
 
         } catch (\Exception $e) {
-            return response()->json(['success' => false, 'message' => 'خطأ في معالجة الملف: ' . $e->getMessage()]);
+            return response()->json(['success' => false, 'message' => 'خطأ في معالجة الملف: '.$e->getMessage()]);
         }
     }
 
@@ -172,7 +209,7 @@ class SecurityReportController extends Controller
     {
         $mapping = $request->input('mapping'); // Array: [field => columnIndex]
         $rows = session('pending_import_data');
-        
+
         if (empty($rows)) {
             return response()->json(['success' => false, 'message' => 'لا توجد بيانات للمعالجة. يرجى إعادة رفع الملف.']);
         }
@@ -188,8 +225,8 @@ class SecurityReportController extends Controller
             foreach ($mapping as $field => $colIndex) {
                 if ($colIndex !== '' && isset($row[$colIndex])) {
                     $value = trim($row[$colIndex]);
-                    
-                    if (in_array($field, $dateFields) && !empty($value)) {
+
+                    if (in_array($field, $dateFields) && ! empty($value)) {
                         try {
                             $value = date('Y-m-d', strtotime($value));
                         } catch (\Exception $e) {
@@ -198,13 +235,13 @@ class SecurityReportController extends Controller
                     }
 
                     $recordData[$field] = $value;
-                    
-                    if (($field === 'full_name' || $field === 'report_name') && !empty($value)) {
+
+                    if (($field === 'full_name' || $field === 'report_name') && ! empty($value)) {
                         $hasPrimaryData = true;
                     }
                 }
             }
-            
+
             if ($hasPrimaryData) {
                 SecurityReport::create($recordData);
                 $count++;
@@ -215,9 +252,9 @@ class SecurityReportController extends Controller
         session()->forget(['pending_import_data', 'pending_import_headers']);
 
         return response()->json([
-            'success' => true, 
+            'success' => true,
             'message' => "تم استيراد $count سجل بنجاح إلى قاعدة بيانات البلاغات",
-            'redirect' => route('system.security-reports.index')
+            'redirect' => route('system.security-reports.index'),
         ]);
     }
 }

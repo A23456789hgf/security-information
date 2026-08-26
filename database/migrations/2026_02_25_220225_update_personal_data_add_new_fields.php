@@ -34,7 +34,7 @@ return new class extends Migration
                 'workplace',
                 'job_specialty',
                 'jihadist_number',
-                'financial_status_id'
+                'financial_status_id',
             ]);
         });
     }

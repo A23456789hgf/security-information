@@ -1,5 +1,6 @@
 <?php
-$dir = __DIR__ . '/../resources/views';
+
+$dir = __DIR__.'/../resources/views';
 
 $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($dir));
 $files = [];
@@ -31,7 +32,9 @@ $viewClass = 'w-9 h-9 flex items-center justify-center rounded-lg bg-blue-100 te
 $updatedCount = 0;
 
 foreach ($files as $file) {
-    if (str_contains($file, 'personal_data')) continue;
+    if (str_contains($file, 'personal_data')) {
+        continue;
+    }
 
     $content = file_get_contents($file);
     $original = $content;
@@ -41,8 +44,9 @@ foreach ($files as $file) {
         '/<a([^>]*?title="تعديل"[^>]*?)>\s*<i[^>]*?fa-edit[^>]*?><\/i>\s*<\/a>/is',
         function ($matches) use ($editClass, $editSvg) {
             $attrs = $matches[1];
-            $attrs = preg_replace('/class="[^"]*"/', 'class="' . $editClass . '"', $attrs);
-            return "<a$attrs>\n                                            " . $editSvg . "\n                                        </a>";
+            $attrs = preg_replace('/class="[^"]*"/', 'class="'.$editClass.'"', $attrs);
+
+            return "<a$attrs>\n                                            ".$editSvg."\n                                        </a>";
         },
         $content
     );
@@ -53,13 +57,16 @@ foreach ($files as $file) {
         function ($matches) use ($editClass, $editSvg) {
             $attrs = $matches[1];
             // ensure we don't double replace
-            if (!str_contains($attrs, 'title=')) $attrs .= ' title="تعديل"';
-            if (preg_match('/class="[^"]*"/', $attrs)) {
-                $attrs = preg_replace('/class="[^"]*"/', 'class="' . $editClass . '"', $attrs);
-            } else {
-                $attrs .= ' class="' . $editClass . '"';
+            if (! str_contains($attrs, 'title=')) {
+                $attrs .= ' title="تعديل"';
             }
-            return "<a$attrs>\n                                            " . $editSvg . "\n                                        </a>";
+            if (preg_match('/class="[^"]*"/', $attrs)) {
+                $attrs = preg_replace('/class="[^"]*"/', 'class="'.$editClass.'"', $attrs);
+            } else {
+                $attrs .= ' class="'.$editClass.'"';
+            }
+
+            return "<a$attrs>\n                                            ".$editSvg."\n                                        </a>";
         },
         $content
     );
@@ -68,8 +75,9 @@ foreach ($files as $file) {
         '/<button([^>]*?title="حذف"[^>]*?)>\s*<i[^>]*?fa-trash[^>]*?><\/i>\s*<\/button>/is',
         function ($matches) use ($deleteClass, $deleteSvg) {
             $attrs = $matches[1];
-            $attrs = preg_replace('/class="[^"]*"/', 'class="' . $deleteClass . '"', $attrs);
-            return "<button$attrs>\n                                                " . $deleteSvg . "\n                                            </button>";
+            $attrs = preg_replace('/class="[^"]*"/', 'class="'.$deleteClass.'"', $attrs);
+
+            return "<button$attrs>\n                                                ".$deleteSvg."\n                                            </button>";
         },
         $content
     );
@@ -78,8 +86,9 @@ foreach ($files as $file) {
         '/<a([^>]*?title="عرض"[^>]*?)>\s*<i[^>]*?fa-eye[^>]*?><\/i>\s*<\/a>/is',
         function ($matches) use ($viewClass, $viewSvg) {
             $attrs = $matches[1];
-            $attrs = preg_replace('/class="[^"]*"/', 'class="' . $viewClass . '"', $attrs);
-            return "<a$attrs>\n                                            " . $viewSvg . "\n                                        </a>";
+            $attrs = preg_replace('/class="[^"]*"/', 'class="'.$viewClass.'"', $attrs);
+
+            return "<a$attrs>\n                                            ".$viewSvg."\n                                        </a>";
         },
         $content
     );
@@ -88,13 +97,16 @@ foreach ($files as $file) {
         '/<a([^>]*?href="[^"]+show[^"]*"[^>]*?)>\s*<i[^>]*?fa-eye[^>]*?><\/i>\s*<\/a>/is',
         function ($matches) use ($viewClass, $viewSvg) {
             $attrs = $matches[1];
-            if (!str_contains($attrs, 'title=')) $attrs .= ' title="عرض"';
-            if (preg_match('/class="[^"]*"/', $attrs)) {
-                $attrs = preg_replace('/class="[^"]*"/', 'class="' . $viewClass . '"', $attrs);
-            } else {
-                $attrs .= ' class="' . $viewClass . '"';
+            if (! str_contains($attrs, 'title=')) {
+                $attrs .= ' title="عرض"';
             }
-            return "<a$attrs>\n                                            " . $viewSvg . "\n                                        </a>";
+            if (preg_match('/class="[^"]*"/', $attrs)) {
+                $attrs = preg_replace('/class="[^"]*"/', 'class="'.$viewClass.'"', $attrs);
+            } else {
+                $attrs .= ' class="'.$viewClass.'"';
+            }
+
+            return "<a$attrs>\n                                            ".$viewSvg."\n                                        </a>";
         },
         $content
     );
@@ -104,9 +116,12 @@ foreach ($files as $file) {
         '/<a([^>]*?title="تعديل"[^>]*?)>\s*<svg.*?<\/svg>\s*<\/a>/is',
         function ($matches) use ($editClass, $editSvg) {
             $attrs = $matches[1];
-            if (str_contains($attrs, 'text-amber-700') && str_contains($attrs, 'rounded-lg')) return $matches[0];
-            $attrs = preg_replace('/class="[^"]*"/', 'class="' . $editClass . '"', $attrs);
-            return "<a$attrs>\n                                            " . $editSvg . "\n                                        </a>";
+            if (str_contains($attrs, 'text-amber-700') && str_contains($attrs, 'rounded-lg')) {
+                return $matches[0];
+            }
+            $attrs = preg_replace('/class="[^"]*"/', 'class="'.$editClass.'"', $attrs);
+
+            return "<a$attrs>\n                                            ".$editSvg."\n                                        </a>";
         },
         $content
     );
@@ -115,9 +130,12 @@ foreach ($files as $file) {
         '/<button([^>]*?title="حذف"[^>]*?)>\s*<svg.*?<\/svg>\s*<\/button>/is',
         function ($matches) use ($deleteClass, $deleteSvg) {
             $attrs = $matches[1];
-            if (str_contains($attrs, 'text-rose-700') && str_contains($attrs, 'rounded-lg')) return $matches[0];
-            $attrs = preg_replace('/class="[^"]*"/', 'class="' . $deleteClass . '"', $attrs);
-            return "<button$attrs>\n                                                " . $deleteSvg . "\n                                            </button>";
+            if (str_contains($attrs, 'text-rose-700') && str_contains($attrs, 'rounded-lg')) {
+                return $matches[0];
+            }
+            $attrs = preg_replace('/class="[^"]*"/', 'class="'.$deleteClass.'"', $attrs);
+
+            return "<button$attrs>\n                                                ".$deleteSvg."\n                                            </button>";
         },
         $content
     );
@@ -126,9 +144,12 @@ foreach ($files as $file) {
         '/<a([^>]*?title="عرض"[^>]*?)>\s*<svg.*?<\/svg>\s*<\/a>/is',
         function ($matches) use ($viewClass, $viewSvg) {
             $attrs = $matches[1];
-            if (str_contains($attrs, 'text-blue-700') && str_contains($attrs, 'rounded-lg')) return $matches[0];
-            $attrs = preg_replace('/class="[^"]*"/', 'class="' . $viewClass . '"', $attrs);
-            return "<a$attrs>\n                                            " . $viewSvg . "\n                                        </a>";
+            if (str_contains($attrs, 'text-blue-700') && str_contains($attrs, 'rounded-lg')) {
+                return $matches[0];
+            }
+            $attrs = preg_replace('/class="[^"]*"/', 'class="'.$viewClass.'"', $attrs);
+
+            return "<a$attrs>\n                                            ".$viewSvg."\n                                        </a>";
         },
         $content
     );
@@ -147,7 +168,7 @@ foreach ($files as $file) {
     if ($original !== $content) {
         file_put_contents($file, $content);
         $updatedCount++;
-        echo "Updated " . basename(dirname($file)) . "/" . basename($file) . "<br>\n";
+        echo 'Updated '.basename(dirname($file)).'/'.basename($file)."<br>\n";
     }
 }
 echo "<br>\nTotal updated: $updatedCount files.";

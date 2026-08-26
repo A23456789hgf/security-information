@@ -12,14 +12,14 @@ class Field extends Model
     protected $table = 'dynamic_fields';
 
     protected $fillable = [
-        'page_id', 
-        'name', 
-        'label', 
-        'type', 
-        'is_required', 
-        'options', 
+        'page_id',
+        'name',
+        'label',
+        'type',
+        'is_required',
+        'options',
         'metadata',
-        'order_column'
+        'order_column',
     ];
 
     protected $casts = [

@@ -2,17 +2,16 @@
 
 namespace App\Http\Controllers\System;
 
+use App\Exports\UniversalExport;
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-
-use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\Facades\DB;
-use App\Models\PersonalData;
-use App\Models\Governorate;
 use App\Models\Directorate;
+use App\Models\Governorate;
+use App\Models\PersonalData;
 use App\Models\SubArea;
 use App\Models\Village;
 use App\Models\Wife;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Schema;
 
 class WifeController extends Controller
 {
@@ -29,14 +28,49 @@ class WifeController extends Controller
 
         if ($search = $request->input('search')) {
             $query->where('name', 'like', "%$search%")
-                  ->orWhereHas('personalData', function($q) use ($search) {
-                      $q->where('name', 'like', "%$search%");
-                  });
+                ->orWhereHas('personalData', function ($q) use ($search) {
+                    $q->where('name', 'like', "%$search%");
+                });
         }
 
         $perPage = $request->input('per_page', 50);
         $wives = $query->paginate($perPage);
+
         return view('system.wives.index', compact('wives'));
+    }
+
+    public function export(Request $request)
+    {
+        $query = Wife::with(['personalData', 'governorate', 'directorate', 'subArea', 'village']);
+
+        if ($search = $request->input('search')) {
+            $query->where('name', 'like', "%$search%")
+                ->orWhereHas('personalData', function ($q) use ($search) {
+                    $q->where('name', 'like', "%$search%");
+                });
+        }
+
+        $headings = [
+            'ID',
+            'الزوج',
+            'اسم الزوجة',
+            'الحالة',
+            'رقم الهوية',
+            'تاريخ الميلاد',
+            'رقم الهاتف',
+        ];
+
+        return (new UniversalExport($query, $headings, function ($row) {
+            return [
+                $row->id,
+                $row->personalData->name ?? '-',
+                $row->name,
+                $row->status,
+                $row->wife_id_number,
+                $row->wife_birth_date,
+                $row->wife_phone,
+            ];
+        }))->download('wives_'.date('Y-m-d').'.xlsx');
     }
 
     /**
@@ -50,7 +84,7 @@ class WifeController extends Controller
         $directorates = Directorate::pluck('name', 'id');
         $subAreas = SubArea::pluck('name', 'id');
         $villages = Village::pluck('name', 'id');
-        
+
         $selectedPersonalDataId = $request->query('personal_data_id');
 
         return view('system.wives.create', compact(
@@ -88,11 +122,11 @@ class WifeController extends Controller
 
         // Get only the fields that exist in the database to prevent "Column not found" errors
         $allFields = [
-            'personal_data_id', 'name', 'status', 'wife_id_number', 
-            'wife_birth_date', 'wife_phone', 'wife_address', 
-            'governorate_id', 'directorate_id', 'sub_area_id', 'village_id'
+            'personal_data_id', 'name', 'status', 'wife_id_number',
+            'wife_birth_date', 'wife_phone', 'wife_address',
+            'governorate_id', 'directorate_id', 'sub_area_id', 'village_id',
         ];
-        
+
         $data = [];
         foreach ($allFields as $field) {
             if ($request->has($field) && Schema::hasColumn('wives', $field)) {
@@ -162,11 +196,11 @@ class WifeController extends Controller
 
         // Get only the fields that exist in the database
         $allFields = [
-            'personal_data_id', 'name', 'status', 'wife_id_number', 
-            'wife_birth_date', 'wife_phone', 'wife_address', 
-            'governorate_id', 'directorate_id', 'sub_area_id', 'village_id'
+            'personal_data_id', 'name', 'status', 'wife_id_number',
+            'wife_birth_date', 'wife_phone', 'wife_address',
+            'governorate_id', 'directorate_id', 'sub_area_id', 'village_id',
         ];
-        
+
         $data = [];
         foreach ($allFields as $field) {
             if ($request->has($field) && Schema::hasColumn('wives', $field)) {
@@ -187,6 +221,7 @@ class WifeController extends Controller
     {
         $personalDataId = $wife->personal_data_id;
         $wife->delete();
+
         return redirect()->route('system.wives.index', ['personal_data_id' => $personalDataId])
             ->with('success', 'تم حذف الزوجة بنجاح');
     }
@@ -197,9 +232,9 @@ class WifeController extends Controller
     public function getPersonDetails($id)
     {
         $person = PersonalData::with([
-            'bloodType', 'maritalStatus', 
+            'bloodType', 'maritalStatus',
             'placeOfBirthGovernorate', 'placeOfBirthDirectorate', 'placeOfBirthSubArea', 'placeOfBirthVillage',
-            'governorate', 'directorate', 'subArea', 'village'
+            'governorate', 'directorate', 'subArea', 'village',
         ])->findOrFail($id);
 
         $placeOfBirth = implode(' - ', array_filter([

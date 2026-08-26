@@ -2,8 +2,8 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('work_status')->nullable()->after('phone');
             $table->boolean('is_active')->default(true)->after('work_status');
         });
-        
+
         // Populate username from name (sanitized)
         $users = DB::table('users')->get();
         foreach ($users as $user) {
@@ -26,7 +26,7 @@ return new class extends Migration
             $username = $baseUsername;
             $count = 1;
             while (DB::table('users')->where('username', $username)->exists()) {
-                $username = $baseUsername . $count;
+                $username = $baseUsername.$count;
                 $count++;
             }
             DB::table('users')->where('id', $user->id)->update(['username' => $username]);

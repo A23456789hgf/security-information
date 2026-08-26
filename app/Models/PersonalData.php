@@ -45,6 +45,7 @@ class PersonalData extends Model
         'directorate_id',
         'sub_area_id',
         'village_id',
+        'internal_entity_id',
     ];
 
     protected $casts = [
@@ -146,6 +147,11 @@ class PersonalData extends Model
         return $this->hasMany(PersonalDataPhoto::class);
     }
 
+    public function entity()
+    {
+        return $this->belongsTo(InternalEntity::class, 'internal_entity_id');
+    }
+
     public function courses()
     {
         return $this->hasMany(Course::class);
@@ -154,6 +160,21 @@ class PersonalData extends Model
     public function wives()
     {
         return $this->hasMany(Wife::class);
+    }
+
+    public function relatives()
+    {
+        return $this->hasMany(Relative::class);
+    }
+
+    public function enemyAreaRelatives()
+    {
+        return $this->hasMany(EnemyAreaRelative::class);
+    }
+
+    public function travelingRelatives()
+    {
+        return $this->hasMany(TravelingRelative::class);
     }
 
     public function arrests()
@@ -176,7 +197,7 @@ class PersonalData extends Model
      */
     public function securityReports()
     {
-        return SecurityReport::where(function($query) {
+        return SecurityReport::where(function ($query) {
             if ($this->national_id_number) {
                 $query->where('id_number', $this->national_id_number);
             }
@@ -184,5 +205,39 @@ class PersonalData extends Model
                 $query->orWhere('military_number', $this->military_number);
             }
         })->get();
+    }
+
+    public function suspects()
+    {
+        return $this->hasMany(Suspect::class);
+    }
+
+    /**
+     * Get dynamic records where this person is mentioned (by ID or military number)
+     */
+    public function dynamicRecords()
+    {
+        $identifiers = array_filter([$this->national_id_number, $this->military_number]);
+        if (empty($identifiers)) {
+            return collect();
+        }
+
+        // Find record IDs where any field value matches the identifiers
+        $recordIds = \App\Models\RecordValue::whereIn('value', $identifiers)
+            ->pluck('record_id')
+            ->unique();
+
+        return \App\Models\Record::whereIn('id', $recordIds)
+            ->with(['page', 'values.field'])
+            ->get();
+    }
+
+    /**
+     * Get system user account associated with this person
+     */
+    public function relatedUser()
+    {
+        // Try to find a user by name (exact match)
+        return \App\Models\User::where('name', $this->name)->first();
     }
 }

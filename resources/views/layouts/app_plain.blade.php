@@ -7,13 +7,12 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
 
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ asset('vendor/bootstrap/bootstrap.rtl.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('vendor/fontawesome/all.min.css') }}">
 
     <style>
         body {
-            font-family: 'Cairo', sans-serif;
+            font-family: 'Cairo', system-ui, sans-serif;
             background-color: #0f172a;
             margin: 0;
             overflow-x: hidden;
@@ -39,8 +38,8 @@
 <body>
     @yield('content')
 
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ asset('vendor/jquery/jquery.min.js') }}"></script>
+    <script src="{{ asset('vendor/bootstrap/bootstrap.bundle.min.js') }}"></script>
     @stack('scripts')
 </body>
 </html>

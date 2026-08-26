@@ -2,10 +2,10 @@
 
 namespace App\Imports;
 
-use App\Models\SubArea;
-use App\Models\Governorate;
 use App\Models\Directorate;
+use App\Models\Governorate;
 use App\Models\ImportProgress;
+use App\Models\SubArea;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Concerns\ToCollection;
@@ -15,13 +15,18 @@ use Maatwebsite\Excel\Concerns\WithStartRow;
 class SubAreaImporter implements ToCollection, WithChunkReading, WithStartRow
 {
     private $sessionId;
+
     private $mapping;
+
     private $mode;
+
     private $progress;
 
     // Caches
     private $governorateCache = [];
+
     private $directorateCache = [];
+
     private $subAreaCacheMap = [];
 
     public function __construct($sessionId, $mapping, $mode)
@@ -52,21 +57,27 @@ class SubAreaImporter implements ToCollection, WithChunkReading, WithStartRow
 
         foreach ($rows as $row) {
             $rowArray = $row->toArray();
-            if (empty(array_filter($rowArray))) continue;
+            if (empty(array_filter($rowArray))) {
+                continue;
+            }
 
             $data = $this->mapRow($rowArray);
             if (isset($data['error'])) {
                 $failed++;
-                if (count($errors) < 100) $errors[] = $data['error'];
+                if (count($errors) < 100) {
+                    $errors[] = $data['error'];
+                }
+
                 continue;
             }
 
             // Check existence in cache
-            $cacheKey = $data['directorate_id'] . '_' . strtolower($data['name']);
+            $cacheKey = $data['directorate_id'].'_'.strtolower($data['name']);
             $exists = isset($this->subAreaCacheMap[$cacheKey]);
 
             if ($this->mode === 'append' && $exists) {
                 $skipped++;
+
                 continue;
             }
 
@@ -75,16 +86,16 @@ class SubAreaImporter implements ToCollection, WithChunkReading, WithStartRow
             } else {
                 $created++;
                 // Mark as seen in this chunk to prevent internal duplicates
-                $this->subAreaCacheMap[$cacheKey] = true; 
+                $this->subAreaCacheMap[$cacheKey] = true;
             }
 
             $toUpsert[] = array_merge($data, [
                 'created_at' => now(),
-                'updated_at' => now()
+                'updated_at' => now(),
             ]);
         }
 
-        if (!empty($toUpsert)) {
+        if (! empty($toUpsert)) {
             DB::transaction(function () use ($toUpsert) {
                 // Bulk Upsert: 1 query for 500 rows!
                 // We unique on [directorate_id, name] as per DB constraint
@@ -105,15 +116,21 @@ class SubAreaImporter implements ToCollection, WithChunkReading, WithStartRow
             $rowArray = $row->toArray();
             if (isset($this->mapping['governorate_id'])) {
                 $val = $rowArray[$this->mapping['governorate_id']] ?? null;
-                if ($val) $govValues[] = trim((string)$val);
+                if ($val) {
+                    $govValues[] = trim((string) $val);
+                }
             }
             if (isset($this->mapping['directorate_id'])) {
                 $val = $rowArray[$this->mapping['directorate_id']] ?? null;
-                if ($val) $dirValues[] = trim((string)$val);
+                if ($val) {
+                    $dirValues[] = trim((string) $val);
+                }
             }
             if (isset($this->mapping['name'])) {
                 $val = $rowArray[$this->mapping['name']] ?? null;
-                if ($val) $subAreaNames[] = trim((string)$val);
+                if ($val) {
+                    $subAreaNames[] = trim((string) $val);
+                }
             }
         }
 
@@ -122,13 +139,13 @@ class SubAreaImporter implements ToCollection, WithChunkReading, WithStartRow
         $subAreaNames = array_unique(array_filter($subAreaNames));
 
         // Separate names and IDs
-        $govNamesFromExcel = array_filter($govValues, fn($v) => !is_numeric($v));
-        $govIdsFromExcel = array_filter($govValues, fn($v) => is_numeric($v));
+        $govNamesFromExcel = array_filter($govValues, fn ($v) => ! is_numeric($v));
+        $govIdsFromExcel = array_filter($govValues, fn ($v) => is_numeric($v));
 
-        $dirNamesFromExcel = array_filter($dirValues, fn($v) => !is_numeric($v));
-        $dirIdsFromExcel = array_filter($dirValues, fn($v) => is_numeric($v));
+        $dirNamesFromExcel = array_filter($dirValues, fn ($v) => ! is_numeric($v));
+        $dirIdsFromExcel = array_filter($dirValues, fn ($v) => is_numeric($v));
 
-        if (!empty($govValues)) {
+        if (! empty($govValues)) {
             $this->governorateCache = Governorate::whereIn('name', $govNamesFromExcel)
                 ->orWhereIn('id', $govIdsFromExcel)
                 ->pluck('id', 'name')->toArray();
@@ -137,21 +154,21 @@ class SubAreaImporter implements ToCollection, WithChunkReading, WithStartRow
                 $this->governorateCache[$id] = $id;
             }
         }
-        if (!empty($dirValues)) {
+        if (! empty($dirValues)) {
             $this->directorateCache = Directorate::whereIn('name', $dirNamesFromExcel)
                 ->orWhereIn('id', $dirIdsFromExcel)
                 ->get(['id', 'name', 'governorate_id']);
         }
-        
+
         // Pre-load existing SubAreas for these directorates
         $dirIds = $this->directorateCache->pluck('id')->toArray();
-        if (!empty($dirIds)) {
+        if (! empty($dirIds)) {
             $existing = SubArea::whereIn('directorate_id', $dirIds)
                 ->get(['id', 'directorate_id', 'name']);
-            
+
             $this->subAreaCacheMap = [];
             foreach ($existing as $s) {
-                $this->subAreaCacheMap[$s->directorate_id . '_' . strtolower(trim($s->name))] = $s->id;
+                $this->subAreaCacheMap[$s->directorate_id.'_'.strtolower(trim($s->name))] = $s->id;
             }
         }
     }
@@ -159,29 +176,29 @@ class SubAreaImporter implements ToCollection, WithChunkReading, WithStartRow
     private function mapRow($row)
     {
         $data = [];
-        
+
         // Resolve Governorate
-        $govVal = trim((string)($row[$this->mapping['governorate_id']] ?? ''));
-        if (!$govVal || !isset($this->governorateCache[$govVal])) {
+        $govVal = trim((string) ($row[$this->mapping['governorate_id']] ?? ''));
+        if (! $govVal || ! isset($this->governorateCache[$govVal])) {
             return ['error' => "المحافظة غير موجودة: $govVal"];
         }
         $data['governorate_id'] = $this->governorateCache[$govVal];
 
         // Resolve Directorate
-        $dirVal = trim((string)($row[$this->mapping['directorate_id']] ?? ''));
-        $directorate = $this->directorateCache->filter(function($d) use ($dirVal, $data) {
+        $dirVal = trim((string) ($row[$this->mapping['directorate_id']] ?? ''));
+        $directorate = $this->directorateCache->filter(function ($d) use ($dirVal, $data) {
             return ($d->name == $dirVal || $d->id == $dirVal) && $d->governorate_id == $data['governorate_id'];
         })->first();
 
-        if (!$directorate) {
+        if (! $directorate) {
             return ['error' => "المديرية غير موجودة أو لا تتبع المحافظة: $dirVal"];
         }
         $data['directorate_id'] = $directorate->id;
 
         // SubArea Name
-        $data['name'] = trim((string)($row[$this->mapping['name']] ?? ''));
+        $data['name'] = trim((string) ($row[$this->mapping['name']] ?? ''));
         if (empty($data['name'])) {
-            return ['error' => "اسم العزلة مفقود"];
+            return ['error' => 'اسم العزلة مفقود'];
         }
 
         return $data;
@@ -194,8 +211,8 @@ class SubAreaImporter implements ToCollection, WithChunkReading, WithStartRow
             $this->progress->increment('created_count', $created);
             $this->progress->increment('updated_count', $updated);
             $this->progress->increment('failed_count', $failed);
-            
-            if (!empty($errors)) {
+
+            if (! empty($errors)) {
                 $currentErrors = $this->progress->errors ?? [];
                 $newErrors = array_unique(array_merge($currentErrors, $errors));
                 $this->progress->update(['errors' => array_slice($newErrors, 0, 100)]);

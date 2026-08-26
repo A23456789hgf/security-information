@@ -2,11 +2,12 @@
 
 namespace App\Http\Controllers\System;
 
+use App\Exports\UniversalExport;
 use App\Http\Controllers\Controller;
 use App\Models\Arrest;
-use App\Models\PersonalData;
 use App\Models\ArrestingAuthority;
 use App\Models\CaseType;
+use App\Models\PersonalData;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -14,20 +15,20 @@ class ArrestController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Arrest::with('personalData', 'arrestingAuthority', 'caseType');
+        $query = Arrest::with(['personalData', 'arrestingAuthority', 'caseType']);
 
         if ($search = $request->input('search')) {
-            $query->where(function($q) use ($search) {
-                $q->whereHas('personalData', function($subQuery) use ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->whereHas('personalData', function ($subQuery) use ($search) {
                     $subQuery->where('name', 'like', "%$search%")
-                             ->orWhere('jihadi_name', 'like', "%$search%");
+                        ->orWhere('jihadi_name', 'like', "%$search%");
                 })
-                ->orWhereHas('caseType', function($subQuery) use ($search) {
-                    $subQuery->where('name', 'like', "%$search%");
-                })
-                ->orWhereHas('arrestingAuthority', function($subQuery) use ($search) {
-                    $subQuery->where('name', 'like', "%$search%");
-                });
+                    ->orWhereHas('caseType', function ($subQuery) use ($search) {
+                        $subQuery->where('name', 'like', "%$search%");
+                    })
+                    ->orWhereHas('arrestingAuthority', function ($subQuery) use ($search) {
+                        $subQuery->where('name', 'like', "%$search%");
+                    });
             });
         }
 
@@ -44,12 +45,46 @@ class ArrestController extends Controller
         return view('system.cases.arrests.index', compact('arrests'));
     }
 
+    public function export(Request $request)
+    {
+        $query = Arrest::with(['personalData', 'arrestingAuthority', 'caseType']);
+
+        if ($search = $request->input('search')) {
+            $query->whereHas('personalData', function ($q) use ($search) {
+                $q->where('name', 'like', "%$search%")
+                    ->orWhere('jihadi_name', 'like', "%$search%");
+            });
+        }
+
+        $headings = [
+            'ID',
+            'الاسم الكامل',
+            'الاسم الجهادي',
+            'جهة الضبط',
+            'نوع القضية',
+            'تاريخ الضبط',
+            'حالة القضية',
+        ];
+
+        return (new UniversalExport($query, $headings, function ($row) {
+            return [
+                $row->id,
+                $row->personalData->name ?? '-',
+                $row->personalData->jihadi_name ?? '-',
+                $row->arrestingAuthority->name ?? '-',
+                $row->caseType->name ?? '-',
+                $row->arrest_date,
+                $row->status,
+            ];
+        }))->download('arrests_'.date('Y-m-d').'.xlsx');
+    }
+
     public function create(Request $request)
     {
         $personalDataList = PersonalData::orderBy('name')->pluck('name', 'id');
         $arrestingAuthorities = ArrestingAuthority::orderBy('name')->pluck('name', 'id');
         $caseTypes = CaseType::orderBy('name')->pluck('name', 'id');
-        
+
         $selectedPersonalDataId = $request->query('personal_data_id');
 
         return view('system.cases.arrests.create', compact(
@@ -165,6 +200,7 @@ class ArrestController extends Controller
         }
 
         $arrest->delete();
+
         return redirect()->route('system.arrests.index')->with('success', 'تم حذف الاعتقال بنجاح');
     }
 
@@ -190,7 +226,7 @@ class ArrestController extends Controller
             'governorate',
             'directorate',
             'subArea',
-            'village'
+            'village',
         ])->findOrFail($id);
 
         return response()->json([

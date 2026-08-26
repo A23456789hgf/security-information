@@ -2,8 +2,8 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
 use App\Models\Rank;
+use Illuminate\Database\Seeder;
 
 class RankSeeder extends Seeder
 {
@@ -26,7 +26,7 @@ class RankSeeder extends Seeder
             'رقيب',
             'عريف',
             'جندي',
-            'مدني'
+            'مدني',
         ];
 
         foreach ($ranks as $rank) {

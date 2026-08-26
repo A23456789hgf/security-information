@@ -1,101 +1,120 @@
 @extends('layouts.app')
 
 @section('title', 'تفاصيل الجهة')
-@section('page_title', 'ملف الجهة: ' . $entity->name)
+@section('page_title', 'الهيكل التنظيمي')
 
 @section('content')
-<div class="mb-4 d-flex justify-content-between align-items-center">
-    <a href="{{ route('system.entities.index') }}" class="btn btn-outline-secondary rounded-pill px-4 btn-sm">
-        <i class="fas fa-arrow-right me-1"></i>العودة للقائمة
-    </a>
-    <div class="gap-2 d-flex">
-        <a href="{{ route('system.entities.edit', $entity) }}" class="btn btn-warning rounded-pill px-4 btn-sm shadow-sm">
-            <i class="fas fa-edit me-1"></i>تعديل الجهة
-        </a>
-    </div>
-</div>
-
-<div class="row g-4">
-    {{-- تفاصيل الهيكل --}}
-    <div class="col-lg-5">
-        <div class="card shadow-sm border-0 rounded-4 p-4 h-100">
-            <h5 class="fw-bold mb-4 border-bottom pb-2"><i class="fas fa-network-wired me-2 text-primary"></i>هيكل الجهة</h5>
-            
-            <div class="mb-4 text-center py-3 bg-light rounded-3">
-                <div class="text-muted small mb-1">الجهة الأعلى</div>
-                <div class="fw-bold">
-                    @if($entity->parent)
-                        <i class="fas fa-chevron-up text-primary me-1"></i>{{ $entity->parent->name }}
-                    @else
-                        <span class="badge bg-secondary rounded-pill">جهة جذرية (رئيسية)</span>
-                    @endif
-                </div>
+<div class="container-fluid mx-auto px-4 py-8" dir="rtl">
+    {{-- رأس الصفحة --}}
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10 max-w-6xl mx-auto">
+        <div class="flex items-center gap-4">
+            <div class="w-16 h-16 bg-blue-600 rounded-3xl shadow-xl shadow-blue-100 flex items-center justify-center text-white">
+                <i class="fas fa-building text-2xl"></i>
             </div>
-
-            <div class="text-center py-4 rounded-4 border-2 border-primary border-dashed mb-4" style="border: 2px dashed rgba(56, 189, 248, 0.4); background: rgba(56, 189, 248, 0.02);">
-                <i class="fas fa-building fa-3x text-primary mb-2"></i>
-                <h4 class="fw-bold mb-0">{{ $entity->name }}</h4>
+            <div>
+                <h2 class="text-3xl font-extrabold text-slate-800 header-font mb-1">تفاصيل الجهة</h2>
+                <p class="text-slate-500 text-sm">عرض ملف الجهة: <span class="font-bold text-blue-600">{{ $entity->name }}</span></p>
             </div>
-
-            <div class="mt-4">
-                <h6 class="fw-bold mb-3 small text-muted">الجهات التابعة (الأبناء):</h6>
-                <div class="list-group list-group-flush rounded-3 border">
-                    @forelse($entity->children as $child)
-                        <a href="{{ route('system.entities.show', $child) }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
-                            <span><i class="fas fa-level-down-alt me-2 text-muted"></i>{{ $child->name }}</span>
-                            <i class="fas fa-eye small text-info"></i>
-                        </a>
-                    @empty
-                        <div class="list-group-item text-center text-muted small py-3">لا توجد جهات تابعة</div>
-                    @endforelse
-                </div>
-            </div>
+        </div>
+        <div class="flex flex-wrap gap-3">
+            <a href="{{ route('system.entities.edit', $entity) }}"
+                class="px-6 py-3 bg-amber-500 text-white rounded-2xl font-bold hover:bg-amber-600 transition-all shadow-xl shadow-amber-100 flex items-center gap-2 text-sm">
+                <i class="fas fa-edit"></i> تعديل
+            </a>
+            <a href="{{ route('system.entities.index') }}"
+                class="px-6 py-3 bg-white border border-slate-200 text-slate-600 rounded-2xl font-bold hover:bg-slate-50 transition-all shadow-sm flex items-center gap-2 text-sm">
+                <i class="fas fa-arrow-right"></i> عودة للقائمة
+            </a>
         </div>
     </div>
 
-    {{-- الموقع والمستخدمين --}}
-    <div class="col-lg-7">
-        <div class="card shadow-sm border-0 rounded-4 p-4 mb-4">
-            <h5 class="fw-bold mb-4 border-bottom pb-2"><i class="fas fa-map-marked-alt me-2 text-primary"></i>الموقع الإداري</h5>
-            <div class="row">
-                <div class="col-md-6">
-                    <p class="text-muted small mb-1">المحافظة</p>
-                    <p class="fw-bold"><i class="fas fa-map-marker-alt text-danger me-2"></i>{{ $entity->governorate->name ?? 'غير محدد' }}</p>
+    <div class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8">
+        {{-- تفاصيل الهيكل والجهات التابعة --}}
+        <div class="lg:col-span-5 space-y-6">
+            <div class="bg-white rounded-[2.5rem] soft-shadow border border-slate-100 overflow-hidden">
+                <div class="px-8 py-6 border-b border-slate-50 bg-slate-50/50 flex items-center gap-3">
+                    <span class="w-2 h-6 bg-blue-600 rounded-full"></span>
+                    <h5 class="text-lg font-bold text-slate-800 header-font">هيكل الجهة</h5>
                 </div>
-                <div class="col-md-6">
-                    <p class="text-muted small mb-1">المديرية</p>
-                    <p class="fw-bold"><i class="fas fa-map-pin text-info me-2"></i>{{ $entity->directorate->name ?? 'غير محدد' }}</p>
+                <div class="p-8 space-y-6">
+                    <div class="bg-slate-50 rounded-2xl p-4 border border-slate-100 text-center">
+                        <span class="text-xs font-bold text-slate-400 block mb-1">الجهة الأعلى (الأب)</span>
+                        <span class="font-bold text-slate-700">
+                            @if($entity->parent)
+                                <a href="{{ route('system.entities.show', $entity->parent) }}" class="text-blue-600 hover:underline">
+                                    <i class="fas fa-level-up-alt text-xs me-1"></i> {{ $entity->parent->name }}
+                                </a>
+                            @else
+                                <span class="px-3 py-1 bg-slate-200 text-slate-600 rounded-lg text-xs font-bold">جهة رئيسية (بدون أب)</span>
+                            @endif
+                        </span>
+                    </div>
+
+                    <div>
+                        <span class="text-xs font-bold text-slate-400 mb-3 block px-2">الجهات التابعة (الأبناء):</span>
+                        <div class="space-y-2">
+                            @forelse($entity->children as $child)
+                                <a href="{{ route('system.entities.show', $child) }}" class="flex items-center justify-between p-4 bg-slate-50 hover:bg-blue-50 border border-slate-100 rounded-2xl transition-all">
+                                    <span class="font-bold text-slate-700 text-xs flex items-center gap-2">
+                                        <i class="fas fa-building text-slate-400"></i> {{ $child->name }}
+                                    </span>
+                                    <i class="fas fa-chevron-left text-xs text-slate-300"></i>
+                                </a>
+                            @empty
+                                <p class="text-slate-400 text-xs text-center py-4 bg-slate-50 rounded-2xl">لا توجد جهات تابعة</p>
+                            @endforelse
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <div class="card shadow-sm border-0 rounded-4 p-4">
-            <h5 class="fw-bold mb-4 border-bottom pb-2"><i class="fas fa-users-viewfinder me-2 text-primary"></i>الموظفون المرتبطون</h5>
-            <div class="table-responsive">
-                <table class="table table-sm table-hover align-middle">
-                    <thead>
-                        <tr>
-                            <th>الاسم</th>
-                            <th>البريد الإلكتروني</th>
-                            <th class="text-center">الإجراء</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($entity->users as $user)
-                        <tr>
-                            <td>{{ $user->name }}</td>
-                            <td class="small">{{ $user->email }}</td>
-                            <td class="text-center">
-                                <a href="{{ route('system.users.show', $user) }}" class="btn btn-link btn-sm p-0"><i class="fas fa-external-link-alt"></i></a>
-                            </td>
-                        </tr>
-                        @empty
-                        <tr>
-                            <td colspan="3" class="text-center text-muted py-3 small">لا يوجد مستخدمون مرتبطون بهذه الجهة</td>
-                        </tr>
-                        @endforelse
-                    </tbody>
-                </table>
+        {{-- الموقع والمستخدمين --}}
+        <div class="lg:col-span-7 space-y-6">
+            <div class="bg-white rounded-[2.5rem] soft-shadow border border-slate-100 overflow-hidden">
+                <div class="px-8 py-6 border-b border-slate-50 bg-slate-50/50 flex items-center gap-3">
+                    <span class="w-2 h-6 bg-emerald-500 rounded-full"></span>
+                    <h5 class="text-lg font-bold text-slate-800 header-font">الموقع الجغرافي</h5>
+                </div>
+                <div class="p-8 grid grid-cols-2 gap-4">
+                    <div class="bg-slate-50 rounded-2xl p-4 border border-slate-100 flex flex-col gap-1">
+                        <span class="text-xs font-bold text-slate-400">المحافظة</span>
+                        <span class="font-bold text-slate-700">{{ $entity->governorate->name ?? 'غير محدد' }}</span>
+                    </div>
+                    <div class="bg-slate-50 rounded-2xl p-4 border border-slate-100 flex flex-col gap-1">
+                        <span class="text-xs font-bold text-slate-400">المديرية</span>
+                        <span class="font-bold text-slate-700">{{ $entity->directorate->name ?? 'غير محدد' }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-[2.5rem] soft-shadow border border-slate-100 overflow-hidden">
+                <div class="px-8 py-6 border-b border-slate-50 bg-slate-50/50 flex items-center gap-3">
+                    <span class="w-2 h-6 bg-purple-600 rounded-full"></span>
+                    <h5 class="text-lg font-bold text-slate-800 header-font">المستخدمون المرتبطون</h5>
+                </div>
+                <div class="p-0">
+                    <table class="w-full text-right border-collapse text-xs">
+                        <thead class="bg-slate-50/80 border-b border-slate-100">
+                            <tr>
+                                <th class="px-6 py-4 text-slate-400 font-bold">الاسم</th>
+                                <th class="px-6 py-4 text-slate-400 font-bold">اسم المستخدم</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            @forelse($entity->users as $u)
+                                <tr class="hover:bg-slate-50/50 transition-colors">
+                                    <td class="px-6 py-4 font-bold text-slate-700">{{ $u->name }}</td>
+                                    <td class="px-6 py-4 font-mono text-slate-500">{{ $u->username }}</td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="2" class="px-6 py-8 text-center text-slate-400 font-bold">لا يوجد مستخدمون مرتبطون</td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>

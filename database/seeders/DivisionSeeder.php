@@ -2,9 +2,9 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
 use App\Models\Division;
 use App\Models\MilitaryDistrict;
+use Illuminate\Database\Seeder;
 
 class DivisionSeeder extends Seeder
 {
@@ -16,8 +16,8 @@ class DivisionSeeder extends Seeder
         $districts = MilitaryDistrict::all();
 
         if ($districts->isEmpty()) {
-             // Districts are seeded in AxisSeeder or should be seeded separately
-             return;
+            // Districts are seeded in AxisSeeder or should be seeded separately
+            return;
         }
 
         $divisions = [
@@ -36,7 +36,7 @@ class DivisionSeeder extends Seeder
                 foreach ($divList as $divName) {
                     Division::updateOrCreate([
                         'military_district_id' => $district->id,
-                        'name' => $divName
+                        'name' => $divName,
                     ]);
                 }
             }

@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class ImportProgress extends Model
 {
     protected $table = 'import_progress';
+
     protected $fillable = [
         'session_id',
         'type',
@@ -16,7 +17,7 @@ class ImportProgress extends Model
         'updated_count',
         'failed_count',
         'status',
-        'errors'
+        'errors',
     ];
 
     protected $casts = [
@@ -25,7 +26,10 @@ class ImportProgress extends Model
 
     public function getProgressPercentageAttribute()
     {
-        if ($this->total_rows === 0) return 0;
+        if ($this->total_rows === 0) {
+            return 0;
+        }
+
         return round(($this->processed_rows / $this->total_rows) * 100, 2);
     }
 }

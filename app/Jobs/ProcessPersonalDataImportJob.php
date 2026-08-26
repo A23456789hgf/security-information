@@ -17,19 +17,24 @@ class ProcessPersonalDataImportJob implements ShouldQueue
     public $timeout = 7200; // 2 hours for large personal data sets
 
     private $sessionId;
+
     private $filePath;
+
     private $mapping;
+
     private $mode;
+
     private $config;
+
     private $startRow;
 
     /**
-     * @param string $sessionId
-     * @param string $filePath
-     * @param array $mapping
-     * @param string $mode
-     * @param array $config [model, fields, identity, routeName]
-     * @param int $startRow
+     * @param  string  $sessionId
+     * @param  string  $filePath
+     * @param  array  $mapping
+     * @param  string  $mode
+     * @param  array  $config  [model, fields, identity, routeName]
+     * @param  int  $startRow
      */
     public function __construct($sessionId, $filePath, $mapping, $mode, $config, $startRow = 2)
     {
@@ -44,25 +49,28 @@ class ProcessPersonalDataImportJob implements ShouldQueue
     public function handle()
     {
         $progress = ImportProgress::where('session_id', $this->sessionId)->first();
-        if (!$progress) return;
+        if (! $progress) {
+            return;
+        }
 
         $progress->update(['status' => 'processing']);
 
-        $fullPath = storage_path('app/' . $this->filePath);
-        if (!file_exists($fullPath)) {
+        $fullPath = storage_path('app/'.$this->filePath);
+        if (! file_exists($fullPath)) {
             $progress->update(['status' => 'failed', 'errors' => ['الملف غير موجود']]);
+
             return;
         }
 
         try {
             Excel::import(
                 new \App\Imports\PersonalDataImporter(
-                    $this->sessionId, 
-                    $this->mapping, 
-                    $this->mode, 
+                    $this->sessionId,
+                    $this->mapping,
+                    $this->mode,
                     $this->config,
                     $this->startRow
-                ), 
+                ),
                 $fullPath
             );
 
@@ -73,7 +81,7 @@ class ProcessPersonalDataImportJob implements ShouldQueue
         } catch (\Exception $e) {
             $progress->update([
                 'status' => 'failed',
-                'errors' => ["خطأ النظام: " . $e->getMessage()]
+                'errors' => ['خطأ النظام: '.$e->getMessage()],
             ]);
         }
     }

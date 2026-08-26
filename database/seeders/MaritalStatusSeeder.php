@@ -2,8 +2,8 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
 use App\Models\MaritalStatus;
+use Illuminate\Database\Seeder;
 
 class MaritalStatusSeeder extends Seeder
 {

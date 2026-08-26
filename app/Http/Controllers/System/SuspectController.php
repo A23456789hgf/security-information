@@ -2,9 +2,10 @@
 
 namespace App\Http\Controllers\System;
 
+use App\Exports\UniversalExport;
 use App\Http\Controllers\Controller;
-use App\Models\Suspect;
 use App\Models\PersonalData;
+use App\Models\Suspect;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -15,13 +16,13 @@ class SuspectController extends Controller
         $query = Suspect::with('personalData');
 
         if ($search = $request->input('search')) {
-            $query->where(function($q) use ($search) {
-                $q->whereHas('personalData', function($subQuery) use ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->whereHas('personalData', function ($subQuery) use ($search) {
                     $subQuery->where('name', 'like', "%$search%")
-                             ->orWhere('jihadi_name', 'like', "%$search%");
+                        ->orWhere('jihadi_name', 'like', "%$search%");
                 })
-                ->orWhere('suspect_number', 'like', "%$search%")
-                ->orWhere('suspicion_type', 'like', "%$search%");
+                    ->orWhere('suspect_number', 'like', "%$search%")
+                    ->orWhere('suspicion_type', 'like', "%$search%");
             });
         }
 
@@ -38,9 +39,44 @@ class SuspectController extends Controller
         return view('system.cases.suspicious.index', compact('suspects'));
     }
 
+    public function export(Request $request)
+    {
+        $query = Suspect::with(['personalData']);
+
+        if ($search = $request->input('search')) {
+            $query->whereHas('personalData', function ($q) use ($search) {
+                $q->where('name', 'like', "%$search%")
+                    ->orWhere('jihadi_name', 'like', "%$search%");
+            });
+        }
+
+        $headings = [
+            'ID',
+            'الاسم الكامل',
+            'الاسم الجهادي',
+            'تاريخ الاشتباه',
+            'نوع الاشتباه',
+            'المستوى',
+            'تم الضبط؟',
+        ];
+
+        return (new UniversalExport($query, $headings, function ($row) {
+            return [
+                $row->id,
+                $row->personalData->name ?? '-',
+                $row->personalData->jihadi_name ?? '-',
+                $row->suspicion_date,
+                $row->suspicion_type,
+                $row->suspicion_level,
+                $row->is_arrested ? 'نعم' : 'لا',
+            ];
+        }))->download('suspicious_'.date('Y-m-d').'.xlsx');
+    }
+
     public function create()
     {
         $personalDataList = PersonalData::orderBy('name')->pluck('name', 'id');
+
         return view('system.cases.suspicious.create', compact('personalDataList'));
     }
 
@@ -83,6 +119,7 @@ class SuspectController extends Controller
     public function edit(Suspect $suspicious)
     {
         $personalDataList = PersonalData::orderBy('name')->pluck('name', 'id');
+
         return view('system.cases.suspicious.edit', compact('suspicious', 'personalDataList'));
     }
 
@@ -130,6 +167,7 @@ class SuspectController extends Controller
         }
 
         $suspicious->delete();
+
         return redirect()->route('system.suspicious.index')->with('success', 'تم حذف المشتبه به بنجاح');
     }
 
@@ -155,7 +193,7 @@ class SuspectController extends Controller
             'governorate',
             'directorate',
             'subArea',
-            'village'
+            'village',
         ])->findOrFail($id);
 
         return response()->json([

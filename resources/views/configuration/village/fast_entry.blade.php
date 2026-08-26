@@ -69,8 +69,8 @@
                     <textarea id="villageList" class="form-control rounded-4 font-monospace" rows="12" 
                         placeholder="قرية 1&#10;قرية 2&#10;حارة 3..." style="resize: none; font-size: 1.1rem; line-height: 1.6;"></textarea>
                     
-                    <div class="mt-4 text-end">
-                        <button class="btn btn-success btn-lg rounded-pill px-5 shadow-sm" id="btnSaveAll">
+                    <div class="mt-4 text-start sm:text-end">
+                        <button class="btn btn-success rounded-pill px-4 sm:px-5 py-2.5 shadow-sm fw-bold w-100 sm:w-auto" id="btnSaveAll">
                             <i class="fas fa-save me-2"></i>حفظ كافة القرى الآن
                         </button>
                     </div>

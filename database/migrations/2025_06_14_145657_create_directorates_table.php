@@ -9,20 +9,19 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-   // database/migrations/xxxx_xx_xx_create_directorates_table.php
+    // database/migrations/xxxx_xx_xx_create_directorates_table.php
 
-public function up()
-{
-    Schema::create('directorates', function (Blueprint $table) {
-        $table->id();
-        $table->foreignId('governorate_id')->constrained()->onDelete('cascade');
-        $table->string('name');
-        $table->timestamps();
+    public function up()
+    {
+        Schema::create('directorates', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('governorate_id')->constrained()->onDelete('cascade');
+            $table->string('name');
+            $table->timestamps();
 
-        $table->unique(['governorate_id', 'name']); // لا تتكرر نفس المديرية في نفس المحافظة
-    });
-}
-
+            $table->unique(['governorate_id', 'name']); // لا تتكرر نفس المديرية في نفس المحافظة
+        });
+    }
 
     /**
      * Reverse the migrations.

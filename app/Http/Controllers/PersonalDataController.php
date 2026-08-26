@@ -2,43 +2,97 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\PersonalData;
+use App\Exports\UniversalExport;
 use App\Models\BloodType;
-use App\Models\MaritalStatus;
-use App\Models\Qualification;
-use App\Models\NumberClassification;
-use App\Models\JobStatus;
-use App\Models\Rank;
-use App\Models\MilitaryDistrict;
-use App\Models\Division;
 use App\Models\Country;
-use App\Models\Governorate;
 use App\Models\Directorate;
+use App\Models\Division;
+use App\Models\FinancialStatus;
+use App\Models\Governorate;
+use App\Models\JobStatus;
+use App\Models\MaritalStatus;
+use App\Models\MilitaryDistrict;
+use App\Models\NumberClassification;
+use App\Models\PersonalData;
+use App\Models\Qualification;
+use App\Models\Rank;
 use App\Models\SubArea;
 use App\Models\Village;
-use App\Models\FinancialStatus;
 use Illuminate\Http\Request;
 
 class PersonalDataController extends Controller
 {
     public function index(Request $request)
     {
+        $entityIdsByEnt = \App\Models\InternalEntity::getAllChildrenIds(auth()->user()->administrative_scope_id);
         $query = PersonalData::query();
+
+        if (!empty($entityIdsByEnt)) {
+            $query->whereIn('internal_entity_id', $entityIdsByEnt);
+        }
 
         if ($search = $request->input('search')) {
             $query->where('name', 'like', "%$search%")
-                  ->orWhere('jihadi_name', 'like', "%$search%")
-                  ->orWhere('national_id_number', 'like', "%$search%")
-                  ->orWhere('military_number', 'like', "%$search%")
-                  ->orWhere('phone_1', 'like', "%$search%")
-                  ->orWhere('phone_2', 'like', "%$search%")
-                  ->orWhere('phone_3', 'like', "%$search%");
+                ->orWhere('jihadi_name', 'like', "%$search%")
+                ->orWhere('national_id_number', 'like', "%$search%")
+                ->orWhere('military_number', 'like', "%$search%")
+                ->orWhere('phone_1', 'like', "%$search%")
+                ->orWhere('phone_2', 'like', "%$search%")
+                ->orWhere('phone_3', 'like', "%$search%");
         }
 
         $perPage = $request->input('per_page', 50);
         $personalDataList = $query->paginate($perPage);
 
         return view('system.personal_data.index', compact('personalDataList'));
+    }
+
+    public function export(Request $request)
+    {
+        $entityIdsByEnt = \App\Models\InternalEntity::getAllChildrenIds(auth()->user()->administrative_scope_id);
+        $query = PersonalData::query()->with(['rank', 'militaryDistrict']);
+
+        if (!empty($entityIdsByEnt)) {
+            $query->whereIn('internal_entity_id', $entityIdsByEnt);
+        }
+
+        if ($request->has('search')) {
+            $search = $request->get('search');
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('military_number', 'like', "%{$search}%")
+                    ->orWhere('national_id_number', 'like', "%{$search}%")
+                    ->orWhere('jihadi_name', 'like', "%{$search}%");
+            });
+        }
+
+        $headings = [
+            'ID',
+            'الاسم الكامل',
+            'الاسم الجهادي',
+            'الرقم الوطني',
+            'الرقم العسكري',
+            'الرتبة',
+            'المنطقة العسكرية',
+            'الوحدة',
+            'الوظيفة',
+            'رقم الهاتف',
+        ];
+
+        return (new UniversalExport($query, $headings, function ($row) {
+            return [
+                $row->id,
+                $row->name,
+                $row->jihadi_name,
+                $row->national_id_number,
+                $row->military_number,
+                $row->rank->rank ?? '-',
+                $row->militaryDistrict->name ?? '-',
+                $row->unit,
+                $row->job,
+                $row->phone_1,
+            ];
+        }))->download('personal_data_'.date('Y-m-d').'.xlsx');
     }
 
     public function create()
@@ -53,15 +107,17 @@ class PersonalDataController extends Controller
         $divisions = Division::pluck('name', 'id');
         $countries = Country::pluck('name', 'id');
         $governorates = Governorate::pluck('name', 'id');
-        $directorates = Directorate::pluck('name', 'id');
-        $subAreas = SubArea::pluck('name', 'id');
-        $villages = Village::pluck('name', 'id');
         $financialStatuses = FinancialStatus::pluck('name', 'id');
+
+        // Structured geo data for client-side filtering (no AJAX needed)
+        $allDirectorates = Directorate::orderBy('name')->get(['id', 'name', 'governorate_id']);
+        $allSubAreas = SubArea::orderBy('name')->get(['id', 'name', 'directorate_id']);
+        $allVillages = Village::orderBy('name')->get(['id', 'name', 'sub_area_id']);
 
         return view('system.personal_data.create', compact(
             'bloodTypes', 'maritalStatuses', 'qualifications', 'numberClassifications',
             'jobStatuses', 'ranks', 'militaryDistricts', 'divisions',
-            'governorates', 'directorates', 'subAreas', 'villages', 'financialStatuses'
+            'governorates', 'financialStatuses', 'allDirectorates', 'allSubAreas', 'allVillages'
         ));
     }
 
@@ -103,12 +159,17 @@ class PersonalDataController extends Controller
             'financial_status_id' => 'nullable|exists:financial_statuses,id',
             'personal_photos.*' => 'image|mimes:jpeg,png,jpg,gif,svg|max:2048',
         ]);
-        
+
         $data = $request->except(['personal_photos', 'main_profile_photo']);
+
+        // Automatically assign internal_entity_id from user if not present
+        if (!isset($data['internal_entity_id']) && auth()->user()->internal_entity_id) {
+            $data['internal_entity_id'] = auth()->user()->internal_entity_id;
+        }
 
         // Handle Hijri date components
         if ($request->date_of_birth_hijri_day && $request->date_of_birth_hijri_month && $request->date_of_birth_hijri_year) {
-            $data['date_of_birth_hijri'] = $request->date_of_birth_hijri_day . '/' . $request->date_of_birth_hijri_month . '/' . $request->date_of_birth_hijri_year;
+            $data['date_of_birth_hijri'] = $request->date_of_birth_hijri_day.'/'.$request->date_of_birth_hijri_month.'/'.$request->date_of_birth_hijri_year;
         }
 
         // Handle main profile photo
@@ -130,6 +191,7 @@ class PersonalDataController extends Controller
 
     public function show(PersonalData $personalData)
     {
+        $personalData->load(['relatives.kinship', 'relatives.ideologicalAffiliation', 'relatives.politicalAffiliation', 'wives', 'courses.courseType', 'arrests']);
         return view('system.personal_data.show', compact('personalData'));
     }
 
@@ -141,28 +203,57 @@ class PersonalDataController extends Controller
     public function printFull(PersonalData $personalData)
     {
         $personalData->load([
-            'wives', 
-            'courses.courseType', 
-            'courses.sendingEntity', 
-            'rank', 
-            'bloodType', 
-            'maritalStatus', 
-            'qualification', 
-            'numberClassification', 
-            'jobStatus', 
-            'militaryDistrict', 
-            'division', 
-            'governorate', 
-            'directorate', 
-            'subArea', 
+            'wives',
+            'relatives.kinship',
+            'relatives.ideologicalAffiliation',
+            'relatives.politicalAffiliation',
+            'enemyAreaRelatives.kinship',
+            'enemyAreaRelatives.politicalAffiliation',
+            'enemyAreaRelatives.ideologicalAffiliation',
+            'enemyAreaRelatives.financialStatus',
+            'travelingRelatives.kinship',
+            'travelingRelatives.country',
+            'travelingRelatives.politicalAffiliation',
+            'travelingRelatives.ideologicalAffiliation',
+            'courses.courseType',
+            'courses.sendingEntity',
+            'rank',
+            'bloodType',
+            'maritalStatus',
+            'qualification',
+            'numberClassification',
+            'jobStatus',
+            'militaryDistrict',
+            'division',
+            'governorate',
+            'directorate',
+            'subArea',
             'village',
             'arrests.arrestingAuthority',
-            'arrests.caseType'
+            'arrests.caseType',
+            'secondaryData.healthStatus',
+            'secondaryData.weapons',
+            'secondaryData.affiliations.ideologicalAffiliation',
+            'secondaryData.affiliations.politicalAffiliation',
+            'secondaryData.previousJihadistActions',
+            'suspects',
+            'photos',
         ]);
 
         $securityReports = $personalData->securityReports();
+        $dynamicRecords = $personalData->dynamicRecords();
+        $relatedUser = $personalData->relatedUser();
 
-        return view('system.personal_data.print_comprehensive', compact('personalData', 'securityReports'));
+        if ($relatedUser) {
+            $relatedUser->load(['roles', 'internal_entity']);
+        }
+
+        return view('system.personal_data.print_comprehensive', compact(
+            'personalData',
+            'securityReports',
+            'dynamicRecords',
+            'relatedUser'
+        ));
     }
 
     public function edit(PersonalData $personalData)
@@ -177,15 +268,17 @@ class PersonalDataController extends Controller
         $divisions = Division::pluck('name', 'id');
         $countries = Country::pluck('name', 'id');
         $governorates = Governorate::pluck('name', 'id');
-        $directorates = Directorate::pluck('name', 'id');
-        $subAreas = SubArea::pluck('name', 'id');
-        $villages = Village::pluck('name', 'id');
         $financialStatuses = FinancialStatus::pluck('name', 'id');
+
+        // Structured geo data for client-side filtering (no AJAX needed)
+        $allDirectorates = Directorate::orderBy('name')->get(['id', 'name', 'governorate_id']);
+        $allSubAreas = SubArea::orderBy('name')->get(['id', 'name', 'directorate_id']);
+        $allVillages = Village::orderBy('name')->get(['id', 'name', 'sub_area_id']);
 
         return view('system.personal_data.edit', compact(
             'personalData', 'bloodTypes', 'maritalStatuses', 'qualifications', 'numberClassifications',
             'jobStatuses', 'ranks', 'militaryDistricts', 'divisions',
-            'governorates', 'directorates', 'subAreas', 'villages', 'financialStatuses'
+            'governorates', 'financialStatuses', 'allDirectorates', 'allSubAreas', 'allVillages'
         ));
     }
 
@@ -230,9 +323,14 @@ class PersonalDataController extends Controller
 
         $data = $request->except(['personal_photos', 'main_profile_photo']);
 
+        // Automatically assign internal_entity_id if missing (for safety, though usually kept from creation)
+        if (!isset($data['internal_entity_id']) && auth()->user()->internal_entity_id) {
+            $data['internal_entity_id'] = auth()->user()->internal_entity_id;
+        }
+
         // Handle Hijri date components (if they come from a create-style form, though edit uses a single field)
         if ($request->date_of_birth_hijri_day && $request->date_of_birth_hijri_month && $request->date_of_birth_hijri_year) {
-            $data['date_of_birth_hijri'] = $request->date_of_birth_hijri_day . '/' . $request->date_of_birth_hijri_month . '/' . $request->date_of_birth_hijri_year;
+            $data['date_of_birth_hijri'] = $request->date_of_birth_hijri_day.'/'.$request->date_of_birth_hijri_month.'/'.$request->date_of_birth_hijri_year;
         }
 
         // Handle main profile photo
@@ -262,6 +360,7 @@ class PersonalDataController extends Controller
             }
         }
         $personalData->delete();
+
         return redirect()->route('system.personal-data.index')->with('success', 'تم الحذف بنجاح');
     }
 
@@ -270,6 +369,7 @@ class PersonalDataController extends Controller
         $photo = \App\Models\PersonalDataPhoto::findOrFail($id);
         \Illuminate\Support\Facades\Storage::disk('public')->delete($photo->photo_path);
         $photo->delete();
+
         return back()->with('success', 'تم حذف الصورة بنجاح');
     }
 
@@ -302,14 +402,19 @@ class PersonalDataController extends Controller
             foreach ($rows as $index => $rowData) {
                 try {
                     if (empty($rowData['name']) || empty($rowData['national_id_number'])) {
-                        throw new \Exception("الاسم ورقم الهوية مطلوبان");
+                        throw new \Exception('الاسم ورقم الهوية مطلوبان');
+                    }
+
+                    // Automatically assign internal_entity_id if not present
+                    if (!isset($rowData['internal_entity_id']) && auth()->user()->internal_entity_id) {
+                        $rowData['internal_entity_id'] = auth()->user()->internal_entity_id;
                     }
 
                     PersonalData::create($rowData);
                     $results['success']++;
                 } catch (\Exception $e) {
                     $results['failed']++;
-                    $results['errors'][] = "الصف " . ($index + 1) . ": " . $e->getMessage();
+                    $results['errors'][] = 'الصف '.($index + 1).': '.$e->getMessage();
                 }
             }
         });
@@ -317,7 +422,7 @@ class PersonalDataController extends Controller
         return response()->json([
             'success' => true,
             'results' => $results,
-            'message' => "تمت معالجة " . count($rows) . " سجلات (بنجاح: {$results['success']}, فشل: {$results['failed']})"
+            'message' => 'تمت معالجة '.count($rows)." سجلات (بنجاح: {$results['success']}, فشل: {$results['failed']})",
         ]);
     }
 
@@ -339,7 +444,7 @@ class PersonalDataController extends Controller
             'national_id_number' => $person->national_id_number ?? '-',
             'phone_1' => $person->phone_1 ?? '-',
             'phone_2' => $person->phone_2 ?? '-',
-            'address' => ($person->governorate->name ?? '') . ' - ' . ($person->directorate->name ?? '') . ' - ' . ($person->village->name ?? ''),
+            'address' => ($person->governorate->name ?? '').' - '.($person->directorate->name ?? '').' - '.($person->village->name ?? ''),
             // For auto-filling forms
             'governorate_id' => $person->governorate_id,
             'directorate_id' => $person->directorate_id,

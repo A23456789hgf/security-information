@@ -3,9 +3,9 @@
 namespace App\Http\Controllers\System;
 
 use App\Http\Controllers\Controller;
-use App\Models\InternalEntity;
-use App\Models\Governorate;
 use App\Models\Directorate;
+use App\Models\Governorate;
+use App\Models\InternalEntity;
 use Illuminate\Http\Request;
 
 class EntityController extends Controller
@@ -13,6 +13,7 @@ class EntityController extends Controller
     public function index()
     {
         $entities = InternalEntity::with('parent', 'governorate', 'directorate')->paginate(20);
+
         return view('system.entities.index', compact('entities'));
     }
 
@@ -21,6 +22,7 @@ class EntityController extends Controller
         $parents = InternalEntity::all();
         $governorates = Governorate::all();
         $directorates = Directorate::all();
+
         return view('system.entities.create', compact('parents', 'governorates', 'directorates'));
     }
 
@@ -41,6 +43,7 @@ class EntityController extends Controller
     public function show(InternalEntity $entity)
     {
         $entity->load('parent', 'children', 'governorate', 'directorate', 'users');
+
         return view('system.entities.show', compact('entity'));
     }
 
@@ -49,6 +52,7 @@ class EntityController extends Controller
         $parents = InternalEntity::where('id', '!=', $entity->id)->get();
         $governorates = Governorate::all();
         $directorates = Directorate::all();
+
         return view('system.entities.edit', compact('entity', 'parents', 'governorates', 'directorates'));
     }
 
@@ -73,6 +77,7 @@ class EntityController extends Controller
         }
 
         $entity->delete();
+
         return redirect()->route('system.entities.index')->with('success', 'تم حذف الجهة بنجاح');
     }
 }

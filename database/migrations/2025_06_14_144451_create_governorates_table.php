@@ -9,16 +9,16 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-// database/migrations/xxxx_xx_xx_create_governorates_table.php
+    // database/migrations/xxxx_xx_xx_create_governorates_table.php
 
-public function up()
-{
-    Schema::create('governorates', function (Blueprint $table) {
-        $table->id();
-        $table->string('name')->unique(); // اسم المحافظة
-        $table->timestamps();
-    });
-}
+    public function up()
+    {
+        Schema::create('governorates', function (Blueprint $table) {
+            $table->id();
+            $table->string('name')->unique(); // اسم المحافظة
+            $table->timestamps();
+        });
+    }
 
     /**
      * Reverse the migrations.

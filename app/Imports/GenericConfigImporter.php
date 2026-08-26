@@ -7,33 +7,42 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Maatwebsite\Excel\Concerns\OnEachRow;
 use Maatwebsite\Excel\Concerns\WithChunkReading;
-use Maatwebsite\Excel\Row;
 use Maatwebsite\Excel\Concerns\WithStartRow;
+use Maatwebsite\Excel\Row;
 
 class GenericConfigImporter implements OnEachRow, WithChunkReading, WithStartRow
 {
     private $sessionId;
+
     private $mapping;
+
     private $mode;
+
     private $config;
+
     private $startRow;
 
     protected function normalizeArabic($str)
     {
-        $str = trim((string)$str);
+        $str = trim((string) $str);
         $str = str_replace(['أ', 'إ', 'آ'], 'ا', $str);
         $str = str_replace('ة', 'ه', $str);
         $str = str_replace('ى', 'ي', $str);
+
         return $str;
     }
 
     private $created = 0;
+
     private $updated = 0;
+
     private $failed = 0;
+
     private $errors = [];
 
     // Cache for location lookups
     private $governorates = null;
+
     private $directorates = null;
 
     public function __construct($sessionId, $mapping, $mode, $config, $startRow = 2)
@@ -70,10 +79,11 @@ class GenericConfigImporter implements OnEachRow, WithChunkReading, WithStartRow
 
         foreach ($fieldsConfig as $field => $label) {
             $colIndex = $this->mapping[$field] ?? null;
-            $val = ($colIndex !== null && isset($rowArray[$colIndex])) ? trim((string)$rowArray[$colIndex]) : '';
+            $val = ($colIndex !== null && isset($rowArray[$colIndex])) ? trim((string) $rowArray[$colIndex]) : '';
 
             if (empty($val)) {
-                $rowErrors[] = "الحقل $label مفقود في الصف " . $rowIndex;
+                $rowErrors[] = "الحقل $label مفقود في الصف ".$rowIndex;
+
                 continue;
             }
 
@@ -83,7 +93,7 @@ class GenericConfigImporter implements OnEachRow, WithChunkReading, WithStartRow
                 if ($id) {
                     $rowData[$field] = $id;
                 } else {
-                    $rowErrors[] = "$label غير موجود ($val) في الصف " . $rowIndex;
+                    $rowErrors[] = "$label غير موجود ($val) في الصف ".$rowIndex;
                 }
             } else {
                 $rowData[$field] = $val;
@@ -96,13 +106,13 @@ class GenericConfigImporter implements OnEachRow, WithChunkReading, WithStartRow
             } catch (\Exception $e) {
                 $this->failed++;
                 if (count($this->errors) < 100) {
-                    $this->errors[] = "خطأ حفظ في الصف $rowIndex: " . $e->getMessage();
+                    $this->errors[] = "خطأ حفظ في الصف $rowIndex: ".$e->getMessage();
                 }
             }
         } else {
             $this->failed++;
             if (count($this->errors) < 100) {
-                $this->errors[] = implode(", ", $rowErrors);
+                $this->errors[] = implode(', ', $rowErrors);
             }
         }
 
@@ -122,8 +132,11 @@ class GenericConfigImporter implements OnEachRow, WithChunkReading, WithStartRow
                 $this->governorates = DB::table('governorates')->get(['id', 'name']);
             }
             foreach ($this->governorates as $g) {
-                if ($this->normalizeArabic($g->name) === $normVal || $g->id == $val) return $g->id;
+                if ($this->normalizeArabic($g->name) === $normVal || $g->id == $val) {
+                    return $g->id;
+                }
             }
+
             return null;
         }
 
@@ -131,39 +144,49 @@ class GenericConfigImporter implements OnEachRow, WithChunkReading, WithStartRow
             if ($this->directorates === null) {
                 $this->directorates = DB::table('directorates')->get(['id', 'name', 'governorate_id']);
             }
-            
+
             foreach ($this->directorates as $d) {
                 if ($this->normalizeArabic($d->name) === $normVal || $d->id == $val) {
                     if (isset($rowData['governorate_id']) && $d->governorate_id == $rowData['governorate_id']) {
                         return $d->id;
-                    } elseif (!isset($rowData['governorate_id'])) {
+                    } elseif (! isset($rowData['governorate_id'])) {
                         return $d->id;
                     }
                 }
             }
+
             return null;
         }
 
         // Generic lookup for others
         $relationTable = Str::plural(str_replace('_id', '', $field));
-        if ($field === 'military_district_id') $relationTable = 'military_districts';
-        
+        if ($field === 'military_district_id') {
+            $relationTable = 'military_districts';
+        }
+
         $items = DB::table($relationTable)->get(['id', 'name']);
         foreach ($items as $item) {
-            if ($this->normalizeArabic($item->name) === $normVal || $item->id == $val) return $item->id;
+            if ($this->normalizeArabic($item->name) === $normVal || $item->id == $val) {
+                return $item->id;
+            }
         }
+
         return is_numeric($val) ? $val : null;
     }
 
     private function processRecord($modelClass, $identityKeys, $rowData)
     {
         $query = $modelClass::query();
-        if (!empty($identityKeys)) {
+        if (! empty($identityKeys)) {
             foreach ($identityKeys as $k) {
-                if (isset($rowData[$k])) $query->where($k, $rowData[$k]);
+                if (isset($rowData[$k])) {
+                    $query->where($k, $rowData[$k]);
+                }
             }
         } else {
-            foreach ($rowData as $k => $v) $query->where($k, $v);
+            foreach ($rowData as $k => $v) {
+                $query->where($k, $v);
+            }
         }
 
         $record = $query->first();
@@ -173,8 +196,9 @@ class GenericConfigImporter implements OnEachRow, WithChunkReading, WithStartRow
             return;
         }
 
-        if ($this->mode === 'update' && !$record) {
+        if ($this->mode === 'update' && ! $record) {
             $this->failed++;
+
             return;
         }
 
@@ -209,7 +233,7 @@ class GenericConfigImporter implements OnEachRow, WithChunkReading, WithStartRow
                 'created_count' => $this->created,
                 'updated_count' => $this->updated,
                 'failed_count' => $this->failed,
-                'errors' => array_unique($this->errors)
+                'errors' => array_unique($this->errors),
             ]);
         }
     }

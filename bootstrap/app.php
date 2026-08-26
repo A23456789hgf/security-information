@@ -1,5 +1,17 @@
 <?php
 
+// Programmatic PSR-4 Autoloader fallback for isolated Modules namespace
+if (file_exists(dirname(__DIR__).'/vendor/autoload.php')) {
+    $loader = require dirname(__DIR__).'/vendor/autoload.php';
+    if (is_object($loader) && method_exists($loader, 'addPsr4')) {
+        $loader->addPsr4('Modules\\', dirname(__DIR__).'/Modules');
+        $loader->addPsr4('Modules\\Differences\\', [
+            dirname(__DIR__).'/Modules/Differences',
+            dirname(__DIR__).'/Modules/differences'
+        ]);
+    }
+}
+
 /*
 |--------------------------------------------------------------------------
 | Create The Application

@@ -1,53 +1,93 @@
 @extends('layouts.app')
 
-@section('title', 'تعديل القسم')
+@section('title', 'تعديل القسم الإداري')
+@section('page_title', 'إدارة النظام')
+
 @section('content')
-<div class="container mt-4">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card shadow-sm border-0 rounded-4">
-                <div class="card-header bg-primary text-white py-3">
-                    <h5 class="mb-0 fw-bold"><i class="fas fa-edit me-2"></i>تعديل القسم: {{ $section->name }}</h5>
-                </div>
-                <div class="card-body p-4">
-                    <form action="{{ route('system.sections.update', $section) }}" method="POST">
-                        @csrf
-                        @method('PUT')
-                        <div class="mb-4">
-                            <label class="form-label fw-bold">اسم القسم <span class="text-danger">*</span></label>
-                            <input type="text" name="name" class="form-control form-control-lg rounded-3" value="{{ old('name', $section->name) }}" required>
-                            @error('name')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
+<div class="container-fluid mx-auto px-4 py-8" dir="rtl">
+    {{-- رأس الصفحة --}}
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10 max-w-3xl mx-auto">
+        <div class="flex items-center gap-4">
+            <div class="w-16 h-16 bg-amber-500 rounded-3xl shadow-xl shadow-amber-100 flex items-center justify-center text-white">
+                <i class="fas fa-edit text-2xl"></i>
+            </div>
+            <div>
+                <h2 class="text-3xl font-extrabold text-slate-800 header-font mb-1">تعديل القسم الإداري</h2>
+                <p class="text-slate-500 text-sm">تعديل بيانات وإعدادات قسم: <span class="font-bold text-amber-600">{{ $section->name }}</span></p>
+            </div>
+        </div>
+        <a href="{{ route('system.sections.index') }}"
+            class="px-6 py-3 bg-white border border-slate-200 text-slate-600 rounded-2xl font-bold hover:bg-slate-50 transition-all shadow-sm flex items-center gap-2 text-sm">
+            <i class="fas fa-arrow-right"></i> عودة للقائمة
+        </a>
+    </div>
+
+    @if ($errors->any())
+        <div class="max-w-3xl mx-auto mb-8 p-6 bg-rose-50 border border-rose-200 rounded-3xl text-rose-700">
+            <div class="flex items-center gap-3 mb-2 font-bold text-base">
+                <i class="fas fa-exclamation-circle text-rose-500 text-lg"></i>
+                يرجى تصحيح الأخطاء التالية:
+            </div>
+            <ul class="list-disc list-inside text-sm space-y-1 pr-2">
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+
+    <div class="max-w-3xl mx-auto">
+        <div class="bg-white rounded-[2.5rem] soft-shadow border border-slate-100 overflow-hidden">
+            <div class="px-8 py-6 border-b border-slate-50 bg-slate-50/50 flex items-center gap-3">
+                <span class="w-2 h-6 bg-amber-500 rounded-full"></span>
+                <h5 class="text-lg font-bold text-slate-800 header-font">تعديل بيانات القسم</h5>
+            </div>
+            <div class="p-8">
+                <form action="{{ route('system.sections.update', $section) }}" method="POST">
+                    @csrf
+                    @method('PUT')
+                    <div class="space-y-6">
+                        <div>
+                            <label class="text-xs font-bold text-slate-400 mb-2 block px-2">اسم القسم *</label>
+                            <input type="text" name="name" required
+                                class="w-full px-6 py-4 bg-slate-50 border-0 rounded-2xl focus:ring-2 focus:ring-amber-100 transition-all font-bold text-slate-700 @error('name') ring-2 ring-rose-100 @enderror"
+                                value="{{ old('name', $section->name) }}">
                         </div>
 
-                        <div class="row mb-4">
-                            <div class="col-md-6">
-                                <label class="form-label fw-bold">الأيقونة (FontAwesome)</label>
-                                <div class="input-group">
-                                    <span class="input-group-text bg-light"><i class="fas {{ $section->icon }}"></i></span>
-                                    <input type="text" name="icon" class="form-control rounded-end-3" value="{{ old('icon', $section->icon) }}">
-                                </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="text-xs font-bold text-slate-400 mb-2 block px-2">الأيقونة (FontAwesome)</label>
+                                <input type="text" name="icon"
+                                    class="w-full px-6 py-4 bg-slate-50 border-0 rounded-2xl focus:ring-2 focus:ring-amber-100 transition-all font-bold text-slate-700"
+                                    value="{{ old('icon', $section->icon) }}">
+                                <span class="text-[10px] text-slate-400 px-2 mt-1 block">مثال: fa-users, fa-building, fa-shield-alt</span>
                             </div>
-                            <div class="col-md-6">
-                                <label class="form-label fw-bold">ترتيب العرض</label>
-                                <input type="number" name="order_column" class="form-control rounded-3" value="{{ old('order_column', $section->order_column) }}">
+
+                            <div>
+                                <label class="text-xs font-bold text-slate-400 mb-2 block px-2">ترتيب العرض</label>
+                                <input type="number" name="order_column"
+                                    class="w-full px-6 py-4 bg-slate-50 border-0 rounded-2xl focus:ring-2 focus:ring-amber-100 transition-all font-bold text-slate-700 text-center"
+                                    value="{{ old('order_column', $section->order_column) }}">
                             </div>
                         </div>
 
-                        <div class="mb-4">
-                            <div class="form-check form-switch p-0 ms-4">
-                                <input class="form-check-input ms-0 me-2" type="checkbox" name="is_active" value="1" id="isActive" {{ $section->is_active ? 'checked' : '' }}>
-                                <label class="form-check-label fw-bold" for="isActive">تفعيل القسم في القائمة</label>
-                            </div>
+                        <div>
+                            <label class="flex items-center gap-3 p-4 bg-slate-50 border border-slate-100 rounded-2xl cursor-pointer hover:bg-slate-100 transition-all">
+                                <input type="checkbox" name="is_active" value="1" id="isActive" @checked(old('is_active', $section->is_active))
+                                    class="w-5 h-5 text-blue-600 rounded-lg focus:ring-0">
+                                <span class="font-bold text-slate-700 text-xs">تفعيل وعرض القسم في القائمة الرئيسية</span>
+                            </label>
                         </div>
 
-                        <div class="d-flex justify-content-end gap-2 mt-5">
-                            <a href="{{ route('system.sections.index') }}" class="btn btn-light rounded-pill px-4">إلغاء</a>
-                            <button type="submit" class="btn btn-primary rounded-pill px-5 shadow">
-                                <i class="fas fa-save me-1"></i> تحديث القسم
+                        <div class="flex items-center justify-end gap-4 pt-4 border-t border-slate-50">
+                            <a href="{{ route('system.sections.index') }}" class="px-8 py-3 text-slate-400 font-bold hover:text-slate-600 transition-colors">إلغاء</a>
+                            <button type="submit"
+                                class="px-10 py-4 bg-amber-500 text-white rounded-[2rem] font-bold hover:bg-amber-600 transition-all shadow-xl shadow-amber-100 flex items-center gap-2">
+                                <i class="fas fa-save"></i> حفظ التعديلات
                             </button>
                         </div>
-                    </form>
-                </div>
+                    </div>
+                </form>
             </div>
         </div>
     </div>

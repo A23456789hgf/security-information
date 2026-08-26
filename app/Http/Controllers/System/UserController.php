@@ -2,26 +2,56 @@
 
 namespace App\Http\Controllers\System;
 
+use App\Exports\UniversalExport;
 use App\Http\Controllers\Controller;
-use App\Models\User;
 use App\Models\InternalEntity;
+use App\Models\User;
 use Illuminate\Http\Request;
-use Spatie\Permission\Models\Role;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
+use Spatie\Permission\Models\Role;
 
 class UserController extends Controller
 {
     public function index()
     {
         $users = User::with('roles', 'internal_entity')->paginate(20);
+
         return view('system.users.index', compact('users'));
+    }
+
+    public function export(Request $request)
+    {
+        $query = User::with(['roles', 'internal_entity']);
+
+        $headings = [
+            'ID',
+            'الاسم',
+            'اسم المستخدم',
+            'الدور',
+            'الجهة',
+            'رقم الهاتف',
+            'الحالة',
+        ];
+
+        return (new UniversalExport($query, $headings, function ($row) {
+            return [
+                $row->id,
+                $row->name,
+                $row->username,
+                $row->roles->pluck('name')->implode(', '),
+                $row->internal_entity->name ?? '-',
+                $row->phone,
+                $row->is_active ? 'نشط' : 'معطل',
+            ];
+        }))->download('users_'.date('Y-m-d').'.xlsx');
     }
 
     public function create()
     {
         $roles = Role::all();
         $entities = InternalEntity::all();
+
         return view('system.users.create', compact('roles', 'entities'));
     }
 
@@ -56,6 +86,7 @@ class UserController extends Controller
     public function show(User $user)
     {
         $user->load('roles', 'internal_entity');
+
         return view('system.users.show', compact('user'));
     }
 
@@ -64,6 +95,7 @@ class UserController extends Controller
         $roles = Role::all();
         $entities = InternalEntity::all();
         $userRole = $user->roles->first() ? $user->roles->first()->id : null;
+
         return view('system.users.edit', compact('user', 'roles', 'entities', 'userRole'));
     }
 
@@ -106,6 +138,7 @@ class UserController extends Controller
         }
 
         $user->delete();
+
         return redirect()->route('system.users.index')->with('success', 'تم حذف المستخدم بنجاح');
     }
 }

@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\System;
 
 use App\Http\Controllers\Controller;
-use App\Models\Page;
 use App\Models\Field;
+use App\Models\Page;
 use App\Models\Section;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -14,6 +14,7 @@ class PageController extends Controller
     public function index()
     {
         $pages = Page::withCount('fields')->get();
+
         return view('system.pages.index', compact('pages'));
     }
 
@@ -21,6 +22,7 @@ class PageController extends Controller
     {
         $sections = Section::where('is_active', true)->get();
         $pages = Page::where('is_active', true)->get();
+
         return view('system.pages.create', compact('sections', 'pages'));
     }
 
@@ -40,12 +42,12 @@ class PageController extends Controller
 
         $pageData = $request->only(['name', 'section_id', 'is_active', 'is_unique_id']);
         $pageData['slug'] = $this->generateEnglishSlug($request->name);
-        
+
         // Ensure slug is unique
         $originalSlug = $pageData['slug'];
         $count = 1;
         while (Page::where('slug', $pageData['slug'])->exists()) {
-            $pageData['slug'] = $originalSlug . '-' . $count++;
+            $pageData['slug'] = $originalSlug.'-'.$count++;
         }
 
         $page = Page::create($pageData);
@@ -60,7 +62,7 @@ class PageController extends Controller
                 'metadata' => $fieldData['metadata'] ?? null,
             ];
 
-            if (!empty($fieldData['options'])) {
+            if (! empty($fieldData['options'])) {
                 $options = array_map('trim', explode(',', $fieldData['options']));
                 $data['options'] = $options;
             }
@@ -78,10 +80,11 @@ class PageController extends Controller
             'د' => 'd', 'ذ' => 'dh', 'ر' => 'r', 'ز' => 'z', 'س' => 's', 'ش' => 'sh', 'ص' => 's',
             'ض' => 'd', 'ط' => 't', 'ظ' => 'z', 'ع' => 'a', 'غ' => 'gh', 'ف' => 'f', 'ق' => 'q',
             'ك' => 'k', 'ل' => 'l', 'م' => 'm', 'ن' => 'n', 'ه' => 'h', 'و' => 'w', 'ي' => 'y',
-            'ة' => 'h', 'أ' => 'a', 'إ' => 'e', 'ؤ' => 'o', 'ئ' => 'e', 'ى' => 'a', 'لا' => 'la'
+            'ة' => 'h', 'أ' => 'a', 'إ' => 'e', 'ؤ' => 'o', 'ئ' => 'e', 'ى' => 'a', 'لا' => 'la',
         ];
 
         $english = strtr($text, $map);
+
         return Str::slug($english);
     }
 
@@ -89,6 +92,7 @@ class PageController extends Controller
     {
         $page->load('fields');
         $sections = Section::where('is_active', true)->get();
+
         return view('system.pages.edit', compact('page', 'sections'));
     }
 
@@ -109,7 +113,7 @@ class PageController extends Controller
             $originalSlug = $data['slug'];
             $count = 1;
             while (Page::where('slug', $data['slug'])->where('id', '!=', $page->id)->exists()) {
-                $data['slug'] = $originalSlug . '-' . $count++;
+                $data['slug'] = $originalSlug.'-'.$count++;
             }
         }
 
@@ -121,6 +125,7 @@ class PageController extends Controller
     public function destroy(Page $page)
     {
         $page->delete();
+
         return redirect()->route('system.pages.index')->with('success', 'تم حذف الصفحة بنجاح');
     }
 
@@ -136,7 +141,7 @@ class PageController extends Controller
 
         $data = $request->all();
         $data['name'] = $this->generateEnglishSlug($request->label);
-        
+
         if ($request->filled('options')) {
             $options = array_map('trim', explode(',', $request->options));
             $data['options'] = $options;
@@ -172,6 +177,7 @@ class PageController extends Controller
     public function destroyField(Field $field)
     {
         $field->delete();
+
         return back()->with('success', 'تم حذف الحقل بنجاح');
     }
 }

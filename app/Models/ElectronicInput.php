@@ -1,4 +1,5 @@
 <?php
+
 // app/Models/ElectronicInput.php
 
 namespace App\Models;

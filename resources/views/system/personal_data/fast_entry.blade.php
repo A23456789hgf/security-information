@@ -58,15 +58,15 @@
                 </table>
             </div>
         </div>
-        <div class="card-footer bg-white p-3 border-top d-flex justify-content-between align-items-center">
-            <div>
-                <button class="btn btn-outline-primary rounded-pill px-4" id="btnAddRow">
-                    <i class="fas fa-plus me-1"></i>إضافة صف جديد (F2)
+        <div class="card-footer bg-white p-3 border-top d-flex flex-wrap justify-content-between align-items-center gap-3">
+            <div class="d-flex align-items-center flex-wrap gap-2">
+                <button class="btn btn-outline-primary rounded-pill px-3 sm:px-4 text-xs sm:text-sm" id="btnAddRow">
+                    <i class="fas fa-plus me-1"></i>إضافة صف (F2)
                 </button>
-                <small class="text-muted ms-3">إجمالي الصفوف الحالية: <span id="rowCount">0</span></small>
+                <small class="text-muted ms-2">إجمالي الصفوف: <span id="rowCount" class="fw-bold">0</span></small>
             </div>
             <div>
-                <button class="btn btn-success btn-lg rounded-pill px-5 shadow-sm" id="btnSaveAll">
+                <button class="btn btn-success rounded-pill px-4 sm:px-5 py-2 shadow-sm text-xs sm:text-sm fw-bold w-100" id="btnSaveAll">
                     <i class="fas fa-save me-2"></i>حفظ كافة السجلات (Ctrl+S)
                 </button>
             </div>

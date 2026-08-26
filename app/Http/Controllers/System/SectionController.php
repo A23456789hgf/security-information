@@ -15,6 +15,7 @@ class SectionController extends Controller
     public function index()
     {
         $sections = Section::withCount('pages')->orderBy('order_column')->get();
+
         return view('system.sections.index', compact('sections'));
     }
 
@@ -39,7 +40,7 @@ class SectionController extends Controller
         ]);
 
         $data = $request->all();
-        $data['slug'] = Str::slug($request->name) ?: 'sec-' . Str::random(5);
+        $data['slug'] = Str::slug($request->name) ?: 'sec-'.Str::random(5);
         $data['is_active'] = $request->has('is_active');
 
         Section::create($data);
@@ -61,7 +62,7 @@ class SectionController extends Controller
     public function update(Request $request, Section $section)
     {
         $request->validate([
-            'name' => 'required|string|max:255|unique:sections,name,' . $section->id,
+            'name' => 'required|string|max:255|unique:sections,name,'.$section->id,
             'icon' => 'nullable|string|max:255',
             'order_column' => 'nullable|integer',
             'is_active' => 'boolean',
@@ -86,6 +87,7 @@ class SectionController extends Controller
         }
 
         $section->delete();
+
         return redirect()->route('system.sections.index')->with('success', 'تم حذف القسم بنجاح');
     }
 }

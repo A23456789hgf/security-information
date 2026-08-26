@@ -2,12 +2,12 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
-use App\Models\CourseType;
 use App\Models\CaseType;
-use App\Models\NumberClassification;
-use App\Models\FinancialStatus;
+use App\Models\CourseType;
 use App\Models\ElectronicInput;
+use App\Models\FinancialStatus;
+use App\Models\NumberClassification;
+use Illuminate\Database\Seeder;
 
 class TechnicalSeeder extends Seeder
 {

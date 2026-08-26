@@ -9,17 +9,16 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-// database/migrations/xxxx_xx_xx_create_electronic_inputs_table.php
+    // database/migrations/xxxx_xx_xx_create_electronic_inputs_table.php
 
-public function up()
-{
-    Schema::create('electronic_inputs', function (Blueprint $table) {
-        $table->id();
-        $table->string('name')->unique();
-        $table->timestamps();
-    });
-}
-
+    public function up()
+    {
+        Schema::create('electronic_inputs', function (Blueprint $table) {
+            $table->id();
+            $table->string('name')->unique();
+            $table->timestamps();
+        });
+    }
 
     /**
      * Reverse the migrations.

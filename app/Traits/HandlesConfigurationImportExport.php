@@ -5,7 +5,6 @@ namespace App\Traits;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Maatwebsite\Excel\Facades\Excel;
-use App\Models\ImportProgress;
 
 trait HandlesConfigurationImportExport
 {
@@ -17,7 +16,7 @@ trait HandlesConfigurationImportExport
     {
         return [
             'fields' => [$this->field => 'الاسم'],
-            'identity' => [$this->field]
+            'identity' => [$this->field],
         ];
     }
 
@@ -29,27 +28,33 @@ trait HandlesConfigurationImportExport
         $modelClass = $this->modelClass;
         $config = $this->getImportConfig();
         $fields = $config['fields'];
-        
+
         $items = $modelClass::all();
-        
-        return Excel::download(new class($items, $fields) implements \Maatwebsite\Excel\Concerns\FromCollection, \Maatwebsite\Excel\Concerns\WithHeadings, \Maatwebsite\Excel\Concerns\WithMapping {
+
+        return Excel::download(new class($items, $fields) implements \Maatwebsite\Excel\Concerns\FromCollection, \Maatwebsite\Excel\Concerns\WithHeadings, \Maatwebsite\Excel\Concerns\WithMapping
+        {
             private $items;
+
             private $fields;
 
-            public function __construct($items, $fields) {
+            public function __construct($items, $fields)
+            {
                 $this->items = $items;
                 $this->fields = $fields;
             }
 
-            public function collection() {
+            public function collection()
+            {
                 return $this->items;
             }
 
-            public function headings(): array {
+            public function headings(): array
+            {
                 return array_values($this->fields);
             }
 
-            public function map($item): array {
+            public function map($item): array
+            {
                 $row = [];
                 foreach (array_keys($this->fields) as $field) {
                     $value = $item->$field;
@@ -62,9 +67,10 @@ trait HandlesConfigurationImportExport
                     }
                     $row[] = $value;
                 }
+
                 return $row;
             }
-        }, Str::slug(class_basename($modelClass)) . '_export_' . date('Y-m-d') . '.xlsx');
+        }, Str::slug(class_basename($modelClass)).'_export_'.date('Y-m-d').'.xlsx');
     }
 
     /**
@@ -75,11 +81,20 @@ trait HandlesConfigurationImportExport
         $config = $this->getImportConfig();
         $headings = array_values($config['fields']);
 
-        return Excel::download(new class($headings) implements \Maatwebsite\Excel\Concerns\FromCollection {
+        return Excel::download(new class($headings) implements \Maatwebsite\Excel\Concerns\FromCollection
+        {
             private $headings;
-            public function __construct($headings) { $this->headings = $headings; }
-            public function collection() { return collect([$this->headings]); }
-        }, 'template_' . Str::slug(class_basename($this->modelClass)) . '.xlsx');
+
+            public function __construct($headings)
+            {
+                $this->headings = $headings;
+            }
+
+            public function collection()
+            {
+                return collect([$this->headings]);
+            }
+        }, 'template_'.Str::slug(class_basename($this->modelClass)).'.xlsx');
     }
 
     /**
@@ -90,12 +105,12 @@ trait HandlesConfigurationImportExport
         $slug = $this->getResourceSlug();
         $config = $this->getImportConfig();
         $title = class_basename($this->modelClass);
-        
+
         return view('configuration.import', [
             'type' => $slug,
             'title' => $title,
             'fields' => $config['fields'],
-            'routeName' => $this->routeName ?? "configuration.$slug"
+            'routeName' => $this->routeName ?? "configuration.$slug",
         ]);
     }
 
@@ -108,26 +123,35 @@ trait HandlesConfigurationImportExport
     public function import(Request $request)
     {
         $request->validate([
-            'excel_file' => 'required|file|mimes:xlsx,xls,csv'
+            'excel_file' => 'required|file|mimes:xlsx,xls,csv',
         ]);
 
         $file = $request->file('excel_file');
         $slug = $this->getResourceSlug();
-        
+
         try {
             // Save file to disk
             $path = $file->store('imports');
-            $fullPath = storage_path('app/' . $path);
-            
+            $fullPath = storage_path('app/'.$path);
+
             // Scalable: Read only the beginning of the file to detect headers using WithLimit
-            $import = new class implements \Maatwebsite\Excel\Concerns\ToArray, \Maatwebsite\Excel\Concerns\WithLimit {
+            $import = new class implements \Maatwebsite\Excel\Concerns\ToArray, \Maatwebsite\Excel\Concerns\WithLimit
+            {
                 public $data = [];
-                public function array(array $array) { $this->data = $array; }
-                public function limit(): int { return 100; }
+
+                public function array(array $array)
+                {
+                    $this->data = $array;
+                }
+
+                public function limit(): int
+                {
+                    return 100;
+                }
             };
             Excel::import($import, $fullPath);
             $rows = $import->data;
-            
+
             if (empty($rows)) {
                 return response()->json(['success' => false, 'message' => 'الملف فارغ']);
             }
@@ -138,14 +162,18 @@ trait HandlesConfigurationImportExport
             $dataStartRow = 1;
 
             foreach ($rows as $index => $row) {
-                if (!is_array($row)) continue;
-                
-                $validColumns = array_filter($row, function($h) { 
-                    return !is_null($h) && trim((string)$h) !== ''; 
+                if (! is_array($row)) {
+                    continue;
+                }
+
+                $validColumns = array_filter($row, function ($h) {
+                    return ! is_null($h) && trim((string) $h) !== '';
                 });
-                
-                if (!empty($validColumns)) {
-                    $headers = array_map(function($h) { return is_null($h) ? '' : (string)$h; }, $row);
+
+                if (! empty($validColumns)) {
+                    $headers = array_map(function ($h) {
+                        return is_null($h) ? '' : (string) $h;
+                    }, $row);
                     $headerRowIndex = $index;
                     $dataStartRow = $index + 2; // +1 for 0-index vs 1-index, +1 for row after headers
                     break;
@@ -163,9 +191,14 @@ trait HandlesConfigurationImportExport
             session(["pending_config_import_{$slug}_headers" => $headers]);
             session(["pending_config_import_{$slug}_start_row" => $dataStartRow]);
 
-            $safePreview = array_map(function($row) {
-                if (!is_array($row)) return [];
-                return array_map(function($cell) { return is_null($cell) ? '' : (string)$cell; }, $row);
+            $safePreview = array_map(function ($row) {
+                if (! is_array($row)) {
+                    return [];
+                }
+
+                return array_map(function ($cell) {
+                    return is_null($cell) ? '' : (string) $cell;
+                }, $row);
             }, $previewRows);
 
             return response()->json([
@@ -174,11 +207,11 @@ trait HandlesConfigurationImportExport
                 'preview_data' => $safePreview,
                 'total_rows' => 'غير معروف (جاري المعالجة)', // For large files, we don't count everything now
                 'target_fields' => $this->getImportConfig()['fields'],
-                'context' => $request->except(['excel_file', '_token'])
+                'context' => $request->except(['excel_file', '_token']),
             ]);
 
         } catch (\Exception $e) {
-            return response()->json(['success' => false, 'message' => 'خطأ في معالجة الملف: ' . $e->getMessage()]);
+            return response()->json(['success' => false, 'message' => 'خطأ في معالجة الملف: '.$e->getMessage()]);
         }
     }
 
@@ -192,15 +225,15 @@ trait HandlesConfigurationImportExport
         $identityKeys = $config['identity'] ?? [];
         $modelClass = $this->modelClass;
         $slug = $this->getResourceSlug();
-        
+
         $mode = $request->input('mode', 'append');
         $mapping = $request->input('mapping');
-        
+
         $filePath = session("pending_config_import_{$slug}_file");
         $headers = session("pending_config_import_{$slug}_headers");
         $context = $request->except(['mapping', 'mode', '_token']);
 
-        if (!$filePath || !file_exists(storage_path('app/' . $filePath))) {
+        if (! $filePath || ! file_exists(storage_path('app/'.$filePath))) {
             return response()->json(['success' => false, 'message' => 'الملف غير موجود، يرجى إعادة رفعه.']);
         }
 
@@ -210,17 +243,26 @@ trait HandlesConfigurationImportExport
 
         try {
             // Scalable: Read only enough rows for preview using WithLimit
-            $import = new class implements \Maatwebsite\Excel\Concerns\ToArray, \Maatwebsite\Excel\Concerns\WithLimit {
+            $import = new class implements \Maatwebsite\Excel\Concerns\ToArray, \Maatwebsite\Excel\Concerns\WithLimit
+            {
                 public $data = [];
-                public function array(array $array) { $this->data = $array; }
-                public function limit(): int { return 150; }
+
+                public function array(array $array)
+                {
+                    $this->data = $array;
+                }
+
+                public function limit(): int
+                {
+                    return 150;
+                }
             };
-            Excel::import($import, storage_path('app/' . $filePath));
+            Excel::import($import, storage_path('app/'.$filePath));
             $allRows = $import->data;
-            
+
             $startRow = session("pending_config_import_{$slug}_start_row", 2);
-            $totalRows = '...'; 
-            
+            $totalRows = '...';
+
             $headerRowIndex = $startRow - 2;
             $previewRows = array_slice($allRows, $headerRowIndex + 1, 100);
 
@@ -233,7 +275,7 @@ trait HandlesConfigurationImportExport
                     $value = null;
                     if (isset($mapping[$field]) && $mapping[$field] !== '') {
                         $colIndex = $mapping[$field];
-                        $value = trim((string)($row[$colIndex] ?? ''));
+                        $value = trim((string) ($row[$colIndex] ?? ''));
                     } elseif (isset($context[$field]) && $context[$field] !== '') {
                         $value = $context[$field];
                     }
@@ -243,27 +285,35 @@ trait HandlesConfigurationImportExport
                     } else {
                         if (str_ends_with($field, '_id')) {
                             $relationTable = Str::plural(str_replace('_id', '', $field));
-                            if ($field === 'military_district_id') $relationTable = 'military_districts';
-                            
+                            if ($field === 'military_district_id') {
+                                $relationTable = 'military_districts';
+                            }
+
                             // Fuzzy matching
-                            $normVal = method_exists($this, 'normalizeArabic') ? $this->normalizeArabic($value) : trim((string)$value);
+                            $normVal = method_exists($this, 'normalizeArabic') ? $this->normalizeArabic($value) : trim((string) $value);
                             $query = \DB::table($relationTable);
-                            
+
                             // Specific hierarchical filters for locations
-                            if ($field === 'directorate_id' && isset($rowData['governorate_id'])) $query->where('governorate_id', $rowData['governorate_id']);
-                            if ($field === 'sub_area_id' && isset($rowData['directorate_id'])) $query->where('directorate_id', $rowData['directorate_id']);
-                            if ($field === 'village_id' && isset($rowData['sub_area_id'])) $query->where('sub_area_id', $rowData['sub_area_id']);
+                            if ($field === 'directorate_id' && isset($rowData['governorate_id'])) {
+                                $query->where('governorate_id', $rowData['governorate_id']);
+                            }
+                            if ($field === 'sub_area_id' && isset($rowData['directorate_id'])) {
+                                $query->where('directorate_id', $rowData['directorate_id']);
+                            }
+                            if ($field === 'village_id' && isset($rowData['sub_area_id'])) {
+                                $query->where('sub_area_id', $rowData['sub_area_id']);
+                            }
 
                             $items = $query->get(['id', 'name']);
                             $id = null;
                             foreach ($items as $item) {
-                                if ((method_exists($this, 'normalizeArabic') ? $this->normalizeArabic($item->name) : trim((string)$item->name)) === $normVal || $item->id == $value) {
+                                if ((method_exists($this, 'normalizeArabic') ? $this->normalizeArabic($item->name) : trim((string) $item->name)) === $normVal || $item->id == $value) {
                                     $id = $item->id;
                                     break;
                                 }
                             }
 
-                            if (!$id) {
+                            if (! $id) {
                                 $errors[] = "$label غير موجود بجداول النظام أو غير مرتبط بالهيكل ($value)";
                             } else {
                                 $rowData[$field] = $id;
@@ -277,21 +327,36 @@ trait HandlesConfigurationImportExport
                 $currentStatus = 'ready';
                 if (empty($errors)) {
                     $query = $modelClass::query();
-                    if (!empty($identityKeys)) {
-                        foreach ($identityKeys as $k) if (isset($rowData[$k])) $query->where($k, $rowData[$k]);
+                    if (! empty($identityKeys)) {
+                        foreach ($identityKeys as $k) {
+                            if (isset($rowData[$k])) {
+                                $query->where($k, $rowData[$k]);
+                            }
+                        }
                     } else {
-                        foreach ($rowData as $k => $v) $query->where($k, $v);
+                        foreach ($rowData as $k => $v) {
+                            $query->where($k, $v);
+                        }
                     }
-                    
+
                     $exists = $query->exists();
                     if ($mode === 'append') {
-                        if ($exists) $currentStatus = 'exists';
+                        if ($exists) {
+                            $currentStatus = 'exists';
+                        }
                     } elseif ($mode === 'update') {
-                        if (!$exists) { $currentStatus = 'error'; $errors[] = 'السجل غير موجود للتحديث'; }
-                        else $currentStatus = 'update';
+                        if (! $exists) {
+                            $currentStatus = 'error';
+                            $errors[] = 'السجل غير موجود للتحديث';
+                        } else {
+                            $currentStatus = 'update';
+                        }
                     } elseif ($mode === 'upsert') {
-                        if ($exists) $currentStatus = 'update';
-                        else $currentStatus = 'ready';
+                        if ($exists) {
+                            $currentStatus = 'update';
+                        } else {
+                            $currentStatus = 'ready';
+                        }
                     }
                 } else {
                     $currentStatus = 'error';
@@ -302,7 +367,7 @@ trait HandlesConfigurationImportExport
                     'data' => $row,
                     'errors' => $errors,
                     'status' => $currentStatus,
-                    'mapped_data' => $rowData
+                    'mapped_data' => $rowData,
                 ];
             }
 
@@ -312,10 +377,10 @@ trait HandlesConfigurationImportExport
                 'headers' => $headers,
                 'total_rows_original' => $totalRows,
                 'total_ready' => $totalRows,
-                'total_update' => 0
+                'total_update' => 0,
             ]);
         } catch (\Exception $e) {
-            return response()->json(['success' => false, 'message' => 'خطأ في معالجة المعاينة: ' . $e->getMessage()]);
+            return response()->json(['success' => false, 'message' => 'خطأ في معالجة المعاينة: '.$e->getMessage()]);
         }
     }
 
@@ -330,7 +395,7 @@ trait HandlesConfigurationImportExport
         $mode = session("pending_config_import_{$slug}_mode", 'append');
         $startRow = session("pending_config_import_{$slug}_start_row", 2);
 
-        if (!$filePath || !file_exists(storage_path('app/' . $filePath))) {
+        if (! $filePath || ! file_exists(storage_path('app/'.$filePath))) {
             return response()->json(['success' => false, 'message' => 'الملف غير موجود، حاول التحديث وإعادة الرفع.']);
         }
 
@@ -348,16 +413,16 @@ trait HandlesConfigurationImportExport
                 'model' => $this->modelClass,
                 'fields' => $this->getImportConfig()['fields'],
                 'identity' => $this->getImportConfig()['identity'] ?? [],
-                'routeName' => $this->routeName ?? "configuration.$slug"
+                'routeName' => $this->routeName ?? "configuration.$slug",
             ];
 
             // Perform Synchronous Import
             // We use the specific importer if defined, otherwise generic
             $importerClass = property_exists($this, 'importerClass') ? $this->importerClass : \App\Imports\ConfigurationImporter::class;
-            
+
             \Maatwebsite\Excel\Facades\Excel::import(
-                new $importerClass($sessionId, $mapping, $mode, $config, $startRow), 
-                storage_path('app/' . $filePath)
+                new $importerClass($sessionId, $mapping, $mode, $config, $startRow),
+                storage_path('app/'.$filePath)
             );
 
             $progress = \App\Models\ImportProgress::where('session_id', $sessionId)->first();
@@ -368,11 +433,11 @@ trait HandlesConfigurationImportExport
                 "pending_config_import_{$slug}_headers",
                 "pending_config_import_{$slug}_mapping",
                 "pending_config_import_{$slug}_mode",
-                "pending_config_import_{$slug}_start_row"
+                "pending_config_import_{$slug}_start_row",
             ]);
 
             return response()->json([
-                'success' => true, 
+                'success' => true,
                 'message' => 'تم استيراد البيانات بنجاح.',
                 'session_id' => $sessionId,
                 'is_async' => false,
@@ -381,12 +446,12 @@ trait HandlesConfigurationImportExport
                     'created' => $progress->created_count,
                     'updated' => $progress->updated_count,
                     'failed' => $progress->failed_count,
-                    'errors' => $progress->errors
-                ]
+                    'errors' => $progress->errors,
+                ],
             ]);
 
         } catch (\Exception $e) {
-            return response()->json(['success' => false, 'message' => 'حدث خطأ أثناء الاستيراد: ' . $e->getMessage()]);
+            return response()->json(['success' => false, 'message' => 'حدث خطأ أثناء الاستيراد: '.$e->getMessage()]);
         }
     }
 }

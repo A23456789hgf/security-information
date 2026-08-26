@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Record extends Model
 {
-    use HasFactory, HasEntityVisibility;
+    use HasEntityVisibility, HasFactory;
 
     protected $table = 'dynamic_records';
 

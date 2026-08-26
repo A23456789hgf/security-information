@@ -1,5 +1,6 @@
 <?php
-$dir = __DIR__ . '/../resources/views/system';
+
+$dir = __DIR__.'/../resources/views/system';
 
 $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($dir));
 $files = [];
@@ -18,7 +19,7 @@ foreach ($files as $file) {
 
     if ($content !== $original) {
         file_put_contents($file, $content);
-        echo "Updated wrapper in " . basename(dirname($file)) . "/" . basename($file) . "<br>\n";
+        echo 'Updated wrapper in '.basename(dirname($file)).'/'.basename($file)."<br>\n";
     }
 }
-echo "Done.";
+echo 'Done.';

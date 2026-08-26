@@ -4,8 +4,8 @@ namespace App\Http\Controllers\Configuration;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Str;
+use Maatwebsite\Excel\Facades\Excel;
 
 class ConfigurationImportExportController extends Controller
 {
@@ -24,11 +24,11 @@ class ConfigurationImportExportController extends Controller
             'military-districts' => [\App\Models\MilitaryDistrict::class, ['name' => 'المنطقة العسكرية'], ['name']],
             'divisions' => [\App\Models\Division::class, [
                 'military_district_id' => 'المنطقة العسكرية',
-                'name' => 'الشعبة'
+                'name' => 'الشعبة',
             ], ['military_district_id', 'name']],
             'axes' => [\App\Models\Axis::class, [
                 'military_district_id' => 'المنطقة العسكرية',
-                'name' => 'المحور'
+                'name' => 'المحور',
             ], ['military_district_id', 'name']],
             'course-types' => [\App\Models\CourseType::class, ['name' => 'نوع الدورة'], ['name']],
             'filling-agencies' => [\App\Models\FillingAgency::class, ['name' => 'جهة الرفع'], ['name']],
@@ -37,18 +37,18 @@ class ConfigurationImportExportController extends Controller
             'governorates' => [\App\Models\Governorate::class, ['name' => 'المحافظة'], ['name']],
             'directorates' => [\App\Models\Directorate::class, [
                 'governorate_id' => 'المحافظة',
-                'name' => 'المديرية'
+                'name' => 'المديرية',
             ], ['governorate_id', 'name']],
             'sub-areas' => [\App\Models\SubArea::class, [
                 'governorate_id' => 'المحافظة',
                 'directorate_id' => 'المديرية',
-                'name' => 'العزلة / المنطقة'
+                'name' => 'العزلة / المنطقة',
             ], ['directorate_id', 'name']],
             'villages' => [\App\Models\Village::class, [
                 'governorate_id' => 'المحافظة',
                 'directorate_id' => 'المديرية',
                 'sub_area_id' => 'العزلة / المنطقة',
-                'name' => 'القرية / الحارة'
+                'name' => 'القرية / الحارة',
             ], ['sub_area_id', 'name']],
             'arresting-authorities' => [\App\Models\ArrestingAuthority::class, ['name' => 'جهة الضبط'], ['name']],
             'case-types' => [\App\Models\CaseType::class, ['name' => 'نوع القضية'], ['name']],
@@ -66,40 +66,44 @@ class ConfigurationImportExportController extends Controller
     public function import(Request $request, $type)
     {
         $config = $this->getModelConfig($type);
-        if (!$config) {
+        if (! $config) {
             return response()->json(['success' => false, 'message' => 'نوع التكوين غير صالح']);
         }
 
         $request->validate([
-            'excel_file' => 'required|file|mimes:xlsx,xls,csv'
+            'excel_file' => 'required|file|mimes:xlsx,xls,csv',
         ]);
 
         $file = $request->file('excel_file');
-        
+
         try {
             // Save file to disk
             $path = $file->store('imports');
-            $fullPath = storage_path('app/' . $path);
+            $fullPath = storage_path('app/'.$path);
 
             $data = Excel::toArray(new class {}, $fullPath);
             $rows = $data[0] ?? [];
-            
+
             if (empty($rows)) {
                 return response()->json(['success' => false, 'message' => 'الملف فارغ']);
             }
 
             // Detect headers
             $headers = [];
-            while (!empty($rows)) {
+            while (! empty($rows)) {
                 $potentialHeaders = array_shift($rows);
-                if (!is_array($potentialHeaders)) continue;
-                
-                $validColumns = array_filter($potentialHeaders, function($h) { 
-                    return !is_null($h) && trim((string)$h) !== ''; 
+                if (! is_array($potentialHeaders)) {
+                    continue;
+                }
+
+                $validColumns = array_filter($potentialHeaders, function ($h) {
+                    return ! is_null($h) && trim((string) $h) !== '';
                 });
-                
-                if (!empty($validColumns)) {
-                    $headers = array_map(function($h) { return is_null($h) ? '' : (string)$h; }, $potentialHeaders);
+
+                if (! empty($validColumns)) {
+                    $headers = array_map(function ($h) {
+                        return is_null($h) ? '' : (string) $h;
+                    }, $potentialHeaders);
                     break;
                 }
             }
@@ -112,9 +116,14 @@ class ConfigurationImportExportController extends Controller
             session(["pending_config_import_{$type}_headers" => $headers]);
 
             $previewRows = array_slice($rows, 0, 5);
-            $safePreview = array_map(function($row) {
-                if (!is_array($row)) return [];
-                return array_map(function($cell) { return is_null($cell) ? '' : (string)$cell; }, $row);
+            $safePreview = array_map(function ($row) {
+                if (! is_array($row)) {
+                    return [];
+                }
+
+                return array_map(function ($cell) {
+                    return is_null($cell) ? '' : (string) $cell;
+                }, $row);
             }, $previewRows);
 
             return response()->json([
@@ -123,11 +132,11 @@ class ConfigurationImportExportController extends Controller
                 'preview_data' => $safePreview,
                 'total_rows' => count($rows),
                 'target_fields' => $config[1],
-                'context' => $request->except(['excel_file', '_token'])
+                'context' => $request->except(['excel_file', '_token']),
             ]);
 
         } catch (\Exception $e) {
-            return response()->json(['success' => false, 'message' => 'خطأ في معالجة الملف: ' . $e->getMessage()]);
+            return response()->json(['success' => false, 'message' => 'خطأ في معالجة الملف: '.$e->getMessage()]);
         }
     }
 
@@ -137,20 +146,22 @@ class ConfigurationImportExportController extends Controller
     public function validateImport(Request $request, $type)
     {
         $config = $this->getModelConfig($type);
-        if (!$config) return response()->json(['success' => false, 'message' => 'نوع التكوين غير صالح']);
+        if (! $config) {
+            return response()->json(['success' => false, 'message' => 'نوع التكوين غير صالح']);
+        }
 
         $modelClass = $config[0];
         $fieldsConfig = $config[1];
         $identityKeys = $config[2] ?? [];
-        
+
         $mode = $request->input('mode', 'append');
         $mapping = $request->input('mapping');
-        
+
         $filePath = session("pending_config_import_{$type}_file");
         $headers = session("pending_config_import_{$type}_headers");
         $context = $request->except(['mapping', 'mode', '_token']);
 
-        if (!$filePath || !file_exists(storage_path('app/' . $filePath))) {
+        if (! $filePath || ! file_exists(storage_path('app/'.$filePath))) {
             return response()->json(['success' => false, 'message' => 'الملف غير موجود، يرجى إعادة رفعه.']);
         }
 
@@ -159,14 +170,18 @@ class ConfigurationImportExportController extends Controller
         session(["pending_config_import_{$type}_mode" => $mode]);
 
         try {
-            $data = Excel::toArray(new class {}, storage_path('app/' . $filePath));
+            $data = Excel::toArray(new class {}, storage_path('app/'.$filePath));
             $allRows = $data[0] ?? [];
-            
+
             // Skip headers
-            while (!empty($allRows)) {
+            while (! empty($allRows)) {
                 $potentialHeaders = array_shift($allRows);
-                if (!is_array($potentialHeaders)) continue;
-                if (!empty(array_filter($potentialHeaders))) break;
+                if (! is_array($potentialHeaders)) {
+                    continue;
+                }
+                if (! empty(array_filter($potentialHeaders))) {
+                    break;
+                }
             }
 
             $totalRows = count($allRows);
@@ -181,7 +196,7 @@ class ConfigurationImportExportController extends Controller
                     $value = null;
                     if (isset($mapping[$field]) && $mapping[$field] !== '') {
                         $colIndex = $mapping[$field];
-                        $value = trim((string)($row[$colIndex] ?? ''));
+                        $value = trim((string) ($row[$colIndex] ?? ''));
                     } elseif (isset($context[$field]) && $context[$field] !== '') {
                         $value = $context[$field];
                     }
@@ -191,14 +206,20 @@ class ConfigurationImportExportController extends Controller
                     } else {
                         if (str_ends_with($field, '_id')) {
                             $relationTable = Str::plural(str_replace('_id', '', $field));
-                            if ($field === 'military_district_id') $relationTable = 'military_districts';
-                            
+                            if ($field === 'military_district_id') {
+                                $relationTable = 'military_districts';
+                            }
+
                             $query = \DB::table($relationTable)->where('name', $value);
-                            if ($field === 'directorate_id' && isset($rowData['governorate_id'])) $query->where('governorate_id', $rowData['governorate_id']);
-                            if ($field === 'sub_area_id' && isset($rowData['directorate_id'])) $query->where('directorate_id', $rowData['directorate_id']);
-                            
+                            if ($field === 'directorate_id' && isset($rowData['governorate_id'])) {
+                                $query->where('governorate_id', $rowData['governorate_id']);
+                            }
+                            if ($field === 'sub_area_id' && isset($rowData['directorate_id'])) {
+                                $query->where('directorate_id', $rowData['directorate_id']);
+                            }
+
                             $id = $query->value('id');
-                            if (!$id && !is_numeric($value)) {
+                            if (! $id && ! is_numeric($value)) {
                                 $errors[] = "$label غير موجود بجداول النظام ($value)";
                             } else {
                                 $rowData[$field] = $id ?? $value;
@@ -212,21 +233,36 @@ class ConfigurationImportExportController extends Controller
                 $currentStatus = 'ready';
                 if (empty($errors)) {
                     $query = $modelClass::query();
-                    if (!empty($identityKeys)) {
-                        foreach ($identityKeys as $k) if (isset($rowData[$k])) $query->where($k, $rowData[$k]);
+                    if (! empty($identityKeys)) {
+                        foreach ($identityKeys as $k) {
+                            if (isset($rowData[$k])) {
+                                $query->where($k, $rowData[$k]);
+                            }
+                        }
                     } else {
-                        foreach ($rowData as $k => $v) $query->where($k, $v);
+                        foreach ($rowData as $k => $v) {
+                            $query->where($k, $v);
+                        }
                     }
-                    
+
                     $exists = $query->exists();
                     if ($mode === 'append') {
-                        if ($exists) $currentStatus = 'exists';
+                        if ($exists) {
+                            $currentStatus = 'exists';
+                        }
                     } elseif ($mode === 'update') {
-                        if (!$exists) { $currentStatus = 'error'; $errors[] = 'السجل غير موجود للتحديث'; }
-                        else $currentStatus = 'update';
+                        if (! $exists) {
+                            $currentStatus = 'error';
+                            $errors[] = 'السجل غير موجود للتحديث';
+                        } else {
+                            $currentStatus = 'update';
+                        }
                     } elseif ($mode === 'upsert') {
-                        if ($exists) $currentStatus = 'update';
-                        else $currentStatus = 'ready';
+                        if ($exists) {
+                            $currentStatus = 'update';
+                        } else {
+                            $currentStatus = 'ready';
+                        }
                     }
                 } else {
                     $currentStatus = 'error';
@@ -237,7 +273,7 @@ class ConfigurationImportExportController extends Controller
                     'data' => $row,
                     'errors' => $errors,
                     'status' => $currentStatus,
-                    'mapped_data' => $rowData
+                    'mapped_data' => $rowData,
                 ];
             }
 
@@ -246,11 +282,11 @@ class ConfigurationImportExportController extends Controller
                 'results' => $results,
                 'headers' => $headers,
                 'total_rows_original' => $totalRows,
-                'total_ready' => $totalRows, 
-                'total_update' => 0
+                'total_ready' => $totalRows,
+                'total_update' => 0,
             ]);
         } catch (\Exception $e) {
-            return response()->json(['success' => false, 'message' => 'خطأ في معالجة المعاينة: ' . $e->getMessage()]);
+            return response()->json(['success' => false, 'message' => 'خطأ في معالجة المعاينة: '.$e->getMessage()]);
         }
     }
 
@@ -263,23 +299,29 @@ class ConfigurationImportExportController extends Controller
         $mapping = session("pending_config_import_{$type}_mapping");
         $mode = session("pending_config_import_{$type}_mode", 'append');
 
-        if (!$filePath || !file_exists(storage_path('app/' . $filePath))) {
+        if (! $filePath || ! file_exists(storage_path('app/'.$filePath))) {
             return response()->json(['success' => false, 'message' => 'الملف غير موجود، يرجى إعادة الرفع.']);
         }
 
         try {
             $config = $this->getModelConfig($type);
-            if (!$config) return response()->json(['success' => false, 'message' => 'نوع التكوين غير صالح']);
+            if (! $config) {
+                return response()->json(['success' => false, 'message' => 'نوع التكوين غير صالح']);
+            }
 
             // Read full data to count total rows for progress tracking
-            $data = Excel::toArray(new class {}, storage_path('app/' . $filePath));
+            $data = Excel::toArray(new class {}, storage_path('app/'.$filePath));
             $allRows = $data[0] ?? [];
-            
+
             // Skip headers
-            while (!empty($allRows)) {
+            while (! empty($allRows)) {
                 $potentialHeaders = array_shift($allRows);
-                if (!is_array($potentialHeaders)) continue;
-                if (!empty(array_filter($potentialHeaders))) break;
+                if (! is_array($potentialHeaders)) {
+                    continue;
+                }
+                if (! empty(array_filter($potentialHeaders))) {
+                    break;
+                }
             }
 
             $totalRows = count($allRows);
@@ -289,7 +331,7 @@ class ConfigurationImportExportController extends Controller
                 'session_id' => $sessionId,
                 'type' => $type,
                 'total_rows' => $totalRows,
-                'status' => 'pending'
+                'status' => 'pending',
             ]);
 
             \App\Jobs\ProcessConfigurationImportJob::dispatch(
@@ -301,7 +343,7 @@ class ConfigurationImportExportController extends Controller
                     'model' => $config[0],
                     'fields' => $config[1],
                     'identity' => $config[2] ?? [],
-                    'routeName' => "configuration.{$type}"
+                    'routeName' => "configuration.{$type}",
                 ]
             );
 
@@ -309,18 +351,18 @@ class ConfigurationImportExportController extends Controller
                 "pending_config_import_{$type}_file",
                 "pending_config_import_{$type}_headers",
                 "pending_config_import_{$type}_mapping",
-                "pending_config_import_{$type}_mode"
+                "pending_config_import_{$type}_mode",
             ]);
 
             return response()->json([
                 'success' => true,
                 'message' => 'تم بدء الاستيراد في الخلفية. جاري المعالجة...',
                 'session_id' => $sessionId,
-                'is_async' => true
+                'is_async' => true,
             ]);
 
         } catch (\Exception $e) {
-            return response()->json(['success' => false, 'message' => 'حدث خطأ أثناء بدء الاستيراد: ' . $e->getMessage()]);
+            return response()->json(['success' => false, 'message' => 'حدث خطأ أثناء بدء الاستيراد: '.$e->getMessage()]);
         }
     }
 
@@ -330,13 +372,15 @@ class ConfigurationImportExportController extends Controller
     public function export(Request $request, $type)
     {
         $config = $this->getModelConfig($type);
-        if (!$config) abort(404);
+        if (! $config) {
+            abort(404);
+        }
 
         $modelClass = $config[0];
         $fieldsConfig = $config[1];
 
         $query = $modelClass::query();
-        
+
         // Apply filters from URL context
         $context = $request->except(['_token']);
         foreach ($context as $key => $value) {
@@ -347,33 +391,45 @@ class ConfigurationImportExportController extends Controller
 
         $items = $query->get();
 
-        return Excel::download(new class($items, $fieldsConfig) implements \Maatwebsite\Excel\Concerns\FromCollection, \Maatwebsite\Excel\Concerns\WithHeadings {
-            protected $items, $fieldsConfig;
-            public function __construct($items, $fieldsConfig) {
+        return Excel::download(new class($items, $fieldsConfig) implements \Maatwebsite\Excel\Concerns\FromCollection, \Maatwebsite\Excel\Concerns\WithHeadings
+        {
+            protected $items;
+
+            protected $fieldsConfig;
+
+            public function __construct($items, $fieldsConfig)
+            {
                 $this->items = $items;
                 $this->fieldsConfig = $fieldsConfig;
             }
-            public function collection() {
-                return $this->items->map(function($item) {
+
+            public function collection()
+            {
+                return $this->items->map(function ($item) {
                     $row = [];
                     foreach ($this->fieldsConfig as $field => $label) {
                         if (str_ends_with($field, '_id')) {
                             $relation = Str::camel(str_replace('_id', '', $field));
                             // Special case for military_district_id -> district relation
-                            if ($field === 'military_district_id') $relation = 'district';
-                            
+                            if ($field === 'military_district_id') {
+                                $relation = 'district';
+                            }
+
                             $row[] = $item->{$relation}->name ?? '';
                         } else {
                             $row[] = $item->{$field};
                         }
                     }
+
                     return $row;
                 });
             }
-            public function headings(): array {
+
+            public function headings(): array
+            {
                 return array_values($this->fieldsConfig);
             }
-        }, "export_{$type}_" . now()->format('Y-m-d') . ".xlsx");
+        }, "export_{$type}_".now()->format('Y-m-d').'.xlsx');
     }
 
     /**
@@ -382,14 +438,25 @@ class ConfigurationImportExportController extends Controller
     public function template($type)
     {
         $config = $this->getModelConfig($type);
-        if (!$config) abort(404);
+        if (! $config) {
+            abort(404);
+        }
 
         $labels = array_values($config[1]);
 
-        return Excel::download(new class($labels) implements \Maatwebsite\Excel\Concerns\WithHeadings {
+        return Excel::download(new class($labels) implements \Maatwebsite\Excel\Concerns\WithHeadings
+        {
             protected $labels;
-            public function __construct($labels) { $this->labels = $labels; }
-            public function headings(): array { return $this->labels; }
+
+            public function __construct($labels)
+            {
+                $this->labels = $labels;
+            }
+
+            public function headings(): array
+            {
+                return $this->labels;
+            }
         }, "template_{$type}.xlsx");
     }
 
@@ -399,12 +466,12 @@ class ConfigurationImportExportController extends Controller
     public function getImportProgress(Request $request)
     {
         $sessionId = $request->input('session_id');
-        if (!$sessionId) {
+        if (! $sessionId) {
             return response()->json(['success' => false, 'message' => 'معرّف الجلسة مفقود']);
         }
 
         $progress = \App\Models\ImportProgress::where('session_id', $sessionId)->first();
-        if (!$progress) {
+        if (! $progress) {
             return response()->json(['success' => false, 'message' => 'لم يتم العثور على بيانات الاستيراد']);
         }
 
@@ -417,7 +484,7 @@ class ConfigurationImportExportController extends Controller
             'updated_count' => $progress->updated_count,
             'failed_count' => $progress->failed_count,
             'status' => $progress->status,
-            'errors' => $progress->errors ?? []
+            'errors' => $progress->errors ?? [],
         ]);
     }
 }

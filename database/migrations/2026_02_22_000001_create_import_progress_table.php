@@ -20,7 +20,7 @@ return new class extends Migration
             $table->enum('status', ['pending', 'processing', 'completed', 'failed'])->default('pending');
             $table->json('errors')->nullable();
             $table->timestamps();
-            
+
             $table->index('status');
             $table->index('created_at');
         });

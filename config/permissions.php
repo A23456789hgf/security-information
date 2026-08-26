@@ -27,5 +27,8 @@ return [
             'view_wives',
             'view_courses',
         ],
+        'تمايز البيانات' => [
+            'manage_differences',
+        ],
     ],
 ];

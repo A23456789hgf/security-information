@@ -72,6 +72,7 @@ class SecurityReport extends Model
         'deposit_date' => 'date',
         'arrest_date' => 'date',
     ];
+
     public function entity()
     {
         return $this->belongsTo(InternalEntity::class, 'internal_entity_id');

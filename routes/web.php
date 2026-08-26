@@ -1,37 +1,40 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-
-// Controllers
-use App\Http\Controllers\Configuration\BloodTypeController;
-use App\Http\Controllers\Configuration\QualificationController;
-use App\Http\Controllers\Configuration\MaritalStatusController;
-use App\Http\Controllers\Configuration\NumberClassificationController;
-use App\Http\Controllers\Configuration\JobStatusController;
-use App\Http\Controllers\Configuration\RankController;
-use App\Http\Controllers\Configuration\FinancialStatusController;
-use App\Http\Controllers\Configuration\MilitaryDistrictController;
-use App\Http\Controllers\Configuration\DivisionController;
-use App\Http\Controllers\Configuration\AxisController;
-use App\Http\Controllers\Configuration\CourseTypeController;
-use App\Http\Controllers\Configuration\FillingAgencyController;
-use App\Http\Controllers\Configuration\ElectronicInputController;
-use App\Http\Controllers\Configuration\GovernorateController;
-use App\Http\Controllers\Configuration\DirectorateController;
-use App\Http\Controllers\Configuration\SubAreaController;
-use App\Http\Controllers\Configuration\VillageController;
-use App\Http\Controllers\Configuration\CountryController;
 use App\Http\Controllers\Configuration\ArrestingAuthorityController;
+// Controllers
+use App\Http\Controllers\Configuration\AxisController;
+use App\Http\Controllers\Configuration\BloodTypeController;
 use App\Http\Controllers\Configuration\CaseTypeController;
 use App\Http\Controllers\Configuration\ConfigurationImportExportController;
-use App\Http\Controllers\PersonalDataController;
-use App\Http\Controllers\System\CourseController;
-use App\Http\Controllers\System\WifeController;
-use App\Http\Controllers\System\ArrestController;
-use App\Http\Controllers\System\SuspectController;
-use App\Http\Controllers\System\SecurityReportController;
-use App\Http\Controllers\Data\DataImportController;
+use App\Http\Controllers\Configuration\CountryController;
+use App\Http\Controllers\Configuration\CourseTypeController;
+use App\Http\Controllers\Configuration\DirectorateController;
+use App\Http\Controllers\Configuration\DivisionController;
+use App\Http\Controllers\Configuration\ElectronicInputController;
+use App\Http\Controllers\Configuration\FillingAgencyController;
+use App\Http\Controllers\Configuration\FinancialStatusController;
+use App\Http\Controllers\Configuration\GovernorateController;
+use App\Http\Controllers\Configuration\HealthStatusController;
+use App\Http\Controllers\Configuration\IdeologicalAffiliationController;
+use App\Http\Controllers\Configuration\JobStatusController;
+use App\Http\Controllers\Configuration\KinshipController;
+use App\Http\Controllers\Configuration\MaritalStatusController;
+use App\Http\Controllers\Configuration\MilitaryDistrictController;
+use App\Http\Controllers\Configuration\NumberClassificationController;
+use App\Http\Controllers\Configuration\PoliticalAffiliationController;
+use App\Http\Controllers\Configuration\QualificationController;
+use App\Http\Controllers\Configuration\RankController;
+use App\Http\Controllers\Configuration\SubAreaController;
+use App\Http\Controllers\Configuration\VillageController;
 use App\Http\Controllers\Data\DataDifferentiationController;
+use App\Http\Controllers\Data\DataImportController;
+use App\Http\Controllers\System\ArrestController;
+use App\Http\Controllers\System\CourseController;
+use App\Http\Controllers\System\RelativeController;
+use App\Http\Controllers\System\SecurityReportController;
+use App\Http\Controllers\System\SuspectController;
+use App\Http\Controllers\System\WifeController;
+use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
@@ -40,7 +43,7 @@ use App\Http\Controllers\Data\DataDifferentiationController;
 */
 
 Route::get('/login', [App\Http\Controllers\Auth\AuthController::class, 'showLoginForm'])->name('login');
-Route::post('/login', [App\Http\Controllers\Auth\AuthController::class, 'login']);
+Route::post('/login', [App\Http\Controllers\Auth\AuthController::class, 'login'])->middleware('throttle:10,1');
 Route::post('/logout', [App\Http\Controllers\Auth\AuthController::class, 'logout'])->name('logout');
 
 Route::get('/', function () {
@@ -58,7 +61,7 @@ Route::get('/dashboard', function () {
         'total_today' => 0,
     ];
     $stats['total_today'] = $stats['personal_today'] + $stats['villages_today'];
-    
+
     return view('dashboard', compact('stats'));
 })->middleware('auth')->name('dashboard');
 
@@ -78,18 +81,29 @@ Route::middleware('auth')->prefix('system')->name('system.')->group(function () 
     Route::get('personal-data/{personal_data}/print-all', [\App\Http\Controllers\PersonalDataController::class, 'printFull'])->name('personal-data.print-all');
     Route::resource('personal-data', \App\Http\Controllers\PersonalDataController::class)->parameters(['personal-data' => 'personal_data']);
     Route::delete('personal-data/photo/{id}', [\App\Http\Controllers\PersonalDataController::class, 'deletePhoto'])->name('personal-data.delete-photo');
-    Route::resource('secondary-data', App\Http\Controllers\System\SecondaryDataController::class);
+    Route::get('secondary-data/export', [\App\Http\Controllers\System\SecondaryDataController::class, 'export'])->name('secondary-data.export');
+    Route::resource('secondary-data', App\Http\Controllers\System\SecondaryDataController::class)->parameters(['secondary-data' => 'secondary_data']);
+    Route::get('courses/export', [CourseController::class, 'export'])->name('courses.export');
     Route::resource('courses', CourseController::class);
+    Route::get('wives/export', [WifeController::class, 'export'])->name('wives.export');
     Route::resource('wives', WifeController::class);
+    Route::get('relatives/export', [RelativeController::class, 'export'])->name('relatives.export');
+    Route::get('relatives/person/{id}', [RelativeController::class, 'getPersonRelatives'])->name('relatives.person-relatives');
+    Route::delete('relatives/enemy-relative/{id}', [RelativeController::class, 'destroyEnemyRelative'])->name('relatives.destroy-enemy');
+    Route::delete('relatives/traveling-relative/{id}', [RelativeController::class, 'destroyTravelingRelative'])->name('relatives.destroy-traveling');
+    Route::resource('relatives', RelativeController::class);
+    Route::get('arrests/export', [ArrestController::class, 'export'])->name('arrests.export');
     Route::resource('arrests', ArrestController::class);
     Route::get('arrests/personal-data/{id}', [ArrestController::class, 'getPersonalData'])->name('arrests.get-personal-data');
     Route::delete('arrests/{arrest}/attachment', [ArrestController::class, 'deleteAttachment'])->name('arrests.delete-attachment');
+    Route::get('suspicious/export', [SuspectController::class, 'export'])->name('suspicious.export');
     Route::resource('suspicious', SuspectController::class);
     Route::get('suspicious/personal-data/{id}', [SuspectController::class, 'getPersonalData'])->name('suspicious.get-personal-data');
     Route::delete('suspicious/{suspicious}/attachment', [SuspectController::class, 'deleteAttachment'])->name('suspicious.delete-attachment');
     Route::get('security-reports/import', [SecurityReportController::class, 'import'])->name('security-reports.import');
     Route::post('security-reports/upload', [SecurityReportController::class, 'upload'])->name('security-reports.upload');
-    Route::resource('security-reports', SecurityReportController::class);
+    Route::get('security-reports/export', [SecurityReportController::class, 'export'])->name('security-reports.export');
+    Route::resource('security-reports', SecurityReportController::class)->parameters(['security-reports' => 'security_report']);
     Route::post('security-reports/store-import', [SecurityReportController::class, 'storeImport'])->name('security-reports.store-import');
     Route::get('wives/person-details/{id}', [WifeController::class, 'getPersonDetails'])->name('wives.get-person-details');
     Route::get('courses/person-details/{id}', [CourseController::class, 'getPersonDetails'])->name('courses.get-person-details');
@@ -117,6 +131,7 @@ Route::middleware('auth')->prefix('system')->name('system.')->group(function () 
     Route::get('data/{page:slug}/template', [App\Http\Controllers\System\DynamicImportExportController::class, 'template'])->name('dynamic-data.template');
 
     Route::resource('roles', App\Http\Controllers\System\RoleController::class);
+    Route::get('users/export', [App\Http\Controllers\System\UserController::class, 'export'])->name('users.export');
     Route::resource('users', App\Http\Controllers\System\UserController::class);
     Route::resource('entities', App\Http\Controllers\System\EntityController::class);
     Route::resource('sections', App\Http\Controllers\System\SectionController::class);
@@ -127,64 +142,59 @@ Route::middleware('auth')->prefix('system')->name('system.')->group(function () 
     Route::put('profile/password', [App\Http\Controllers\System\ProfileController::class, 'updatePassword'])->name('profile.password');
 
     // UI Style Guide
-    Route::get('ui-style-guide', function() {
+    Route::get('ui-style-guide', function () {
         return view('system.ui-style-guide');
     })->name('ui-style-guide');
+
+    // System Backup
+    Route::get('backup', [App\Http\Controllers\System\SystemBackupController::class, 'index'])->name('backup.index');
+    Route::get('backup/export', [App\Http\Controllers\System\SystemBackupController::class, 'export'])->name('backup.export');
+    Route::post('backup/import', [App\Http\Controllers\System\SystemBackupController::class, 'import'])->name('backup.import');
 });
 
 // Configuration Routes
 Route::middleware('auth')->prefix('configuration')->name('configuration.')->group(function () {
     $cfg = function (string $resource, string $controller) {
         Route::resource($resource, $controller)->except(['show']);
-        Route::get($resource  . '/search',       [$controller, 'search'])->name($resource . '.search');
-        Route::post($resource . '/bulk-delete',  [$controller, 'bulkDelete'])->name($resource . '.bulk-delete');
-        Route::patch($resource . '/{id}/status', [$controller, 'changeStatus'])->name($resource . '.change-status');
-        Route::post($resource . '/bulk-status',  [$controller, 'bulkChangeStatus'])->name($resource . '.bulk-change-status');
-        Route::get($resource  . '/export',       [$controller, 'export'])->name($resource . '.export');
-        Route::get($resource  . '/import',       [$controller, 'importForm'])->name($resource . '.import');
-        Route::post($resource . '/import-parse', [$controller, 'import'])->name($resource . '.import-parse');
-        Route::post($resource . '/import-store', [$controller, 'importStore'])->name($resource . '.import-store');
-        Route::post($resource . '/validate-import', [$controller, 'validateImport'])->name($resource . '.validate-import');
-        Route::get($resource  . '/template',     [$controller, 'template'])->name($resource . '.template');
+        Route::get($resource.'/search', [$controller, 'search'])->name($resource.'.search');
+        Route::post($resource.'/bulk-delete', [$controller, 'bulkDelete'])->name($resource.'.bulk-delete');
+        Route::patch($resource.'/{id}/status', [$controller, 'changeStatus'])->name($resource.'.change-status');
+        Route::post($resource.'/bulk-status', [$controller, 'bulkChangeStatus'])->name($resource.'.bulk-change-status');
+        Route::get($resource.'/export', [$controller, 'export'])->name($resource.'.export');
+        Route::get($resource.'/import', [$controller, 'importForm'])->name($resource.'.import');
+        Route::post($resource.'/import-parse', [$controller, 'import'])->name($resource.'.import-parse');
+        Route::post($resource.'/import-store', [$controller, 'importStore'])->name($resource.'.import-store');
+        Route::post($resource.'/validate-import', [$controller, 'validateImport'])->name($resource.'.validate-import');
+        Route::get($resource.'/template', [$controller, 'template'])->name($resource.'.template');
     };
 
     Route::get('villages/fast-entry', [VillageController::class, 'fastEntry'])->name('villages.fast-entry');
     Route::post('villages/bulk-store', [VillageController::class, 'bulkStore'])->name('villages.bulk-store');
 
-    $cfg('blood-types',          BloodTypeController::class);
-    $cfg('qualifications',       QualificationController::class);
-    $cfg('marital-statuses',     MaritalStatusController::class);
-    $cfg('job-statuses',         JobStatusController::class);
-    $cfg('ranks',                RankController::class);
-    $cfg('financial-statuses',    FinancialStatusController::class);
+    $cfg('blood-types', BloodTypeController::class);
+    $cfg('health-statuses', HealthStatusController::class);
+    $cfg('kinships', KinshipController::class);
+    $cfg('ideological-affiliations', IdeologicalAffiliationController::class);
+    $cfg('political-affiliations', PoliticalAffiliationController::class);
+    $cfg('qualifications', QualificationController::class);
+    $cfg('marital-statuses', MaritalStatusController::class);
+    $cfg('job-statuses', JobStatusController::class);
+    $cfg('ranks', RankController::class);
+    $cfg('financial-statuses', FinancialStatusController::class);
     $cfg('number-classifications', NumberClassificationController::class);
-    $cfg('military-districts',     MilitaryDistrictController::class);
-    $cfg('divisions',              DivisionController::class);
-    $cfg('axes',                   AxisController::class);
-    $cfg('course-types',           CourseTypeController::class);
-    $cfg('filling-agencies',       FillingAgencyController::class);
-    $cfg('electronic-inputs',      ElectronicInputController::class);
-    $cfg('countries',      CountryController::class);
-    $cfg('governorates',   GovernorateController::class);
-    $cfg('directorates',   DirectorateController::class);
-    Route::get('/sub-areas/import',            [SubAreaController::class, 'importForm'])->name('sub-areas.import');
-    Route::post('/sub-areas/import',           [SubAreaController::class, 'import'])->name('sub-areas.import-parse');
-    Route::post('/sub-areas/validate-import',  [SubAreaController::class, 'validateImport'])->name('sub-areas.validate-import');
-    Route::post('/sub-areas/import-store',     [SubAreaController::class, 'importStore'])->name('sub-areas.import-store');
-    Route::get('/sub-areas/template',          [SubAreaController::class, 'template'])->name('sub-areas.template');
-    Route::get('/sub-areas/export',            [SubAreaController::class, 'export'])->name('sub-areas.export');
-
-    Route::get('/villages/import',            [VillageController::class, 'importForm'])->name('villages.import');
-    Route::post('/villages/import',           [VillageController::class, 'import'])->name('villages.import-parse');
-    Route::post('/villages/validate-import',  [VillageController::class, 'validateImport'])->name('villages.validate-import');
-    Route::post('/villages/import-store',     [VillageController::class, 'importStore'])->name('villages.import-store');
-    Route::get('/villages/template',          [VillageController::class, 'template'])->name('villages.template');
-    Route::get('/villages/export',            [VillageController::class, 'export'])->name('villages.export');
-
-    $cfg('sub-areas',      SubAreaController::class);
-    $cfg('villages',       VillageController::class);
+    $cfg('military-districts', MilitaryDistrictController::class);
+    $cfg('divisions', DivisionController::class);
+    $cfg('axes', AxisController::class);
+    $cfg('course-types', CourseTypeController::class);
+    $cfg('filling-agencies', FillingAgencyController::class);
+    $cfg('electronic-inputs', ElectronicInputController::class);
+    $cfg('countries', CountryController::class);
+    $cfg('governorates', GovernorateController::class);
+    $cfg('directorates', DirectorateController::class);
+    $cfg('sub-areas', SubAreaController::class);
+    $cfg('villages', VillageController::class);
     $cfg('arresting-authorities', ArrestingAuthorityController::class);
-    $cfg('case-types',            CaseTypeController::class);
+    $cfg('case-types', CaseTypeController::class);
 
     Route::get('/import-progress', [ConfigurationImportExportController::class, 'getImportProgress'])->name('import.progress');
 });
@@ -202,7 +212,7 @@ Route::middleware('auth')->prefix('api/geo')->name('api.geo.')->group(function (
     Route::get('/villages/{sub_area}', function ($id) {
         return \App\Models\Village::where('sub_area_id', $id)->pluck('name', 'id');
     })->name('villages');
-    
+
     Route::get('/divisions/{district}', function ($id) {
         return \App\Models\Division::where('military_district_id', $id)->pluck('name', 'id');
     })->name('divisions');
@@ -222,34 +232,33 @@ Route::get('/api/get-villages', function () {
     return \App\Models\Village::where('sub_area_id', request('sub_area_id'))->pluck('name', 'id');
 });
 
-
 Route::redirect('/blood-types', '/configuration/blood-types');
 
 // Data Management Routes
 Route::prefix('data')->name('data.')->group(function () {
-    Route::get('/import',                    [DataImportController::class, 'index'])->name('import.index');
-    Route::post('/import/upload',            [DataImportController::class, 'import'])->name('import.upload');
-    Route::post('/import/store',             [DataImportController::class, 'store'])->name('import.store');
-    Route::post('/import/create-table',      [DataImportController::class, 'createTable'])->name('import.create-table');
-    Route::post('/import/replace-table',     [DataImportController::class, 'replaceTable'])->name('import.replace-table');
-    Route::post('/import/merge',             [DataImportController::class, 'mergeData'])->name('import.merge');
-    Route::post('/import/insert-row',        [DataImportController::class, 'insertRow'])->name('import.insert-row');
-    Route::post('/import/delete-rows',       [DataImportController::class, 'deleteRows'])->name('import.delete-rows');
-    Route::post('/import/insert-column',     [DataImportController::class, 'insertColumn'])->name('import.insert-column');
-    Route::post('/import/delete-column',     [DataImportController::class, 'deleteColumn'])->name('import.delete-column');
-    Route::post('/import/rename-column',     [DataImportController::class, 'renameColumn'])->name('import.rename-column');
-    Route::post('/import/number-records',    [DataImportController::class, 'numberRecords'])->name('import.number-records');
-    Route::post('/import/remove-spaces',     [DataImportController::class, 'removeSpaces'])->name('import.remove-spaces');
-    Route::post('/import/replace-text',      [DataImportController::class, 'replaceText'])->name('import.replace-text');
-    Route::post('/import/update-cell',       [DataImportController::class, 'updateCell'])->name('import.update-cell');
-    Route::get('/import/data',               [DataImportController::class, 'getData'])->name('import.get-data');
-    Route::get('/import/export',             [DataImportController::class, 'export'])->name('import.export');
-    Route::get('/differentiation',                            [DataDifferentiationController::class, 'index'])->name('differentiation.index');
-    Route::post('/differentiation/analyze',                   [DataDifferentiationController::class, 'analyze'])->name('differentiation.analyze');
-    Route::get('/differentiation/results',                    [DataDifferentiationController::class, 'getResults'])->name('differentiation.results');
-    Route::get('/differentiation/detail',                     [DataDifferentiationController::class, 'getMatchDetail'])->name('differentiation.detail');
-    Route::post('/differentiation/integrate-all',             [DataDifferentiationController::class, 'integrateAll'])->name('differentiation.integrate-all');
-    Route::post('/differentiation/integrate-selected',        [DataDifferentiationController::class, 'integrateSelected'])->name('differentiation.integrate-selected');
-    Route::post('/differentiation/add-column',                [DataDifferentiationController::class, 'addSecondaryColumn'])->name('differentiation.add-column');
+    Route::get('/import', [DataImportController::class, 'index'])->name('import.index');
+    Route::post('/import/upload', [DataImportController::class, 'import'])->name('import.upload');
+    Route::post('/import/store', [DataImportController::class, 'store'])->name('import.store');
+    Route::post('/import/create-table', [DataImportController::class, 'createTable'])->name('import.create-table');
+    Route::post('/import/replace-table', [DataImportController::class, 'replaceTable'])->name('import.replace-table');
+    Route::post('/import/merge', [DataImportController::class, 'mergeData'])->name('import.merge');
+    Route::post('/import/insert-row', [DataImportController::class, 'insertRow'])->name('import.insert-row');
+    Route::post('/import/delete-rows', [DataImportController::class, 'deleteRows'])->name('import.delete-rows');
+    Route::post('/import/insert-column', [DataImportController::class, 'insertColumn'])->name('import.insert-column');
+    Route::post('/import/delete-column', [DataImportController::class, 'deleteColumn'])->name('import.delete-column');
+    Route::post('/import/rename-column', [DataImportController::class, 'renameColumn'])->name('import.rename-column');
+    Route::post('/import/number-records', [DataImportController::class, 'numberRecords'])->name('import.number-records');
+    Route::post('/import/remove-spaces', [DataImportController::class, 'removeSpaces'])->name('import.remove-spaces');
+    Route::post('/import/replace-text', [DataImportController::class, 'replaceText'])->name('import.replace-text');
+    Route::post('/import/update-cell', [DataImportController::class, 'updateCell'])->name('import.update-cell');
+    Route::get('/import/data', [DataImportController::class, 'getData'])->name('import.get-data');
+    Route::get('/import/export', [DataImportController::class, 'export'])->name('import.export');
+    Route::get('/differentiation', [DataDifferentiationController::class, 'index'])->name('differentiation.index');
+    Route::post('/differentiation/analyze', [DataDifferentiationController::class, 'analyze'])->name('differentiation.analyze');
+    Route::get('/differentiation/results', [DataDifferentiationController::class, 'getResults'])->name('differentiation.results');
+    Route::get('/differentiation/detail', [DataDifferentiationController::class, 'getMatchDetail'])->name('differentiation.detail');
+    Route::post('/differentiation/integrate-all', [DataDifferentiationController::class, 'integrateAll'])->name('differentiation.integrate-all');
+    Route::post('/differentiation/integrate-selected', [DataDifferentiationController::class, 'integrateSelected'])->name('differentiation.integrate-selected');
+    Route::post('/differentiation/add-column', [DataDifferentiationController::class, 'addSecondaryColumn'])->name('differentiation.add-column');
 });
 // Note: personal-data.fast-entry is registered inside the auth 'system.' group above.

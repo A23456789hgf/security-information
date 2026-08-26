@@ -26,5 +26,11 @@ class Handler extends ExceptionHandler
         $this->reportable(function (Throwable $e) {
             //
         });
+
+        $this->renderable(function (\Illuminate\Session\TokenMismatchException $e, $request) {
+            return redirect()->route('login')
+                ->withInput($request->except('password', '_token'))
+                ->withErrors(['username' => 'انتهت مدة الجلسة، يرجى المحاولة مرة أخرى.']);
+        });
     }
 }
