@@ -3,12 +3,12 @@
         <i class="fas fa-chart-bar me-2"></i>نتائج المطابقة
     </div>
 
-    <div class="upload-secondary" onclick="document.getElementById('secondaryFile').click()">
+    <div class="upload-btnsecondary" onclick="document.getElementById('secondaryFile').click()">
         <i class="fas fa-file-upload"></i>
         <div>رفع بيانات ثانوية للمقارنة</div>
         <small style="opacity:0.6">xlsx, xls, csv</small>
     </div>
-    <input type="file" id="secondaryFile" accept=".xlsx,.xls,.csv" style="display:none">
+    <input type="file" id="secondaryFile" accept=".xlsx,.xls,.csv" class="hidden">
 
     @if($results)
     <div class="category-header">التطابق الكامل</div>
@@ -67,7 +67,7 @@
         </span>
     </div>
 
-    <button class="btn-action primary w-100 mt-3 justify-content-center" onclick="exportAllResultsSummary()" style="background: #4cc9f0; color: #1a1c2e; border: none; font-weight: 700;">
+    <button class="-action primary w-100 mt-3 justify-content-center" onclick="exportAllResultsSummary()" style="background: #4cc9f0; color: #1a1c2e; border: none; font-weight: 700;">
         <i class="fas fa-download me-1"></i> تصدير ملخص كافة النتائج
     </button>
     @else
@@ -78,3 +78,4 @@
     </div>
     @endif
 </div>
+

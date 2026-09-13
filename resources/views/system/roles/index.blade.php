@@ -4,93 +4,101 @@
 @section('page_title', 'إدارة النظام')
 
 @section('content')
-<div class="container-fluid mx-auto px-4 py-8" dir="rtl">
-    {{-- رأس الصفحة مع الإحصائيات --}}
-    <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
-        <div class="flex items-center gap-4">
-            <div class="w-16 h-16 bg-blue-600 rounded-3xl shadow-xl shadow-blue-100 flex items-center justify-center text-white">
-                <i class="fas fa-shield-alt text-2xl"></i>
-            </div>
-            <div>
-                <h2 class="text-3xl font-extrabold text-slate-800 header-font mb-1">الأدوار والصلاحيات</h2>
-                <p class="text-slate-500 text-sm flex items-center gap-2">
-                    <i class="fas fa-database text-slate-400"></i> إجمالي الأدوار:
-                    <span class="text-slate-700 font-bold">{{ $roles->count() }}</span>
-                </p>
-            </div>
+<div class="space-y-6" dir="rtl">
+    {{-- Header --}}
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+            <h1 class="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-3">
+                <div class="p-2.5 bg-brand-500/10 text-brand-600 dark:text-brand-400 rounded-xl">
+                    <i class="fas fa-shield-alt text-xl"></i>
+                </div>
+                الأدوار والصلاحيات
+            </h1>
+            <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                إدارة أدوار النظام وتخصيص مصفوفات الصلاحيات ونطاقات الوصول (إجمالي الأدوار: <span class="font-bold text-slate-700 dark:text-slate-200">{{ $roles->count() }}</span>)
+            </p>
         </div>
-        <div class="flex flex-wrap gap-3">
+        <div>
             <a href="{{ route('system.roles.create') }}"
-                class="px-6 py-3 bg-blue-600 text-white rounded-2xl font-bold hover:bg-blue-700 transition-all shadow-xl shadow-blue-100 flex items-center gap-2 text-sm">
-                <i class="fas fa-plus-circle"></i> إضافة دور جديد
+                class="inline-flex items-center gap-2 px-4 py-2.5 bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold rounded-xl shadow-sm hover:shadow transition-all">
+                <i class="fas fa-plus"></i>
+                إضافة دور جديد
             </a>
         </div>
     </div>
 
-    {{-- رسائل النظام --}}
+    {{-- System Alerts --}}
     @if(session('success'))
-        <div class="bg-emerald-50 border border-emerald-100 text-emerald-700 px-6 py-4 rounded-2xl mb-8 flex items-center justify-between shadow-sm" role="alert">
-            <div class="flex items-center gap-3">
-                <i class="fas fa-check-circle text-xl"></i>
-                <span class="font-bold">{{ session('success') }}</span>
+        <div class="p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-emerald-600 dark:text-emerald-400 flex items-center justify-between" role="alert">
+            <div class="flex items-center gap-2">
+                <i class="fas fa-check-circle"></i>
+                <span class="text-sm font-medium">{{ session('success') }}</span>
             </div>
-            <button type="button" class="text-emerald-400 hover:text-emerald-600 transition-colors" onclick="this.parentElement.remove()">
+            <button type="button" class="text-emerald-500 hover:text-emerald-700" onclick="this.parentElement.remove()">
                 <i class="fas fa-times"></i>
             </button>
         </div>
     @endif
 
-    {{-- جدول البيانات --}}
-    <div class="bg-white rounded-[2.5rem] soft-shadow border border-slate-100 overflow-hidden">
+    {{-- Data table --}}
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm overflow-hidden">
         <div class="overflow-x-auto">
             <table class="w-full text-right border-collapse">
                 <thead>
-                    <tr class="bg-slate-50/50 border-b border-slate-100">
-                        <th class="px-8 py-6 text-slate-400 font-bold uppercase tracking-widest text-[10px]" style="width: 250px;">اسم الدور</th>
-                        <th class="px-6 py-6 text-slate-400 font-bold uppercase tracking-widest text-[10px]">الصلاحيات الممنوحة</th>
-                        <th class="px-8 py-6 text-slate-400 font-bold uppercase tracking-widest text-[10px] text-left">الإجراءات</th>
+                    <tr class="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 font-bold text-xs uppercase tracking-wider">
+                        <th class="px-6 py-4 w-64">اسم الدور</th>
+                        <th class="px-6 py-4">الصلاحيات الممنوحة</th>
+                        <th class="px-6 py-4 text-left">الإجراءات</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-50">
+                <tbody class="divide-y divide-slate-100 dark:divide-slate-800 text-sm">
                     @forelse($roles as $role)
-                        <tr class="group hover:bg-slate-50/30 transition-colors">
-                            <td class="px-8 py-5">
+                        <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/25 transition-colors">
+                            <td class="px-6 py-4">
                                 <div class="flex items-center gap-3">
-                                    <div class="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center font-bold text-sm border border-blue-100">
+                                    <div class="w-9 h-9 rounded-xl bg-brand-500/10 border border-brand-500/20 text-brand-600 dark:text-brand-400 flex items-center justify-center font-bold text-sm">
                                         <i class="fas fa-user-tag"></i>
                                     </div>
                                     <div>
-                                        <span class="font-bold text-slate-800 block">{{ $role->name }}</span>
+                                        <span class="font-bold text-slate-900 dark:text-white block">{{ $role->name }}</span>
                                         @if($role->name === 'super-admin')
-                                            <span class="inline-flex items-center px-2 py-0.5 bg-rose-50 text-rose-700 border border-rose-100 rounded-md text-[10px] font-bold">
+                                            <span class="inline-flex items-center px-2 py-0.5 bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20 rounded-md text-[10px] font-bold">
                                                 دور نظامي رئيسي
                                             </span>
                                         @endif
                                     </div>
                                 </div>
                             </td>
-                            <td class="px-6 py-5">
+                            <td class="px-6 py-4">
                                 <div class="flex flex-wrap gap-1.5 max-w-2xl">
                                     @foreach($role->permissions->take(12) as $permission)
-                                        <span class="px-2.5 py-0.5 bg-slate-50 text-slate-600 border border-slate-200 rounded-lg text-[10px] font-bold">
+                                        <span class="inline-flex items-center px-2 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded-2xl text-xs font-semibold">
                                             {{ $permission->name }}
                                         </span>
                                     @endforeach
                                     @if($role->permissions->count() > 12)
-                                        <span class="px-2 py-0.5 bg-blue-50 text-blue-700 rounded-lg text-[10px] font-bold">
+                                        <span class="inline-flex items-center px-2.5 py-0.5 bg-brand-500/10 text-brand-600 dark:text-brand-400 border border-brand-500/20 rounded-2xl text-xs font-bold">
                                             + {{ $role->permissions->count() - 12 }} أخرى
                                         </span>
                                     @endif
                                 </div>
                             </td>
-                            <td class="px-8 py-5">
-                                <div class="flex justify-end items-center gap-2">
-                                    <a href="{{ route('system.roles.edit', $role) }}" class="w-9 h-9 flex items-center justify-center rounded-xl bg-amber-50 text-amber-600 hover:bg-amber-600 hover:text-white shadow-sm transition-all" title="تعديل"><i class="fas fa-pen text-xs"></i></a>
+                            <td class="px-6 py-4">
+                                <div class="flex items-center justify-end gap-1.5">
+                                    <a href="{{ route('system.roles.edit', $role) }}"
+                                        class="p-2 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/50 transition-colors"
+                                        title="تعديل">
+                                        <i class="fas fa-edit text-xs"></i>
+                                    </a>
                                     @if($role->name !== 'super-admin')
                                         <form action="{{ route('system.roles.destroy', $role) }}" method="POST" class="inline" onsubmit="return confirm('هل أنت متأكد من حذف هذا الدور؟')">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" class="w-9 h-9 flex items-center justify-center rounded-xl bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white shadow-sm transition-all" title="حذف"><i class="fas fa-trash text-xs"></i></button>
+                                            <button type="submit"
+                                                class="p-2 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/50 transition-colors"
+                                                title="حذف">
+                                                <i class="fas fa-trash text-xs"></i>
+                                            </button>
                                         </form>
                                     @endif
                                 </div>
@@ -98,12 +106,12 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="3" class="py-20 text-center">
+                            <td colspan="3" class="py-16 text-center">
                                 <div class="flex flex-col items-center">
-                                    <div class="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-4">
-                                        <i class="fas fa-search text-slate-200 text-3xl"></i>
+                                    <div class="w-16 h-16 bg-slate-50 dark:bg-slate-800 rounded-2xl flex items-center justify-center mb-3">
+                                        <i class="fas fa-shield-slash text-slate-300 dark:text-slate-600 text-2xl"></i>
                                     </div>
-                                    <p class="text-slate-400 font-bold">لا توجد أدوار مسجلة</p>
+                                    <p class="text-slate-500 dark:text-slate-400 font-medium">لا توجد أدوار مسجلة</p>
                                 </div>
                             </td>
                         </tr>
@@ -114,3 +122,4 @@
     </div>
 </div>
 @endsection
+

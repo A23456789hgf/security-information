@@ -1,164 +1,155 @@
 @extends('layouts.app')
 
 @section('title', 'عرض بيانات الزوجة')
-@section('page_title', 'النظام')
+@section('page_title', 'السجلات الأساسية')
 
 @section('content')
-    <div class="container-fluid mx-auto px-4 py-8" dir="rtl">
-        {{-- رأس الصفحة --}}
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
-            <div class="flex items-center gap-4">
-                <div class="w-16 h-16 bg-blue-600 rounded-3xl shadow-xl shadow-blue-100 flex items-center justify-center text-white">
-                    <i class="fas fa-user-circle text-2xl"></i>
+<div class="space-y-6" dir="rtl">
+    {{-- Header --}}
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+            <h1 class="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-3">
+                <div class="p-2.5 bg-pink-500/10 text-pink-600 dark:text-pink-400 rounded-xl">
+                    <i class="fas fa-female text-xl"></i>
                 </div>
-                <div>
-                    <h2 class="text-3xl font-extrabold text-slate-800 header-font mb-1">بيانات الزوجة</h2>
-                    <p class="text-slate-500 text-sm">عرض تفاصيل الزوجة: <span class="text-blue-600 font-bold">{{ $wife->name }}</span></p>
+                بيانات الزوجة: {{ $wife->name }}
+            </h1>
+            <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                عرض تفاصيل الزوجة والارتباط العائلي والموقع الجغرافي
+            </p>
+        </div>
+        <div class="flex flex-wrap items-center gap-3">
+            <a href="{{ route('system.wives.index') }}"
+                class="inline-flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 text-sm font-semibold rounded-xl transition-all shadow-sm">
+                <i class="fas fa-arrow-right"></i>
+                عودة للقائمة
+            </a>
+            <a href="{{ route('system.wives.edit', $wife->id) }}"
+                class="inline-flex items-center gap-2 px-4 py-2.5 bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold rounded-xl shadow-sm hover:shadow transition-all">
+                <i class="fas fa-edit"></i>
+                تعديل
+            </a>
+            <form action="{{ route('system.wives.destroy', $wife->id) }}" method="POST" class="inline" onsubmit="return confirm('هل أنت متأكد من الحذف؟')">
+                @csrf
+                @method('DELETE')
+                <button type="submit"
+                    class="inline-flex items-center gap-2 px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white text-sm font-semibold rounded-xl shadow-sm hover:shadow transition-all">
+                    <i class="fas fa-trash"></i>
+                    حذف
+                </button>
+            </form>
+        </div>
+    </div>
+
+    {{-- Details Grid: Right Summary bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden mb-4 + Left Detail Sections --}}
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {{-- Right Column: Summary bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden mb-4 --}}
+        <div class="lg:col-span-1">
+            <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm text-center">
+                <div class="w-20 h-20 mx-auto rounded-2xl bg-pink-500/10 border border-pink-500/20 text-pink-600 dark:text-pink-400 flex items-center justify-center font-bold text-3xl mb-4">
+                    <i class="fas fa-female"></i>
                 </div>
-            </div>
-            <div class="flex flex-wrap gap-3">
-                <a href="{{ route('system.wives.edit', $wife->id) }}"
-                    class="px-6 py-3 bg-amber-500 text-white rounded-2xl font-bold hover:bg-amber-600 transition-all shadow-xl shadow-amber-100 flex items-center gap-2">
-                    <i class="fas fa-edit"></i> تعديل
-                </a>
-                <a href="{{ route('system.wives.index') }}"
-                    class="px-6 py-3 bg-white border border-slate-200 text-slate-600 rounded-2xl font-bold hover:bg-slate-50 transition-all shadow-sm flex items-center gap-2">
-                    <i class="fas fa-arrow-right"></i> عودة للقائمة
-                </a>
+                <h2 class="text-lg font-bold text-slate-900 dark:text-white mb-1">{{ $wife->wife_name ?? $wife->name ?? '-' }}</h2>
+                
+                <div class="mb-4">
+                    @if($wife->status == 'على ذمته' || $wife->status == 'نشط' || $wife->status == 'مستمرة')
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                            {{ $wife->status ?? 'مستمرة' }}
+                        </span>
+                    @elseif($wife->status == 'مطلقة')
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20">
+                            <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+                            {{ $wife->status }}
+                        </span>
+                    @else
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-slate-500/10 text-slate-600 dark:text-slate-400 border border-slate-500/20">
+                            {{ $wife->status ?? '-' }}
+                        </span>
+                    @endif
+                </div>
+
+                <div class="border-t border-slate-100 dark:border-slate-800 pt-4 space-y-3 text-right text-xs">
+                    <div>
+                        <span class="text-slate-400 block mb-0.5">الزوج المرتبط</span>
+                        @if($wife->personalData)
+                            <a href="{{ route('system.personal-data.show', $wife->personalData->id) }}" class="font-bold text-brand-600 dark:text-brand-400 hover:underline flex items-center gap-1.5">
+                                <i class="fas fa-user"></i>
+                                {{ $wife->personalData->name }}
+                            </a>
+                        @else
+                            <span class="font-semibold text-slate-500">-</span>
+                        @endif
+                    </div>
+                    <div>
+                        <span class="text-slate-400 block mb-0.5">رقم الهوية</span>
+                        <span class="font-mono font-bold text-slate-800 dark:text-slate-200 dark:text-slate-200">{{ $wife->wife_id_number ?? '-' }}</span>
+                    </div>
+                    <div>
+                        <span class="text-slate-400 block mb-0.5">رقم الهاتف</span>
+                        <span class="font-mono font-bold text-slate-800 dark:text-slate-200 dark:text-slate-200">{{ $wife->wife_phone ?? '-' }}</span>
+                    </div>
+                    <div>
+                        <span class="text-slate-400 block mb-0.5">تاريخ الميلاد</span>
+                        <span class="font-semibold text-slate-800 dark:text-slate-200 dark:text-slate-200">{{ $wife->wife_birth_date ?? '-' }}</span>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <div class="max-w-4xl mx-auto space-y-8">
-            {{-- البيانات الأساسية --}}
-            <div class="bg-white rounded-[2.5rem] soft-shadow border border-slate-100 overflow-hidden">
-                <div class="px-8 py-6 border-b border-slate-50 bg-slate-50/50">
-                    <h5 class="text-lg font-bold text-slate-800 header-font flex items-center gap-3">
-                        <span class="w-2 h-6 bg-blue-600 rounded-full"></span>
-                        البيانات الأساسية
-                    </h5>
-                </div>
-                <div class="p-8">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div class="bg-slate-50 rounded-2xl p-4 border border-slate-100 flex flex-col gap-1">
-                            <span class="text-xs font-bold text-slate-400">الزوج</span>
-                            <span class="font-bold text-slate-700">
-                                @if($wife->personalData)
-                                    <a href="{{ route('system.personal-data.show', $wife->personalData->id) }}" class="text-blue-600 hover:text-blue-800 hover:underline">
-                                        {{ $wife->personalData->name }}
-                                    </a>
-                                @else
-                                    -
-                                @endif
-                            </span>
-                        </div>
-                        <div class="bg-slate-50 rounded-2xl p-4 border border-slate-100 flex flex-col gap-1">
-                            <span class="text-xs font-bold text-slate-400">اسم الزوجة</span>
-                            <span class="font-bold text-slate-700">{{ $wife->wife_name ?? $wife->name ?? '-' }}</span>
-                        </div>
-                        <div class="bg-slate-50 rounded-2xl p-4 border border-slate-100 flex flex-col gap-1">
-                            <span class="text-xs font-bold text-slate-400">رقم الهوية</span>
-                            <span class="font-bold text-slate-700 font-mono">{{ $wife->wife_id_number ?? '-' }}</span>
-                        </div>
-                        <div class="bg-slate-50 rounded-2xl p-4 border border-slate-100 flex flex-col gap-1">
-                            <span class="text-xs font-bold text-slate-400">حالة الزوجة</span>
-                            <div>
-                                @php
-                                    $statusClass = match($wife->status) {
-                                        'مستمرة' => 'bg-emerald-100 text-emerald-700 border-emerald-200',
-                                        'متوفية' => 'bg-slate-100 text-slate-700 border-slate-200',
-                                        'مطلقة' => 'bg-rose-100 text-rose-700 border-rose-200',
-                                        default => 'bg-blue-100 text-blue-700 border-blue-200',
-                                    };
-                                @endphp
-                                <span class="px-3 py-1 rounded-lg text-xs font-bold border inline-block mt-1 {{ $statusClass }}">
-                                    {{ $wife->status ?? 'مستمرة' }}
-                                </span>
-                            </div>
-                        </div>
-                        <div class="bg-slate-50 rounded-2xl p-4 border border-slate-100 flex flex-col gap-1">
-                            <span class="text-xs font-bold text-slate-400">تاريخ الميلاد</span>
-                            <span class="font-bold text-slate-700">{{ $wife->wife_birth_date ?? '-' }}</span>
-                        </div>
-                        <div class="bg-slate-50 rounded-2xl p-4 border border-slate-100 flex flex-col gap-1">
-                            <span class="text-xs font-bold text-slate-400">رقم الهاتف</span>
-                            <span class="font-bold text-slate-700 font-mono">{{ $wife->wife_phone ?? '-' }}</span>
-                        </div>
-                        <div class="md:col-span-2 bg-slate-50 rounded-2xl p-4 border border-slate-100 flex flex-col gap-1">
-                            <span class="text-xs font-bold text-slate-400">العنوان</span>
-                            <span class="font-bold text-slate-700">{{ $wife->wife_address ?? '-' }}</span>
-                        </div>
+        {{-- Left Column: Detail Cards --}}
+        <div class="lg:col-span-2 space-y-6">
+            {{-- Location bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden mb-4 --}}
+            <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm">
+                <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2 mb-6 pb-4 border-b border-slate-100 dark:border-slate-800">
+                    <span class="w-2 h-5 bg-emerald-500 rounded-full"></span>
+                    معلومات الموقع الجغرافي
+                </h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                    <div class="bg-slate-50 dark:bg-slate-950/50 p-4 rounded-xl border border-slate-200 dark:border-slate-800">
+                        <span class="text-slate-400 block mb-1">المحافظة</span>
+                        <span class="font-bold text-slate-800 dark:text-slate-200 dark:text-slate-200 text-sm">{{ $wife->governorate->name ?? '-' }}</span>
+                    </div>
+                    <div class="bg-slate-50 dark:bg-slate-950/50 p-4 rounded-xl border border-slate-200 dark:border-slate-800">
+                        <span class="text-slate-400 block mb-1">المديرية</span>
+                        <span class="font-bold text-slate-800 dark:text-slate-200 dark:text-slate-200 text-sm">{{ $wife->directorate->name ?? '-' }}</span>
+                    </div>
+                    <div class="bg-slate-50 dark:bg-slate-950/50 p-4 rounded-xl border border-slate-200 dark:border-slate-800">
+                        <span class="text-slate-400 block mb-1">العزلة / المنطقة</span>
+                        <span class="font-bold text-slate-800 dark:text-slate-200 dark:text-slate-200 text-sm">{{ $wife->subArea->name ?? '-' }}</span>
+                    </div>
+                    <div class="bg-slate-50 dark:bg-slate-950/50 p-4 rounded-xl border border-slate-200 dark:border-slate-800">
+                        <span class="text-slate-400 block mb-1">القرية / الحي</span>
+                        <span class="font-bold text-slate-800 dark:text-slate-200 dark:text-slate-200 text-sm">{{ $wife->village->name ?? '-' }}</span>
+                    </div>
+                    <div class="sm:col-span-2 bg-slate-50 dark:bg-slate-950/50 p-4 rounded-xl border border-slate-200 dark:border-slate-800">
+                        <span class="text-slate-400 block mb-1">العنوان التفصيلي</span>
+                        <span class="font-semibold text-slate-800 dark:text-slate-200 dark:text-slate-200 text-sm">{{ $wife->wife_address ?? '-' }}</span>
                     </div>
                 </div>
             </div>
 
-            {{-- معلومات الموقع --}}
-            <div class="bg-white rounded-[2.5rem] soft-shadow border border-slate-100 overflow-hidden">
-                <div class="px-8 py-6 border-b border-slate-50 bg-slate-50/50">
-                    <h5 class="text-lg font-bold text-slate-800 header-font flex items-center gap-3">
-                        <span class="w-2 h-6 bg-emerald-500 rounded-full"></span>
-                        معلومات الموقع
-                    </h5>
-                </div>
-                <div class="p-8">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div class="bg-slate-50 rounded-2xl p-4 border border-slate-100 flex flex-col gap-1">
-                            <span class="text-xs font-bold text-slate-400">المحافظة</span>
-                            <span class="font-bold text-slate-700">{{ $wife->governorate->name ?? '-' }}</span>
-                        </div>
-                        <div class="bg-slate-50 rounded-2xl p-4 border border-slate-100 flex flex-col gap-1">
-                            <span class="text-xs font-bold text-slate-400">المديرية</span>
-                            <span class="font-bold text-slate-700">{{ $wife->directorate->name ?? '-' }}</span>
-                        </div>
-                        <div class="bg-slate-50 rounded-2xl p-4 border border-slate-100 flex flex-col gap-1">
-                            <span class="text-xs font-bold text-slate-400">العزلة / المنطقة</span>
-                            <span class="font-bold text-slate-700">{{ $wife->subArea->name ?? '-' }}</span>
-                        </div>
-                        <div class="bg-slate-50 rounded-2xl p-4 border border-slate-100 flex flex-col gap-1">
-                            <span class="text-xs font-bold text-slate-400">القرية / الحي</span>
-                            <span class="font-bold text-slate-700">{{ $wife->village->name ?? '-' }}</span>
-                        </div>
+            {{-- Audit bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden mb-4 --}}
+            <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm">
+                <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2 mb-6 pb-4 border-b border-slate-100 dark:border-slate-800">
+                    <span class="w-2 h-5 bg-slate-400 rounded-full"></span>
+                    معلومات النظام والتدقيق
+                </h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                    <div class="bg-slate-50 dark:bg-slate-950/50 p-4 rounded-xl border border-slate-200 dark:border-slate-800">
+                        <span class="text-slate-400 block mb-1">تاريخ الإنشاء</span>
+                        <span class="font-bold text-slate-800 dark:text-slate-200 dark:text-slate-200">{{ $wife->created_at->format('Y-m-d H:i') }}</span>
+                        <span class="text-slate-400 block mt-0.5 text-[11px]">{{ $wife->created_at->diffForHumans() }}</span>
+                    </div>
+                    <div class="bg-slate-50 dark:bg-slate-950/50 p-4 rounded-xl border border-slate-200 dark:border-slate-800">
+                        <span class="text-slate-400 block mb-1">آخر تحديث</span>
+                        <span class="font-bold text-slate-800 dark:text-slate-200 dark:text-slate-200">{{ $wife->updated_at->format('Y-m-d H:i') }}</span>
+                        <span class="text-slate-400 block mt-0.5 text-[11px]">{{ $wife->updated_at->diffForHumans() }}</span>
                     </div>
                 </div>
-            </div>
-
-            {{-- معلومات النظام --}}
-            <div class="bg-white rounded-[2.5rem] soft-shadow border border-slate-100 overflow-hidden">
-                <div class="px-8 py-6 border-b border-slate-50 bg-slate-50/50">
-                    <h5 class="text-lg font-bold text-slate-800 header-font flex items-center gap-3">
-                        <span class="w-2 h-6 bg-slate-400 rounded-full"></span>
-                        معلومات النظام
-                    </h5>
-                </div>
-                <div class="p-8">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div class="bg-slate-50 rounded-2xl p-4 border border-slate-100 flex flex-col gap-1">
-                            <span class="text-xs font-bold text-slate-400">تاريخ الإضافة</span>
-                            <span class="font-bold text-slate-700">{{ $wife->created_at->format('Y-m-d H:i') }}</span>
-                            <span class="text-xs text-slate-400">{{ $wife->created_at->diffForHumans() }}</span>
-                        </div>
-                        <div class="bg-slate-50 rounded-2xl p-4 border border-slate-100 flex flex-col gap-1">
-                            <span class="text-xs font-bold text-slate-400">آخر تحديث</span>
-                            <span class="font-bold text-slate-700">{{ $wife->updated_at->format('Y-m-d H:i') }}</span>
-                            <span class="text-xs text-slate-400">{{ $wife->updated_at->diffForHumans() }}</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {{-- أزرار الإجراءات --}}
-            <div class="flex items-center justify-end gap-4 mt-8 mb-10">
-                <a href="{{ route('system.wives.index') }}" class="px-8 py-3 text-slate-400 font-bold hover:text-slate-600 transition-colors">عودة</a>
-                <a href="{{ route('system.wives.edit', $wife->id) }}" class="px-8 py-4 bg-amber-500 text-white rounded-[2rem] font-bold hover:bg-amber-600 transition-all shadow-xl shadow-amber-100 flex items-center gap-2">
-                    <i class="fas fa-edit"></i> تعديل
-                </a>
-                <form action="{{ route('system.wives.destroy', $wife->id) }}" method="POST" class="inline" onsubmit="return confirm('هل أنت متأكد من الحذف؟')">
-                    @csrf
-                    @method('DELETE')
-                    <button type="submit" class="px-8 py-4 bg-rose-500 text-white rounded-[2rem] font-bold hover:bg-rose-600 transition-all shadow-xl shadow-rose-100 flex items-center gap-2">
-                        <i class="fas fa-trash"></i> حذف
-                    </button>
-                </form>
             </div>
         </div>
     </div>
+</div>
 @endsection
+

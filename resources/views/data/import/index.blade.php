@@ -42,20 +42,20 @@
         gap: 6px;
     }
     
-    .toolbar-btn:hover {
+    .toolbar-:hover {
         background: rgba(76, 201, 240, 0.3);
         transform: translateY(-2px);
     }
     
-    .toolbar-btn.primary {
+    .toolbar-.primary {
         background: linear-gradient(135deg, #4cc9f0 0%, #4895ef 100%);
     }
     
-    .toolbar-btn.danger {
+    .toolbar-.danger {
         background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
     }
     
-    .toolbar-btn.success {
+    .toolbar-.success {
         background: linear-gradient(135deg, #10b981 0%, #059669 100%);
     }
     
@@ -137,7 +137,7 @@
         margin: -2px -5px;
     }
     
-    .upload-zone {
+    .upload-btnzone {
         border: 2px dashed #4cc9f0;
         border-radius: 12px;
         padding: 40px;
@@ -148,12 +148,12 @@
         margin-bottom: 20px;
     }
     
-    .upload-zone:hover, .upload-zone.dragover {
+    .upload-btnzone:hover, .upload-btnzone.dragover {
         background: rgba(76, 201, 240, 0.15);
         border-color: #4895ef;
     }
     
-    .upload-zone i {
+    .upload-btnzone i {
         font-size: 3rem;
         color: #4cc9f0;
         margin-bottom: 15px;
@@ -283,31 +283,28 @@
     </div>
 </div>
 
-<div class="upload-zone" id="uploadZone" onclick="document.getElementById('excelFile').click()">
-    <i class="fas fa-cloud-upload-alt"></i>
+<div class="upload-btnzone" id="uploadZone" onclick="document.getElementById('excelFile').click()">
+    <i class="fas fa-cloud-upload-btnalt"></i>
     <h4>اسحب ملف Excel هنا أو انقر للاختيار</h4>
     <p class="text-muted mb-0">يدعم ملفات xlsx, xls, csv</p>
-    <input type="file" id="excelFile" accept=".xlsx,.xls,.csv" style="display:none">
+    <input type="file" id="excelFile" accept=".xlsx,.xls,.csv" class="hidden">
 </div>
 
 <div class="data-toolbar">
     <div class="toolbar-group">
-        <button class="w-9 h-9 flex items-center justify-center rounded-lg bg-rose-100 text-rose-700 hover:bg-rose-600 hover:text-white shadow-sm transition-all" onclick="showCreateTableModal()">
-                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5">
-                                                    <path fill-rule="evenodd" d="M8.75 1A2.75 2.75 0 006 3.75V4H5a2 2 0 00-2 2v.25C3 6.664 3.336 7 3.75 7h12.5a.75.75 0 000-1.5h-.25V4A2.75 2.75 0 0013.25 1h-4.5zM6 5.5v-1.75C6 3.224 6.448 2.75 7 2.75h6c.552 0 1 .474 1 1V5.5H6z" clip-rule="evenodd" />
-                                                    <path d="M4 8.25V15.5A2.75 2.75 0 006.75 18.25h6.5A2.75 2.75 0 0016 15.5V8.25H4zM7.5 10a.75.75 0 01.75.75v4.5a.75.75 0 01-1.5 0v-4.5A.75.75 0 017.5 10zm5.25.75a.75.75 0 00-1.5 0v4.5a.75.75 0 001.5 0v-4.5z" />
-                                                </svg>
-                                            </button>
+        <button class="toolbar-btn primary" onclick="showCreateTableModal()">
+            <i class="fas fa-plus"></i> جدول جديد
+        </button>
     </div>
     
     <div class="toolbar-group">
-        <button class="toolbar-btn" onclick="showNumberingModal()">
+        <button class="toolbar-" onclick="showNumberingModal()">
             <i class="fas fa-list-ol"></i> ترقيم
         </button>
-        <button class="toolbar-btn" onclick="showRemoveSpacesModal()">
+        <button class="toolbar-" onclick="showRemoveSpacesModal()">
             <i class="fas fa-eraser"></i> مسافات
         </button>
-        <button class="toolbar-btn" onclick="showReplaceTextModal()">
+        <button class="toolbar-" onclick="showReplaceTextModal()">
             <i class="fas fa-exchange-alt"></i> استبدال نص
         </button>
     </div>
@@ -363,22 +360,22 @@
     @endif
 </div>
 
-<!-- Create Table Modal -->
+<!-- Create table Modal -->
 <div class="modal-overlay" id="createTableModal">
     <div class="modal-box">
         <h4 class="mb-4"><i class="fas fa-table me-2 text-primary"></i>إنشاء جدول جديد</h4>
         <div id="columnInputs">
             <div class="input-group mb-2">
-                <input type="text" class="form-control column-name" placeholder="اسم العمود 1">
-                <button class="btn btn-outline-danger" onclick="removeColumnInput(this)"><i class="fas fa-times"></i></button>
+                <input type="text" class="w-full pr-10 pl-4 py-4 bg-slate-50 border-0 rounded-2xl focus:ring-2 focus:ring-brand-500/20 transition-all column-name" placeholder="اسم العمود 1">
+                <button class="px-4 py-2.5 border border-red-600 text-red-600 rounded-[2rem] hover:bg-red-50" onclick="removeColumnInput(this)"><i class="fas fa-times"></i></button>
             </div>
         </div>
-        <button class="btn btn-outline-primary btn-sm mb-3" onclick="addColumnInput()">
+        <button class="px-4 py-2.5 border border-brand-600 text-brand-600 dark:text-brand-400 hover:bg-brand-50 dark:hover:bg-brand-500/10 font-bold rounded-xl transition-all text-sm -sm mb-3" onclick="addColumnInput()">
             <i class="fas fa-plus"></i> إضافة عمود
         </button>
         <div class="d-flex gap-2 justify-content-end">
-            <button class="btn btn-secondary" onclick="closeModal('createTableModal')">إلغاء</button>
-            <button class="btn btn-primary" onclick="createTable()">إنشاء</button>
+            <button class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold rounded-xl transition-colors text-sm" onclick="closeModal('createTableModal')">إلغاء</button>
+            <button class="px-10 py-4 bg-brand-600 text-white rounded-[2rem] font-bold hover:bg-brand-700 transition-all shadow-xl shadow-brand-100 flex items-center gap-2" onclick="createTable()">إنشاء</button>
         </div>
     </div>
 </div>
@@ -387,10 +384,10 @@
 <div class="modal-overlay" id="addColumnModal">
     <div class="modal-box">
         <h4 class="mb-4"><i class="fas fa-columns me-2 text-primary"></i>إضافة عمود جديد</h4>
-        <input type="text" class="form-control mb-3" id="newColumnName" placeholder="اسم العمود">
+        <input type="text" class="w-full pr-10 pl-4 py-4 bg-slate-50 border-0 rounded-2xl focus:ring-2 focus:ring-brand-500/20 transition-all mb-3" id="newColumnName" placeholder="اسم العمود">
         <div class="d-flex gap-2 justify-content-end">
-            <button class="btn btn-secondary" onclick="closeModal('addColumnModal')">إلغاء</button>
-            <button class="btn btn-primary" onclick="addColumn()">إضافة</button>
+            <button class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold rounded-xl transition-colors text-sm" onclick="closeModal('addColumnModal')">إلغاء</button>
+            <button class="px-10 py-4 bg-brand-600 text-white rounded-[2rem] font-bold hover:bg-brand-700 transition-all shadow-xl shadow-brand-100 flex items-center gap-2" onclick="addColumn()">إضافة</button>
         </div>
     </div>
 </div>
@@ -401,15 +398,15 @@
         <h4 class="mb-4"><i class="fas fa-list-ol me-2 text-primary"></i>ترقيم السجلات</h4>
         <div class="mb-3">
             <label class="form-label">العمود</label>
-            <select class="form-select" id="numberingColumn"></select>
+            <select class="w-full pr-2 pl-2 py-2 bg-slate-50 border-0 rounded-2xl focus:ring-2 focus:ring-brand-500/20 transition-all" id="numberingColumn"></select>
         </div>
         <div class="mb-3">
             <label class="form-label">البدء من</label>
-            <input type="number" class="form-control" id="numberingStart" value="1">
+            <input type="number" class="w-full pr-10 pl-4 py-4 bg-slate-50 border-0 rounded-2xl focus:ring-2 focus:ring-brand-500/20 transition-all" id="numberingStart" value="1">
         </div>
         <div class="d-flex gap-2 justify-content-end">
-            <button class="btn btn-secondary" onclick="closeModal('numberingModal')">إلغاء</button>
-            <button class="btn btn-primary" onclick="applyNumbering()">تطبيق</button>
+            <button class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold rounded-xl transition-colors text-sm" onclick="closeModal('numberingModal')">إلغاء</button>
+            <button class="px-10 py-4 bg-brand-600 text-white rounded-[2rem] font-bold hover:bg-brand-700 transition-all shadow-xl shadow-brand-100 flex items-center gap-2" onclick="applyNumbering()">تطبيق</button>
         </div>
     </div>
 </div>
@@ -420,21 +417,21 @@
         <h4 class="mb-4"><i class="fas fa-eraser me-2 text-primary"></i>إزالة المسافات</h4>
         <div class="mb-3">
             <label class="form-label">العمود</label>
-            <select class="form-select" id="spacesColumn">
+            <select class="w-full pr-2 pl-2 py-2 bg-slate-50 border-0 rounded-2xl focus:ring-2 focus:ring-brand-500/20 transition-all" id="spacesColumn">
                 <option value="">جميع الأعمدة</option>
             </select>
         </div>
         <div class="mb-3">
             <label class="form-label">النوع</label>
-            <select class="form-select" id="spacesMode">
+            <select class="w-full pr-2 pl-2 py-2 bg-slate-50 border-0 rounded-2xl focus:ring-2 focus:ring-brand-500/20 transition-all" id="spacesMode">
                 <option value="trim">إزالة من البداية والنهاية</option>
                 <option value="extra">إزالة المسافات الزائدة</option>
                 <option value="all">إزالة جميع المسافات</option>
             </select>
         </div>
         <div class="d-flex gap-2 justify-content-end">
-            <button class="btn btn-secondary" onclick="closeModal('removeSpacesModal')">إلغاء</button>
-            <button class="btn btn-primary" onclick="applyRemoveSpaces()">تطبيق</button>
+            <button class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold rounded-xl transition-colors text-sm" onclick="closeModal('removeSpacesModal')">إلغاء</button>
+            <button class="px-10 py-4 bg-brand-600 text-white rounded-[2rem] font-bold hover:bg-brand-700 transition-all shadow-xl shadow-brand-100 flex items-center gap-2" onclick="applyRemoveSpaces()">تطبيق</button>
         </div>
     </div>
 </div>
@@ -452,149 +449,149 @@
         </div>
 
         <form id="mappingForm">
-            <div class="row">
+            <div class="flex flex-wrap gap-4">
                 <!-- Mapping Columns -->
-                <div class="col-md-8">
-                    <div class="card border-0 bg-light">
-                        <div class="card-body">
+                <div class="w-full md:w-2/3">
+                    <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden mb-4">
+                        <div class="p-4">
                             <h6 class="fw-bold mb-3 border-bottom pb-2">مطابقة الأعمدة</h6>
-                            <div class="row g-3" style="max-height: 500px; overflow-y: auto;">
+                            <div class="flex flex-wrap gap-4 g-3" style="max-height: 500px; overflow-y: auto;">
                                 <!-- Column 1: الأساسية -->
-                                <div class="col-md-3">
+                                <div class="w-full md:w-1/4">
                                     <h6 class="text-primary small fw-bold border-bottom pb-1 mb-2">البيانات الأساسية</h6>
                                     <div class="mb-2">
                                         <label class="form-label mb-0 small x-small">الاسم الكامل *</label>
-                                        <select name="mapping[full_name]" class="form-select form-select-sm mapping-select" data-field="full_name"></select>
+                                        <select name="mapping[full_name]" class="w-full pr-2 pl-2 py-2 bg-slate-50 border-0 rounded-2xl focus:ring-2 focus:ring-brand-500/20 transition-all w-full pr-2 pl-2 py-2 bg-slate-50 border-0 rounded-2xl focus:ring-2 focus:ring-brand-500/20 transition-all-sm mapping-select" data-field="full_name"></select>
                                     </div>
                                     <div class="mb-2">
                                         <label class="form-label mb-0 small x-small">اسم الشهرة (الجهادي)</label>
-                                        <select name="mapping[jihadi_name]" class="form-select form-select-sm mapping-select" data-field="jihadi_name"></select>
+                                        <select name="mapping[jihadi_name]" class="w-full pr-2 pl-2 py-2 bg-slate-50 border-0 rounded-2xl focus:ring-2 focus:ring-brand-500/20 transition-all w-full pr-2 pl-2 py-2 bg-slate-50 border-0 rounded-2xl focus:ring-2 focus:ring-brand-500/20 transition-all-sm mapping-select" data-field="jihadi_name"></select>
                                     </div>
                                     <div class="mb-2">
                                         <label class="form-label mb-0 small x-small">موضوع البلاغ *</label>
-                                        <select name="mapping[report_name]" class="form-select form-select-sm mapping-select" data-field="report_name"></select>
+                                        <select name="mapping[report_name]" class="w-full pr-2 pl-2 py-2 bg-slate-50 border-0 rounded-2xl focus:ring-2 focus:ring-brand-500/20 transition-all w-full pr-2 pl-2 py-2 bg-slate-50 border-0 rounded-2xl focus:ring-2 focus:ring-brand-500/20 transition-all-sm mapping-select" data-field="report_name"></select>
                                     </div>
                                     <div class="mb-2">
                                         <label class="form-label mb-0 small x-small">نوع البلاغ</label>
-                                        <select name="mapping[report_type]" class="form-select form-select-sm mapping-select" data-field="report_type"></select>
+                                        <select name="mapping[report_type]" class="w-full pr-2 pl-2 py-2 bg-slate-50 border-0 rounded-2xl focus:ring-2 focus:ring-brand-500/20 transition-all w-full pr-2 pl-2 py-2 bg-slate-50 border-0 rounded-2xl focus:ring-2 focus:ring-brand-500/20 transition-all-sm mapping-select" data-field="report_type"></select>
                                     </div>
                                     <div class="mb-2">
                                         <label class="form-label mb-0 small x-small">تاريخ البلاغ</label>
-                                        <select name="mapping[report_date]" class="form-select form-select-sm mapping-select" data-field="report_date"></select>
+                                        <select name="mapping[report_date]" class="w-full pr-2 pl-2 py-2 bg-slate-50 border-0 rounded-2xl focus:ring-2 focus:ring-brand-500/20 transition-all w-full pr-2 pl-2 py-2 bg-slate-50 border-0 rounded-2xl focus:ring-2 focus:ring-brand-500/20 transition-all-sm mapping-select" data-field="report_date"></select>
                                     </div>
                                     <div class="mb-2">
                                         <label class="form-label mb-0 small x-small">الرقم العسكري</label>
-                                        <select name="mapping[military_number]" class="form-select form-select-sm mapping-select" data-field="military_number"></select>
+                                        <select name="mapping[military_number]" class="w-full pr-2 pl-2 py-2 bg-slate-50 border-0 rounded-2xl focus:ring-2 focus:ring-brand-500/20 transition-all w-full pr-2 pl-2 py-2 bg-slate-50 border-0 rounded-2xl focus:ring-2 focus:ring-brand-500/20 transition-all-sm mapping-select" data-field="military_number"></select>
                                     </div>
                                     <div class="mb-2">
                                         <label class="form-label mb-0 small x-small">رقم البطاقة</label>
-                                        <select name="mapping[id_number]" class="form-select form-select-sm mapping-select" data-field="id_number"></select>
+                                        <select name="mapping[id_number]" class="w-full pr-2 pl-2 py-2 bg-slate-50 border-0 rounded-2xl focus:ring-2 focus:ring-brand-500/20 transition-all w-full pr-2 pl-2 py-2 bg-slate-50 border-0 rounded-2xl focus:ring-2 focus:ring-brand-500/20 transition-all-sm mapping-select" data-field="id_number"></select>
                                     </div>
                                     <div class="mb-2">
                                         <label class="form-label mb-0 small x-small">الهاتف</label>
-                                        <select name="mapping[phone]" class="form-select form-select-sm mapping-select" data-field="phone"></select>
+                                        <select name="mapping[phone]" class="w-full pr-2 pl-2 py-2 bg-slate-50 border-0 rounded-2xl focus:ring-2 focus:ring-brand-500/20 transition-all w-full pr-2 pl-2 py-2 bg-slate-50 border-0 rounded-2xl focus:ring-2 focus:ring-brand-500/20 transition-all-sm mapping-select" data-field="phone"></select>
                                     </div>
                                 </div>
                                 
                                 <!-- Column 2: العمل والوحدة -->
-                                <div class="col-md-3">
+                                <div class="w-full md:w-1/4">
                                     <h6 class="text-primary small fw-bold border-bottom pb-1 mb-2">الوحدة والعمل</h6>
                                     <div class="mb-2">
                                         <label class="form-label mb-0 small x-small">الوحدة</label>
-                                        <select name="mapping[unit]" class="form-select form-select-sm mapping-select" data-field="unit"></select>
+                                        <select name="mapping[unit]" class="w-full pr-2 pl-2 py-2 bg-slate-50 border-0 rounded-2xl focus:ring-2 focus:ring-brand-500/20 transition-all w-full pr-2 pl-2 py-2 bg-slate-50 border-0 rounded-2xl focus:ring-2 focus:ring-brand-500/20 transition-all-sm mapping-select" data-field="unit"></select>
                                     </div>
                                     <div class="mb-2">
                                         <label class="form-label mb-0 small x-small">الوحدة الفرعية</label>
-                                        <select name="mapping[sub_unit]" class="form-select form-select-sm mapping-select" data-field="sub_unit"></select>
+                                        <select name="mapping[sub_unit]" class="w-full pr-2 pl-2 py-2 bg-slate-50 border-0 rounded-2xl focus:ring-2 focus:ring-brand-500/20 transition-all w-full pr-2 pl-2 py-2 bg-slate-50 border-0 rounded-2xl focus:ring-2 focus:ring-brand-500/20 transition-all-sm mapping-select" data-field="sub_unit"></select>
                                     </div>
                                     <div class="mb-2">
                                         <label class="form-label mb-0 small x-small">الوحدة التفصيلية</label>
-                                        <select name="mapping[detailed_unit]" class="form-select form-select-sm mapping-select" data-field="detailed_unit"></select>
+                                        <select name="mapping[detailed_unit]" class="w-full pr-2 pl-2 py-2 bg-slate-50 border-0 rounded-2xl focus:ring-2 focus:ring-brand-500/20 transition-all w-full pr-2 pl-2 py-2 bg-slate-50 border-0 rounded-2xl focus:ring-2 focus:ring-brand-500/20 transition-all-sm mapping-select" data-field="detailed_unit"></select>
                                     </div>
                                     <div class="mb-2">
                                         <label class="form-label mb-0 small x-small">الرتبة</label>
-                                        <select name="mapping[rank]" class="form-select form-select-sm mapping-select" data-field="rank"></select>
+                                        <select name="mapping[rank]" class="w-full pr-2 pl-2 py-2 bg-slate-50 border-0 rounded-2xl focus:ring-2 focus:ring-brand-500/20 transition-all w-full pr-2 pl-2 py-2 bg-slate-50 border-0 rounded-2xl focus:ring-2 focus:ring-brand-500/20 transition-all-sm mapping-select" data-field="rank"></select>
                                     </div>
                                     <div class="mb-2">
                                         <label class="form-label mb-0 small x-small">التعيين</label>
-                                        <select name="mapping[designation]" class="form-select form-select-sm mapping-select" data-field="designation"></select>
+                                        <select name="mapping[designation]" class="w-full pr-2 pl-2 py-2 bg-slate-50 border-0 rounded-2xl focus:ring-2 focus:ring-brand-500/20 transition-all w-full pr-2 pl-2 py-2 bg-slate-50 border-0 rounded-2xl focus:ring-2 focus:ring-brand-500/20 transition-all-sm mapping-select" data-field="designation"></select>
                                     </div>
                                     <div class="mb-2">
                                         <label class="form-label mb-0 small x-small">المسمى الوظيفي</label>
-                                        <select name="mapping[job_title]" class="form-select form-select-sm mapping-select" data-field="job_title"></select>
+                                        <select name="mapping[job_title]" class="w-full pr-2 pl-2 py-2 bg-slate-50 border-0 rounded-2xl focus:ring-2 focus:ring-brand-500/20 transition-all w-full pr-2 pl-2 py-2 bg-slate-50 border-0 rounded-2xl focus:ring-2 focus:ring-brand-500/20 transition-all-sm mapping-select" data-field="job_title"></select>
                                     </div>
                                     <div class="mb-2">
                                         <label class="form-label mb-0 small x-small">العمل / الجهة</label>
-                                        <select name="mapping[work]" class="form-select form-select-sm mapping-select" data-field="work"></select>
+                                        <select name="mapping[work]" class="w-full pr-2 pl-2 py-2 bg-slate-50 border-0 rounded-2xl focus:ring-2 focus:ring-brand-500/20 transition-all w-full pr-2 pl-2 py-2 bg-slate-50 border-0 rounded-2xl focus:ring-2 focus:ring-brand-500/20 transition-all-sm mapping-select" data-field="work"></select>
                                     </div>
                                 </div>
 
                                 <!-- Column 3: السكن والأصل -->
-                                <div class="col-md-3">
+                                <div class="w-full md:w-1/4">
                                     <h6 class="text-primary small fw-bold border-bottom pb-1 mb-2">الأصل والسكن</h6>
                                     <div class="mb-2">
                                         <label class="form-label mb-0 small x-small">الأصل/المحافظة</label>
-                                        <select name="mapping[original_governorate]" class="form-select form-select-sm mapping-select" data-field="original_governorate"></select>
+                                        <select name="mapping[original_governorate]" class="w-full pr-2 pl-2 py-2 bg-slate-50 border-0 rounded-2xl focus:ring-2 focus:ring-brand-500/20 transition-all w-full pr-2 pl-2 py-2 bg-slate-50 border-0 rounded-2xl focus:ring-2 focus:ring-brand-500/20 transition-all-sm mapping-select" data-field="original_governorate"></select>
                                     </div>
                                     <div class="mb-2">
                                         <label class="form-label mb-0 small x-small">السكن/المحافظة</label>
-                                        <select name="mapping[residence_governorate]" class="form-select form-select-sm mapping-select" data-field="residence_governorate"></select>
+                                        <select name="mapping[residence_governorate]" class="w-full pr-2 pl-2 py-2 bg-slate-50 border-0 rounded-2xl focus:ring-2 focus:ring-brand-500/20 transition-all w-full pr-2 pl-2 py-2 bg-slate-50 border-0 rounded-2xl focus:ring-2 focus:ring-brand-500/20 transition-all-sm mapping-select" data-field="residence_governorate"></select>
                                     </div>
                                     <div class="mb-2">
                                         <label class="form-label mb-0 small x-small">التخصص</label>
-                                        <select name="mapping[specialization]" class="form-select form-select-sm mapping-select" data-field="specialization"></select>
+                                        <select name="mapping[specialization]" class="w-full pr-2 pl-2 py-2 bg-slate-50 border-0 rounded-2xl focus:ring-2 focus:ring-brand-500/20 transition-all w-full pr-2 pl-2 py-2 bg-slate-50 border-0 rounded-2xl focus:ring-2 focus:ring-brand-500/20 transition-all-sm mapping-select" data-field="specialization"></select>
                                     </div>
                                     <div class="mb-2">
                                         <label class="form-label mb-0 small x-small">الحالة الاجتماعية</label>
-                                        <select name="mapping[marital_status]" class="form-select form-select-sm mapping-select" data-field="marital_status"></select>
+                                        <select name="mapping[marital_status]" class="w-full pr-2 pl-2 py-2 bg-slate-50 border-0 rounded-2xl focus:ring-2 focus:ring-brand-500/20 transition-all w-full pr-2 pl-2 py-2 bg-slate-50 border-0 rounded-2xl focus:ring-2 focus:ring-brand-500/20 transition-all-sm mapping-select" data-field="marital_status"></select>
                                     </div>
                                     <div class="mb-2">
                                         <label class="form-label mb-0 small x-small">الانتماءات</label>
-                                        <select name="mapping[affiliations]" class="form-select form-select-sm mapping-select" data-field="affiliations"></select>
+                                        <select name="mapping[affiliations]" class="w-full pr-2 pl-2 py-2 bg-slate-50 border-0 rounded-2xl focus:ring-2 focus:ring-brand-500/20 transition-all w-full pr-2 pl-2 py-2 bg-slate-50 border-0 rounded-2xl focus:ring-2 focus:ring-brand-500/20 transition-all-sm mapping-select" data-field="affiliations"></select>
                                     </div>
                                     <div class="mb-2">
                                         <label class="form-label mb-0 small x-small">الحالة القانونية</label>
-                                        <select name="mapping[legal_status]" class="form-select form-select-sm mapping-select" data-field="legal_status"></select>
+                                        <select name="mapping[legal_status]" class="w-full pr-2 pl-2 py-2 bg-slate-50 border-0 rounded-2xl focus:ring-2 focus:ring-brand-500/20 transition-all w-full pr-2 pl-2 py-2 bg-slate-50 border-0 rounded-2xl focus:ring-2 focus:ring-brand-500/20 transition-all-sm mapping-select" data-field="legal_status"></select>
                                     </div>
                                 </div>
 
                                 <!-- Column 4: القانونية -->
-                                <div class="col-md-3">
+                                <div class="w-full md:w-1/4">
                                     <h6 class="text-primary small fw-bold border-bottom pb-1 mb-2">الحالة القانونية</h6>
                                     <div class="mb-2">
                                         <label class="form-label mb-0 small x-small">حالة القبض</label>
-                                        <select name="mapping[arrest_status]" class="form-select form-select-sm mapping-select" data-field="arrest_status"></select>
+                                        <select name="mapping[arrest_status]" class="w-full pr-2 pl-2 py-2 bg-slate-50 border-0 rounded-2xl focus:ring-2 focus:ring-brand-500/20 transition-all w-full pr-2 pl-2 py-2 bg-slate-50 border-0 rounded-2xl focus:ring-2 focus:ring-brand-500/20 transition-all-sm mapping-select" data-field="arrest_status"></select>
                                     </div>
                                     <div class="mb-2">
                                         <label class="form-label mb-0 small x-small">تاريخ القبض</label>
-                                        <select name="mapping[arrest_date]" class="form-select form-select-sm mapping-select" data-field="arrest_date"></select>
+                                        <select name="mapping[arrest_date]" class="w-full pr-2 pl-2 py-2 bg-slate-50 border-0 rounded-2xl focus:ring-2 focus:ring-brand-500/20 transition-all w-full pr-2 pl-2 py-2 bg-slate-50 border-0 rounded-2xl focus:ring-2 focus:ring-brand-500/20 transition-all-sm mapping-select" data-field="arrest_date"></select>
                                     </div>
                                     <div class="mb-2">
                                         <label class="form-label mb-0 small x-small">تاريخ الإيداع</label>
-                                        <select name="mapping[deposit_date]" class="form-select form-select-sm mapping-select" data-field="deposit_date"></select>
+                                        <select name="mapping[deposit_date]" class="w-full pr-2 pl-2 py-2 bg-slate-50 border-0 rounded-2xl focus:ring-2 focus:ring-brand-500/20 transition-all w-full pr-2 pl-2 py-2 bg-slate-50 border-0 rounded-2xl focus:ring-2 focus:ring-brand-500/20 transition-all-sm mapping-select" data-field="deposit_date"></select>
                                     </div>
                                     <div class="mb-2">
                                         <label class="form-label mb-0 small x-small">التهمة</label>
-                                        <select name="mapping[charge]" class="form-select form-select-sm mapping-select" data-field="charge"></select>
+                                        <select name="mapping[charge]" class="w-full pr-2 pl-2 py-2 bg-slate-50 border-0 rounded-2xl focus:ring-2 focus:ring-brand-500/20 transition-all w-full pr-2 pl-2 py-2 bg-slate-50 border-0 rounded-2xl focus:ring-2 focus:ring-brand-500/20 transition-all-sm mapping-select" data-field="charge"></select>
                                     </div>
                                     <div class="mb-2">
                                         <label class="form-label mb-0 small x-small">الإجراءات</label>
-                                        <select name="mapping[procedures]" class="form-select form-select-sm mapping-select" data-field="procedures"></select>
+                                        <select name="mapping[procedures]" class="w-full pr-2 pl-2 py-2 bg-slate-50 border-0 rounded-2xl focus:ring-2 focus:ring-brand-500/20 transition-all w-full pr-2 pl-2 py-2 bg-slate-50 border-0 rounded-2xl focus:ring-2 focus:ring-brand-500/20 transition-all-sm mapping-select" data-field="procedures"></select>
                                     </div>
                                     <div class="mb-2">
                                         <label class="form-label mb-0 small x-small">تاريخ الإطلاق</label>
-                                        <select name="mapping[date_of_release]" class="form-select form-select-sm mapping-select" data-field="date_of_release"></select>
+                                        <select name="mapping[date_of_release]" class="w-full pr-2 pl-2 py-2 bg-slate-50 border-0 rounded-2xl focus:ring-2 focus:ring-brand-500/20 transition-all w-full pr-2 pl-2 py-2 bg-slate-50 border-0 rounded-2xl focus:ring-2 focus:ring-brand-500/20 transition-all-sm mapping-select" data-field="date_of_release"></select>
                                     </div>
                                     <div class="mb-2">
                                         <label class="form-label mb-0 small x-small">النشاط الحالي</label>
-                                        <select name="mapping[current_activity]" class="form-select form-select-sm mapping-select" data-field="current_activity"></select>
+                                        <select name="mapping[current_activity]" class="w-full pr-2 pl-2 py-2 bg-slate-50 border-0 rounded-2xl focus:ring-2 focus:ring-brand-500/20 transition-all w-full pr-2 pl-2 py-2 bg-slate-50 border-0 rounded-2xl focus:ring-2 focus:ring-brand-500/20 transition-all-sm mapping-select" data-field="current_activity"></select>
                                     </div>
                                     <div class="mb-2">
                                         <label class="form-label mb-0 small x-small">ملاحظات</label>
-                                        <select name="mapping[notes]" class="form-select form-select-sm mapping-select" data-field="notes"></select>
+                                        <select name="mapping[notes]" class="w-full pr-2 pl-2 py-2 bg-slate-50 border-0 rounded-2xl focus:ring-2 focus:ring-brand-500/20 transition-all w-full pr-2 pl-2 py-2 bg-slate-50 border-0 rounded-2xl focus:ring-2 focus:ring-brand-500/20 transition-all-sm mapping-select" data-field="notes"></select>
                                     </div>
                                 </div>
-                                <div class="col-md-12 text-muted small">
+                                <div class="w-full text-muted small">
                                     * تذكير: الحقول المؤشر عليها بـ (*) إلزامية لحفظ السجل.
                                 </div>
                             </div>
@@ -603,15 +600,15 @@
                 </div>
 
                 <!-- Preview Area -->
-                <div class="col-md-4">
-                    <div class="card border-0 shadow-sm h-100">
-                        <div class="card-header bg-white py-3">
-                            <h6 class="fw-bold mb-0">معاينة البيانات المحددة</h6>
+                <div class="w-full md:w-1/3">
+                    <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden mb-4 h-full flex flex-col justify-between">
+                        <div class="bg-slate-50/80 dark:bg-slate-800/50 py-3 px-4 border-b border-slate-100 dark:border-slate-800">
+                            <h6 class="font-bold text-slate-800 dark:text-slate-200 mb-0">معاينة البيانات المحددة</h6>
                         </div>
-                        <div class="card-body p-0">
+                        <div class="p-0 flex-1">
                             <div class="table-responsive" style="max-height: 520px;">
                                 <table class="table table-sm small mb-0" id="importPreviewTable">
-                                    <thead class="bg-light sticky-top">
+                                    <thead class="bg-slate-50/80 border-b border-slate-100 text-slate-400 font-bold uppercase tracking-wider text-[10px] sticky-top">
                                         <tr><th>#</th><th>الاسم (المتوقع)</th><th>الموضوع (المتوقع)</th></tr>
                                     </thead>
                                     <tbody id="importPreviewBody">
@@ -620,11 +617,11 @@
                                 </table>
                             </div>
                         </div>
-                        <div class="card-footer bg-white text-center py-3">
-                            <button type="button" class="btn btn-primary w-100 mb-2" onclick="submitReportsImport()">
-                                <i class="fas fa-check-circle me-1"></i> استيراد النهائي
+                        <div class="bg-slate-50/80 dark:bg-slate-800/50 text-center p-4 border-t border-slate-100 dark:border-slate-800 space-y-2">
+                            <button type="button" class="w-full py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-2xl shadow-md transition-all flex items-center justify-center gap-2 text-sm" onclick="submitReportsImport()">
+                                <i class="fas fa-check-circle"></i> استيراد النهائي
                             </button>
-                            <button type="button" class="btn btn-outline-secondary w-100" onclick="closeModal('reportsMappingModal')">إلغاء</button>
+                            <button type="button" class="w-full py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold rounded-2xl transition-all text-sm" onclick="closeModal('reportsMappingModal')">إلغاء</button>
                         </div>
                     </div>
                 </div>
@@ -639,11 +636,11 @@
         <h4 class="mb-4"><i class="fas fa-file-excel me-2 text-success"></i>معاينة الاستيراد</h4>
         <p class="text-muted">تم العثور على <strong id="previewRowCount">0</strong> سجل</p>
         <div class="table-responsive mb-3" style="max-height: 300px; overflow-y: auto;">
-            <table class="table table-sm table-bordered" id="previewTable"></table>
+            <table class="table table-sm " id="previewTable"></table>
         </div>
         <div class="d-flex gap-2 justify-content-end">
-            <button class="btn btn-secondary" onclick="closeModal('importPreviewModal')">إلغاء</button>
-            <button class="btn btn-primary" onclick="confirmImport()">استيراد البيانات</button>
+            <button class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold rounded-xl transition-colors text-sm" onclick="closeModal('importPreviewModal')">إلغاء</button>
+            <button class="px-10 py-4 bg-brand-600 text-white rounded-[2rem] font-bold hover:bg-brand-700 transition-all shadow-xl shadow-brand-100 flex items-center gap-2" onclick="confirmImport()">استيراد البيانات</button>
         </div>
     </div>
 </div>
@@ -721,9 +718,9 @@ function showImportPreview(data) {
     data.columns.forEach(col => html += `<th>${col}</th>`);
     html += '</tr></thead><tbody>';
     
-    data.preview_data.forEach(row => {
+    data.preview_data.forEach(flex flex-wrap gap-4 => {
         html += '<tr>';
-        row.forEach(cell => html += `<td>${cell || ''}</td>`);
+        flex flex-wrap gap-4.forEach(cell => html += `<td>${cell || ''}</td>`);
         html += '</tr>';
     });
     html += '</tbody>';
@@ -831,7 +828,7 @@ function replaceTable(file) {
     });
 }
 
-// Table operations
+// table operations
 function toggleSelectAll() {
     const checked = document.getElementById('selectAll').checked;
     document.querySelectorAll('.row-select').forEach(cb => cb.checked = checked);
@@ -848,7 +845,7 @@ document.querySelectorAll('.row-select').forEach(cb => {
 });
 
 function updateCell(el) {
-    const row = el.dataset.row;
+    const flex flex-wrap gap-4 = el.dataset.flex flex-wrap gap-4;
     const col = el.dataset.col;
     const value = el.textContent;
     
@@ -858,12 +855,12 @@ function updateCell(el) {
             'Content-Type': 'application/json',
             'X-CSRF-TOKEN': '{{ csrf_token() }}'
         },
-        body: JSON.stringify({ row, col, value })
+        body: JSON.stringify({ flex flex-wrap gap-4, col, value })
     });
 }
 
 function insertRow() {
-    fetch('{{ route("data.import.insert-row") }}', {
+    fetch('{{ route("data.import.insert-flex flex-wrap gap-4") }}', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -890,11 +887,11 @@ function saveTable() {
 
     const data = [];
     document.querySelectorAll('.data-table tbody tr').forEach(tr => {
-        const row = [];
+        const flex flex-wrap gap-4 = [];
         tr.querySelectorAll('.editable-cell').forEach(cell => {
-            row.push(cell.textContent.trim());
+            flex flex-wrap gap-4.push(cell.textContent.trim());
         });
-        if (row.length > 0) data.push(row);
+        if (flex flex-wrap gap-4.length > 0) data.push(flex flex-wrap gap-4);
     });
 
     fetch('{{ route("data.import.store") }}', {
@@ -926,7 +923,7 @@ function saveTable() {
 function deleteSelectedRows() {
     const indices = [];
     document.querySelectorAll('.row-select:checked').forEach(cb => {
-        indices.push(parseInt(cb.dataset.row));
+        indices.push(parseInt(cb.dataset.flex flex-wrap gap-4));
     });
     
     if (!indices.length) {
@@ -1003,15 +1000,15 @@ function addColumnInput() {
     const count = document.querySelectorAll('.column-name').length + 1;
     const html = `
         <div class="input-group mb-2">
-            <input type="text" class="form-control column-name" placeholder="اسم العمود ${count}">
-            <button class="btn btn-outline-danger" onclick="removeColumnInput(this)"><i class="fas fa-times"></i></button>
+            <input type="text" class="w-full pr-10 pl-4 py-4 bg-slate-50 border-0 rounded-2xl focus:ring-2 focus:ring-brand-500/20 transition-all column-name" placeholder="اسم العمود ${count}">
+            <button class=" -outline-danger" onclick="removeColumnInput(this)"><i class="fas fa-times"></i></button>
         </div>
     `;
     document.getElementById('columnInputs').insertAdjacentHTML('beforeend', html);
 }
 
-function removeColumnInput(btn) {
-    btn.parentElement.remove();
+function removeColumnInput() {
+    .parentElement.remove();
 }
 
 function createTable() {
@@ -1224,9 +1221,9 @@ function updateImportPreview() {
     const reportNameCol = document.querySelector('select[name="mapping[report_name]"]').value;
     
     // Show first 10 rows as preview
-    currentData.slice(0, 10).forEach((row, i) => {
-        const name = fullNameCol !== '' ? row[fullNameCol] : '<لم يحدد>';
-        const subject = reportNameCol !== '' ? row[reportNameCol] : '<لم يحدد>';
+    currentData.slice(0, 10).forEach((flex flex-wrap gap-4, i) => {
+        const name = fullNameCol !== '' ? flex flex-wrap gap-4[fullNameCol] : '<لم يحدد>';
+        const subject = reportNameCol !== '' ? flex flex-wrap gap-4[reportNameCol] : '<لم يحدد>';
         
         body.innerHTML += `
             <tr>
@@ -1265,10 +1262,10 @@ function submitReportsImport() {
     if (!confirm(`سيتم استيراد ${currentData.length} سجل إلى قاعدة بيانات البلاغات. هل أنت متأكد؟`)) return;
 
     // Show loading state
-    const btn = event.target;
-    const originalContent = btn.innerHTML;
-    btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> جاري الاستيراد...';
+    const  = event.target;
+    const originalContent = .innerHTML;
+    .disabled = true;
+    .innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> جاري الاستيراد...';
 
     fetch('{{ route("system.security-reports.store-import") }}', {
         method: 'POST',
@@ -1285,15 +1282,15 @@ function submitReportsImport() {
             window.location.href = data.redirect;
         } else {
             alert('خطأ: ' + data.message);
-            btn.disabled = false;
-            btn.innerHTML = originalContent;
+            .disabled = false;
+            .innerHTML = originalContent;
         }
     })
     .catch(error => {
         console.error('Error:', error);
         alert('حدث خطأ غير متوقع أثناء عملية الاستيراد');
-        btn.disabled = false;
-        btn.innerHTML = originalContent;
+        .disabled = false;
+        .innerHTML = originalContent;
     });
 }
 
@@ -1305,3 +1302,5 @@ document.querySelectorAll('.modal-overlay').forEach(modal => {
 });
 </script>
 @endsection
+
+

@@ -4,15 +4,15 @@
 @section('page_title', 'الترميزات الأساسية')
 
 @section('content')
-    <div class="container-fluid mx-auto px-4 py-8" dir="rtl">
+    <div class="space-y-6" dir="rtl">
         {{-- رأس الصفحة --}}
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
             <div class="flex items-center gap-4">
-                <div class="w-16 h-16 bg-blue-600 rounded-3xl shadow-xl shadow-blue-100 flex items-center justify-center text-white">
+                <div class="w-16 h-16 bg-brand-600 rounded-3xl shadow-xl shadow-blue-100 flex items-center justify-center text-white">
                     <i class="fas fa-plus text-2xl"></i>
                 </div>
                 <div>
-                    <h2 class="text-3xl font-extrabold text-slate-800 header-font mb-1">إضافة حالة اجتماعية</h2>
+                    <h2 class="font-display font-bold text-2xl text-slate-900 dark:text-white m-0">إضافة حالة اجتماعية</h2>
                     <p class="text-slate-500 text-sm">إضافة تصنيف جديد للحالات الاجتماعية في النظام.</p>
                 </div>
             </div>
@@ -23,10 +23,10 @@
         </div>
 
         <div class="max-w-2xl mx-auto">
-            <div class="bg-white rounded-[2.5rem] soft-shadow border border-slate-100 overflow-hidden">
+            <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden transition-colors">
                 <div class="px-8 py-6 border-b border-slate-50 bg-slate-50/50">
-                    <h5 class="text-lg font-bold text-slate-800 header-font flex items-center gap-3">
-                        <span class="w-2 h-6 bg-blue-600 rounded-full"></span>
+                    <h5 class="text-lg font-bold text-slate-800 dark:text-slate-200 header-font flex items-center gap-3">
+                        <span class="w-2 h-6 bg-brand-600 rounded-full"></span>
                         بيانات الحالة
                     </h5>
                 </div>
@@ -46,7 +46,7 @@
 
                         <div class="flex items-center justify-end gap-4">
                             <button type="button" onclick="history.back()" class="px-8 py-3 text-slate-400 font-bold hover:text-slate-600 transition-colors">إلغاء</button>
-                            <button type="submit" class="px-10 py-4 bg-blue-600 text-white rounded-[2rem] font-bold hover:bg-blue-700 transition-all shadow-xl shadow-blue-100 flex items-center gap-2">
+                            <button type="submit" class="px-10 py-4 bg-brand-600 text-white rounded-[2rem] font-bold hover:bg-brand-700 transition-all shadow-xl shadow-blue-100 flex items-center gap-2">
                                 <i class="fas fa-check-circle"></i> حفظ البيانات
                             </button>
                         </div>
@@ -56,3 +56,5 @@
         </div>
     </div>
 @endsection
+
+

@@ -4,77 +4,88 @@
 @section('page_title', 'إدارة النظام')
 
 @section('content')
-<div class="container-fluid mx-auto px-4 py-8" dir="rtl">
-    {{-- رأس الصفحة --}}
-    <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10 max-w-6xl mx-auto">
-        <div class="flex items-center gap-4">
-            <div class="w-16 h-16 bg-amber-500 rounded-3xl shadow-xl shadow-amber-100 flex items-center justify-center text-white">
-                <i class="fas fa-shield-alt text-2xl"></i>
-            </div>
-            <div>
-                <h2 class="text-3xl font-extrabold text-slate-800 header-font mb-1">تعديل الدور والصلاحيات</h2>
-                <p class="text-slate-500 text-sm">تعديل مصفوفة صلاحيات دور: <span class="font-bold text-amber-600">{{ $role->name }}</span></p>
-            </div>
+<div class="max-w-6xl mx-auto space-y-6" dir="rtl">
+    {{-- Header --}}
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+            <h1 class="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-3">
+                <div class="p-2.5 bg-amber-500/10 text-amber-600 dark:text-amber-400 rounded-xl">
+                    <i class="fas fa-shield-alt text-xl"></i>
+                </div>
+                تعديل الدور والصلاحيات
+            </h1>
+            <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                تعديل مصفوفة صلاحيات دور: <span class="font-bold text-brand-600 dark:text-brand-400">{{ $role->name }}</span>
+            </p>
         </div>
         <a href="{{ route('system.roles.index') }}"
-            class="px-6 py-3 bg-white border border-slate-200 text-slate-600 rounded-2xl font-bold hover:bg-slate-50 transition-all shadow-sm flex items-center gap-2 text-sm">
-            <i class="fas fa-arrow-right"></i> عودة للقائمة
+            class="inline-flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 text-sm font-semibold rounded-xl transition-all shadow-sm">
+            <i class="fas fa-arrow-right"></i>
+            عودة للقائمة
         </a>
     </div>
 
     @if($errors->any())
-        <div class="max-w-6xl mx-auto mb-8 p-6 bg-rose-50 border border-rose-200 rounded-3xl text-rose-700">
-            <div class="flex items-center gap-3 mb-2 font-bold text-base">
-                <i class="fas fa-exclamation-circle text-rose-500 text-lg"></i>
-                يرجى تصحيح الأخطاء التالية:
+        <div class="p-4 bg-rose-500/10 border border-rose-500/20 rounded-xl text-rose-600 dark:text-rose-400">
+            <div class="flex items-start gap-3">
+                <i class="fas fa-exclamation-triangle text-lg mt-0.5"></i>
+                <div>
+                    <span class="font-bold block mb-1">يرجى تصحيح الأخطاء التالية:</span>
+                    <ul class="list-disc list-inside text-sm space-y-0.5">
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
             </div>
-            <ul class="list-disc list-inside text-sm space-y-1 pr-2">
-                @foreach ($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
-            </ul>
         </div>
     @endif
 
-    <form action="{{ route('system.roles.update', $role) }}" method="POST">
+    <form action="{{ route('system.roles.update', $role) }}" method="POST" class="space-y-6">
         @csrf
         @method('PUT')
         
-        <div class="max-w-6xl mx-auto space-y-8">
-            {{-- اسم الدور --}}
-            <div class="bg-white rounded-[2.5rem] soft-shadow border border-slate-100 overflow-hidden">
-                <div class="px-8 py-6 border-b border-slate-50 bg-slate-50/50 flex items-center gap-3">
-                    <span class="w-2 h-6 bg-amber-500 rounded-full"></span>
-                    <h5 class="text-lg font-bold text-slate-800 header-font">البيانات الأساسية للدور</h5>
-                </div>
-                <div class="p-8">
-                    <label class="text-xs font-bold text-slate-400 mb-2 block px-2">اسم الدور *</label>
-                    <input type="text" name="name" required {{ $role->name === 'super-admin' ? 'readonly' : '' }}
-                        class="w-full px-6 py-4 bg-slate-50 border-0 rounded-2xl focus:ring-2 focus:ring-amber-100 transition-all font-bold text-slate-700 @error('name') ring-2 ring-rose-100 @enderror"
-                        value="{{ old('name', $role->name) }}">
-                </div>
+        {{-- Role Name bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden mb-4 --}}
+        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm">
+            <h2 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2 mb-6 pb-4 border-b border-slate-100 dark:border-slate-800">
+                <span class="w-2 h-5 bg-amber-500 rounded-full"></span>
+                البيانات الأساسية للدور
+            </h2>
+            <div>
+                <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-2">اسم الدور <span class="text-rose-500">*</span></label>
+                <input type="text" name="name" required {{ $role->name === 'super-admin' ? 'readonly' : '' }}
+                    class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-sm font-semibold text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-all @error('name') border-rose-500 @enderror {{ $role->name === 'super-admin' ? 'opacity-70 cursor-not-allowed' : '' }}"
+                    value="{{ old('name', $role->name) }}">
+                @error('name')
+                    <p class="text-rose-500 text-xs mt-1.5 font-medium">{{ $message }}</p>
+                @enderror
             </div>
+        </div>
 
-            {{-- مصفوفة الصلاحيات --}}
-            <div class="bg-white rounded-[2.5rem] soft-shadow border border-slate-100 overflow-hidden">
-                <div class="px-8 py-6 border-b border-slate-50 bg-slate-50/50 flex items-center gap-3">
-                    <span class="w-2 h-6 bg-purple-600 rounded-full"></span>
-                    <h5 class="text-lg font-bold text-slate-800 header-font">مصفوفة الصلاحيات والعمليات</h5>
-                </div>
-                <div class="p-8">
-                    @include('system.roles.partials._permissions')
-                </div>
+        {{-- Permissions Matrix bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden mb-4 --}}
+        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm">
+            <h2 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2 mb-6 pb-4 border-b border-slate-100 dark:border-slate-800">
+                <span class="w-2 h-5 bg-purple-600 rounded-full"></span>
+                مصفوفة الصلاحيات والعمليات
+            </h2>
+            <div>
+                @include('system.roles.partials._permissions')
             </div>
+        </div>
 
-            {{-- أزرار الحفظ --}}
-            <div class="flex items-center justify-end gap-4">
-                <a href="{{ route('system.roles.index') }}" class="px-8 py-3 text-slate-400 font-bold hover:text-slate-600 transition-colors">إلغاء</a>
-                <button type="submit"
-                    class="px-10 py-4 bg-amber-500 text-white rounded-[2rem] font-bold hover:bg-amber-600 transition-all shadow-xl shadow-amber-100 flex items-center gap-2">
-                    <i class="fas fa-save"></i> حفظ التعديلات
-                </button>
-            </div>
+        {{-- Form Actions --}}
+        <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-200 dark:border-slate-800">
+            <a href="{{ route('system.roles.index') }}"
+                class="px-5 py-2.5 text-sm font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:text-slate-200 dark:hover:text-slate-200 transition-colors">
+                إلغاء
+            </a>
+            <button type="submit"
+                class="inline-flex items-center gap-2 px-6 py-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-sm font-semibold shadow-sm hover:shadow transition-all">
+                <i class="fas fa-check"></i>
+                حفظ التعديلات
+            </button>
         </div>
     </form>
 </div>
 @endsection
+

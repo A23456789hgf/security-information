@@ -3,97 +3,90 @@
 @section('title', 'إدخال سريع للقرى / الحارات')
 
 @section('content')
-<div class="container-fluid mt-4" dir="rtl">
-    <div class="row mb-4">
-        <div class="col-md-8">
-            <h2 class="fw-bold text-primary">
-                <i class="fas fa-bolt me-2"></i>معالج الإدخال السريع للقرى
-            </h2>
-            <p class="text-muted">اختر المنطقة أولاً، ثم أدخل قائمة القرى دفعة واحدة.</p>
+<div class="space-y-6" dir="rtl">
+    <!-- Header Card -->
+    <div class="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col md:flex-flex flex-wrap gap-4 md:items-center justify-between gap-4">
+        <div>
+            <h1 class="text-2xl font-black text-slate-900 dark:text-white flex items-center gap-3">
+                <span class="w-10 h-10 rounded-2xl bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 flex items-center justify-center text-lg shadow-sm">
+                    <i class="fas fa-bolt"></i>
+                </span>
+                معالج الإدخال السريع للقرى والحارات
+            </h1>
+            <p class="text-slate-500 dark:text-slate-400 mt-1 text-sm">اختر المنطقة أولاً، ثم أدخل قائمة القرى دفعة واحدة.</p>
         </div>
-        <div class="col-md-4 text-end">
-            <div id="speedMonitor" class="card border-0 shadow-sm rounded-4 d-inline-block px-4 py-3 bg-white">
-                <div class="d-flex align-items-center">
-                    <div class="me-3 p-2 bg-soft-primary rounded-circle">
-                        <i class="fas fa-tachometer-alt fa-2x text-primary"></i>
-                    </div>
-                    <div>
-                        <div class="h3 fw-bold mb-0" id="liveRPM">0</div>
-                        <small class="text-muted">سجل/دقيقة (RPM)</small>
-                    </div>
+        <div id="speedMonitor" class="bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 rounded-2xl px-5 py-3 flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-brand-500/10 text-brand-600 dark:text-brand-400 flex items-center justify-center text-lg">
+                <i class="fas fa-tachometer-alt"></i>
+            </div>
+            <div>
+                <div class="text-2xl font-black text-slate-900 dark:text-white leading-none" id="liveRPM">0</div>
+                <small class="text-xs text-slate-400 font-semibold">سجل / دقيقة (RPM)</small>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <!-- Scope Section -->
+        <div class="lg:col-span-4 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden flex flex-col justify-between">
+            <div class="bg-slate-50/80 dark:bg-slate-800/50 p-4 border-b border-slate-100 dark:border-slate-800">
+                <h3 class="font-bold text-slate-800 dark:text-slate-200 text-sm">1. تحديد النطاق الجغرافي</h3>
+            </div>
+            <div class="p-6 space-y-4 flex-1">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">المحافظة <span class="text-rose-500">*</span></label>
+                    <select id="governorate_id" class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl text-sm focus:ring-2 focus:ring-brand-500/20 transition-all text-slate-800 dark:text-slate-200">
+                        <option value="">اختر المحافظة</option>
+                        @foreach($governorates as $gov)
+                            <option value="{{ $gov->id }}">{{ $gov->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">المديرية <span class="text-rose-500">*</span></label>
+                    <select id="directorate_id" class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl text-sm focus:ring-2 focus:ring-brand-500/20 transition-all text-slate-800 dark:text-slate-200 disabled:opacity-50" disabled>
+                        <option value="">اختر المديرية</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">العزلة / المنطقة <span class="text-rose-500">*</span></label>
+                    <select id="sub_area_id" class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl text-sm focus:ring-2 focus:ring-brand-500/20 transition-all text-slate-800 dark:text-slate-200 disabled:opacity-50" disabled>
+                        <option value="">اختر العزلة</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Village List Section -->
+        <div class="lg:col-span-8 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden flex flex-col justify-between">
+            <div class="bg-slate-50/80 dark:bg-slate-800/50 p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                <h3 class="font-bold text-slate-800 dark:text-slate-200 text-sm">2. قائمة القرى / الحارات</h3>
+                <span class="px-3 py-1 bg-brand-50 dark:bg-brand-900/30 text-brand-700 dark:text-brand-300 text-xs font-bold rounded-full font-mono" id="lineCountBadge">0 سجل</span>
+            </div>
+            <div class="p-6 flex-1 flex flex-col justify-between space-y-4">
+                <div>
+                    <label class="block text-xs text-slate-400 mb-2">أدخل اسم قرية واحدة في كل سطر. سيتم تجاهل الأسطر الفارغة تلقائياً.</label>
+                    <textarea id="villageList" class="w-full p-4 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl focus:ring-2 focus:ring-brand-500/20 transition-all text-sm font-sans text-slate-800 dark:text-slate-200" rows="10" 
+                        placeholder="قرية 1&#10;قرية 2&#10;حارة 3..." style="resize: none; line-height: 1.8;"></textarea>
+                </div>
+                
+                <div class="flex justify-end pt-2">
+                    <button class="px-8 py-3.5 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-2xl shadow-lg shadow-brand-500/25 transition-all flex items-center gap-2 text-sm" id="btnSaveAll">
+                        <i class="fas fa-save"></i>
+                        <span>حفظ كافة القرى الآن</span>
+                    </button>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="row">
-        <div class="col-lg-4">
-            <div class="card border-0 shadow-sm rounded-4 mb-4">
-                <div class="card-header bg-white border-bottom py-3">
-                    <h5 class="fw-bold mb-0">1. تحديد النطاق الجغرافي</h5>
-                </div>
-                <div class="card-body">
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">المحافظة <span class="text-danger">*</span></label>
-                        <select id="governorate_id" class="form-select rounded-pill">
-                            <option value="">اختر المحافظة</option>
-                            @foreach($governorates as $gov)
-                                <option value="{{ $gov->id }}">{{ $gov->name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">المديرية <span class="text-danger">*</span></label>
-                        <select id="directorate_id" class="form-select rounded-pill" disabled>
-                            <option value="">اختر المديرية</option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">العزلة / المنطقة <span class="text-danger">*</span></label>
-                        <select id="sub_area_id" class="form-select rounded-pill" disabled>
-                            <option value="">اختر العزلة</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-lg-8">
-            <div class="card border-0 shadow-sm rounded-4 h-100">
-                <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
-                    <h5 class="fw-bold mb-0">2. قائمة القرى / الحارات</h5>
-                    <span class="badge bg-soft-primary text-primary rounded-pill" id="lineCountBadge">0 سجل</span>
-                </div>
-                <div class="card-body">
-                    <label class="form-label text-muted small mb-2">أدخل اسم قرية واحدة في كل سطر. سيتم تجاهل الأسطر الفارغة.</label>
-                    <textarea id="villageList" class="form-control rounded-4 font-monospace" rows="12" 
-                        placeholder="قرية 1&#10;قرية 2&#10;حارة 3..." style="resize: none; font-size: 1.1rem; line-height: 1.6;"></textarea>
-                    
-                    <div class="mt-4 text-start sm:text-end">
-                        <button class="btn btn-success rounded-pill px-4 sm:px-5 py-2.5 shadow-sm fw-bold w-100 sm:w-auto" id="btnSaveAll">
-                            <i class="fas fa-save me-2"></i>حفظ كافة القرى الآن
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div id="resultsCol" class="mt-4" style="display: none;">
-        <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
-            <div class="card-body" id="saveResultContent">
-                <!-- Dynamic results -->
-            </div>
+    <!-- Results Toast/Container -->
+    <div id="resultsCol" class="hidden">
+        <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm p-6" id="saveResultContent">
+            <!-- Dynamic results -->
         </div>
     </div>
 </div>
-
-<style>
-    .bg-soft-primary { background-color: rgba(13, 110, 253, 0.1); }
-    .bg-soft-success { background-color: rgba(25, 135, 84, 0.1); }
-    .bg-soft-danger { background-color: rgba(220, 53, 69, 0.1); }
-    kbd { background-color: #f8f9fa; color: #333; border: 1px solid #dee2e6; box-shadow: 0 2px 0 rgba(0,0,0,0.1); }
-</style>
 
 @push('scripts')
 <script>
@@ -152,8 +145,8 @@ $(document).ready(function() {
         if (!govId || !dirId || !subId) return alert('يرجى اختيار المحافظة والمديرية والعزلة');
         if (villages.length === 0) return alert('يرجى إدخال اسم قرية واحد على الأقل');
 
-        let btn = $(this);
-        btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-2"></i>جاري الحفظ...');
+        let  = $(this);
+        .prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-2"></i>جاري الحفظ...');
 
         $.ajax({
             url: '{{ route("configuration.villages.bulk-store") }}',
@@ -166,7 +159,7 @@ $(document).ready(function() {
                 villages: villages
             },
             success: function(res) {
-                btn.prop('disabled', false).html('<i class="fas fa-save me-2"></i>حفظ كافة القرى الآن');
+                .prop('disabled', false).html('<i class="fas fa-save me-2"></i>حفظ كافة القرى الآن');
                 if (res.success) {
                     entryCountTotal += res.results.success;
                     $('#resultsCol').fadeIn();
@@ -196,7 +189,7 @@ $(document).ready(function() {
                 }
             },
             error: function(xhr) {
-                btn.prop('disabled', false).html('<i class="fas fa-save me-2"></i>حفظ كافة القرى الآن');
+                .prop('disabled', false).html('<i class="fas fa-save me-2"></i>حفظ كافة القرى الآن');
                 alert('حدث خطأ أثناء الحفظ. يرجى التأكد من البيانات.');
             }
         });
@@ -205,3 +198,5 @@ $(document).ready(function() {
 </script>
 @endpush
 @endsection
+
+

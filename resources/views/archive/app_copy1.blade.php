@@ -25,3 +25,4 @@ Professional Light Dashboard Layout (app.blade.php)
     </div>
 </body>
 </html>
+

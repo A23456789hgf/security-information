@@ -3,18 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@yield('title', 'تقرير مطبوع')</title>
+    <title>@yield('title', 'تقرير مطبوع') — {{ config('app.name', 'الأمن الاستخباراتي') }}</title>
     
-    <!-- Bootstrap RTL (Local) -->
-    <link rel="stylesheet" href="{{ asset('vendor/bootstrap/bootstrap.rtl.min.css') }}">
-    <!-- Font Awesome (Local) -->
+    {{-- Google Fonts: Cairo & Tajawal (Identical to tem) --}}
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <!-- FontAwesome -->
     <link rel="stylesheet" href="{{ asset('vendor/fontawesome/all.min.css') }}">
+
+    <!-- Compiled App Styles -->
+    @vite(['resources/css/app.css'])
 
     <style>
         body {
-            font-family: 'Cairo', sans-serif;
-            background-color: white;
-            color: #000;
+            font-family: 'Cairo', system-ui, sans-serif;
+            background-color: #ffffff;
+            color: #0f172a;
             padding: 0;
             margin: 0;
             font-size: 11pt;
@@ -22,47 +28,56 @@
         }
 
         @page {
-            size: A4;
+            size: A4 portrait;
             margin: 15mm;
         }
 
         .print-header {
-            border-bottom: 2px solid #333;
-            margin-bottom: 20px;
-            padding-bottom: 15px;
+            border-bottom: 2px solid #0f172a;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
         }
 
         .report-section {
             break-inside: avoid;
-            margin-bottom: 20px;
+            page-break-inside: avoid;
+            margin-bottom: 24px;
         }
 
         .section-title {
-            background-color: #f0f4f8;
-            border-right: 5px solid #4e73df;
-            padding: 8px 15px;
+            background-color: #f1f5f9;
+            border-right: 4px solid #4f46e5;
+            padding: 8px 16px;
             font-weight: 700;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
+            border-radius: 4px 0 0 4px;
             -webkit-print-color-adjust: exact;
             print-color-adjust: exact;
         }
 
-        table {
+        table, .table, .data-table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 15px;
+            margin-bottom: 16px;
+            page-break-inside: avoid;
+            break-inside: avoid;
         }
 
         th, td {
-            border: 1px solid #ddd;
+            border: 1px solid #e2e8f0;
             padding: 8px 12px;
             text-align: right;
+            font-size: 10pt;
         }
 
         th {
-            background-color: #f9fafb;
+            background-color: #f8fafc;
             width: 30%;
-            font-weight: 600;
+            font-weight: 700;
+            color: #334155;
             -webkit-print-color-adjust: exact;
             print-color-adjust: exact;
         }
@@ -72,28 +87,33 @@
         }
 
         @media print {
-            .no-print {
+            .no-print, button, .btn {
                 display: none !important;
             }
-            
-            button, .btn {
-                display: none !important;
+            body {
+                background: #ffffff !important;
+                color: #000000 !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            ::-webkit-scrollbar {
+                display: none;
             }
         }
 
         .timestamp {
             font-size: 9pt;
-            color: #666;
-            margin-top: 30px;
+            color: #64748b;
+            margin-top: 32px;
             text-align: left;
-            border-top: 1px solid #eee;
-            padding-top: 5px;
+            border-top: 1px solid #e2e8f0;
+            padding-top: 8px;
         }
     </style>
     @stack('styles')
 </head>
-<body>
-    <div class="container-fluid">
+<body class="bg-white text-slate-900">
+    <div class="container-fluid p-4">
         @yield('content')
         
         <div class="timestamp">
@@ -101,10 +121,6 @@
         </div>
     </div>
 
-    <script>
-        window.onload = function() {
-            // Optional: window.print();
-        };
-    </script>
+    @stack('scripts')
 </body>
 </html>

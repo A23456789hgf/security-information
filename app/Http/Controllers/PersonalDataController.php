@@ -31,6 +31,10 @@ class PersonalDataController extends Controller
             $query->whereIn('internal_entity_id', $entityIdsByEnt);
         }
 
+        if ($request->filled('personal_data_id')) {
+            $query->where('id', $request->personal_data_id);
+        }
+
         if ($search = $request->input('search')) {
             $query->where('name', 'like', "%$search%")
                 ->orWhere('jihadi_name', 'like', "%$search%")
@@ -42,9 +46,10 @@ class PersonalDataController extends Controller
         }
 
         $perPage = $request->input('per_page', 50);
-        $personalDataList = $query->paginate($perPage);
+        $personalDataList = $query->paginate($perPage)->withQueryString();
+        $allPeople = PersonalData::select('id', 'name', 'jihadi_name', 'military_number')->orderBy('name')->get();
 
-        return view('system.personal_data.index', compact('personalDataList'));
+        return view('system.personal_data.index', compact('personalDataList', 'allPeople'));
     }
 
     public function export(Request $request)
@@ -124,13 +129,13 @@ class PersonalDataController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name' => 'nullable|string|max:255',
+            'name' => 'required|string|max:255|unique:personal_data,name',
             'jihadi_name' => 'nullable|string|max:255',
             'phone_1' => 'nullable|string|max:20',
             'phone_2' => 'nullable|string|max:20',
             'phone_3' => 'nullable|string|max:20',
-            'national_id_number' => 'nullable|string|max:255',
-            'military_number' => 'nullable|string|max:255',
+            'national_id_number' => 'nullable|string|max:255|unique:personal_data,national_id_number',
+            'military_number' => 'nullable|string|max:255|unique:personal_data,military_number',
             'date_of_birth_gregorian' => 'nullable|date',
             'date_of_birth_hijri' => 'nullable|string|max:255',
             'blood_type_id' => 'nullable|exists:blood_types,id',
@@ -139,28 +144,76 @@ class PersonalDataController extends Controller
             'number_classification_id' => 'nullable|exists:number_classifications,id',
             'job_status_id' => 'nullable|exists:job_statuses,id',
             'rank_id' => 'nullable|exists:ranks,id',
-            'military_district_id' => 'nullable|exists:military_districts,id',
-            'division_id' => 'nullable|exists:divisions,id',
+            'military_district_id' => 'nullable|string|max:255',
+            'division_id' => 'nullable|string|max:255',
             'place_of_birth_country_id' => 'nullable|exists:countries,id',
             'place_of_birth_governorate_id' => 'nullable|exists:governorates,id',
-            'place_of_birth_directorate_id' => 'nullable|exists:directorates,id',
-            'place_of_birth_sub_area_id' => 'nullable|exists:sub_areas,id',
-            'place_of_birth_village_id' => 'nullable|exists:villages,id',
+            'place_of_birth_directorate_id' => 'nullable|string|max:255',
+            'place_of_birth_sub_area_id' => 'nullable|string|max:255',
+            'place_of_birth_village_id' => 'nullable|string|max:255',
             'country_id' => 'nullable|exists:countries,id',
             'governorate_id' => 'nullable|exists:governorates,id',
-            'directorate_id' => 'nullable|exists:directorates,id',
-            'sub_area_id' => 'nullable|exists:sub_areas,id',
-            'village_id' => 'nullable|exists:villages,id',
+            'directorate_id' => 'nullable|string|max:255',
+            'sub_area_id' => 'nullable|string|max:255',
+            'village_id' => 'nullable|string|max:255',
             'unit' => 'nullable|string|max:255',
             'job' => 'nullable|string|max:255',
             'workplace' => 'nullable|string|max:255',
             'job_specialty' => 'nullable|string|max:255',
-            'jihadist_number' => 'nullable|string|max:255',
+            'jihadist_number' => 'nullable|string|max:255|unique:personal_data,jihadist_number',
             'financial_status_id' => 'nullable|exists:financial_statuses,id',
             'personal_photos.*' => 'image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+        ], [
+            'name.required' => 'الاسم الكامل مطلوب ولا يمكن تركه فارغاً.',
+            'name.unique' => 'يوجد قيد سابق بنفس هذا الاسم الكامل في السجلات (يمنع التكرار).',
+            'national_id_number.unique' => 'رقم الهوية الوطنية هذا مسجل مسبقاً بفرد آخر (يمنع التكرار).',
+            'military_number.unique' => 'الرقم العسكري هذا مسجل مسبقاً بفرد آخر (يمنع التكرار).',
+            'jihadist_number.unique' => 'الرقم الجهادي هذا مسجل مسبقاً بفرد آخر (يمنع التكرار).',
         ]);
 
         $data = $request->except(['personal_photos', 'main_profile_photo']);
+
+        // Resolve Place of Birth Directorate
+        $pobDirId = $this->resolveDirectorate(
+            $data['place_of_birth_governorate_id'] ?? null,
+            $data['place_of_birth_directorate_id'] ?? null
+        );
+        $data['place_of_birth_directorate_id'] = $pobDirId;
+
+        // Resolve Residence Directorate
+        $dirId = $this->resolveDirectorate(
+            $data['governorate_id'] ?? null,
+            $data['directorate_id'] ?? null
+        );
+        $data['directorate_id'] = $dirId;
+
+        // Resolve Place of Birth SubArea & Village (supports both dropdown selection and manual text entry)
+        [$pobSubAreaId, $pobVillageId] = $this->resolveSubAreaAndVillage(
+            $data['place_of_birth_governorate_id'] ?? null,
+            $pobDirId,
+            $data['place_of_birth_sub_area_id'] ?? null,
+            $data['place_of_birth_village_id'] ?? null
+        );
+        $data['place_of_birth_sub_area_id'] = $pobSubAreaId;
+        $data['place_of_birth_village_id'] = $pobVillageId;
+
+        // Resolve Residence SubArea & Village (supports both dropdown selection and manual text entry)
+        [$subAreaId, $villageId] = $this->resolveSubAreaAndVillage(
+            $data['governorate_id'] ?? null,
+            $dirId,
+            $data['sub_area_id'] ?? null,
+            $data['village_id'] ?? null
+        );
+        $data['sub_area_id'] = $subAreaId;
+        $data['village_id'] = $villageId;
+
+        // Resolve Military District & Division (supports both dropdown selection and manual text entry)
+        [$distId, $divId] = $this->resolveMilitaryDistrictAndDivision(
+            $data['military_district_id'] ?? null,
+            $data['division_id'] ?? null
+        );
+        $data['military_district_id'] = $distId;
+        $data['division_id'] = $divId;
 
         // Automatically assign internal_entity_id from user if not present
         if (!isset($data['internal_entity_id']) && auth()->user()->internal_entity_id) {
@@ -191,12 +244,27 @@ class PersonalDataController extends Controller
 
     public function show(PersonalData $personalData)
     {
-        $personalData->load(['relatives.kinship', 'relatives.ideologicalAffiliation', 'relatives.politicalAffiliation', 'wives', 'courses.courseType', 'arrests']);
+        $personalData->load([
+            'relatives.kinship', 'relatives.ideologicalAffiliation', 'relatives.politicalAffiliation',
+            'wives', 'courses.courseType', 'arrests',
+            'governorate', 'directorate', 'subArea', 'village',
+            'placeOfBirthGovernorate', 'placeOfBirthDirectorate', 'placeOfBirthSubArea', 'placeOfBirthVillage',
+        ]);
         return view('system.personal_data.show', compact('personalData'));
     }
 
     public function print(PersonalData $personalData)
     {
+        $personalData->load([
+            'rank', 'bloodType', 'maritalStatus', 'qualification', 'numberClassification',
+            'jobStatus', 'militaryDistrict', 'division',
+            'governorate', 'directorate', 'subArea', 'village',
+            'placeOfBirthCountry', 'placeOfBirthGovernorate', 'placeOfBirthDirectorate', 'placeOfBirthSubArea', 'placeOfBirthVillage',
+            'secondaryData.healthStatus', 'secondaryData.weapons',
+            'secondaryData.affiliations.ideologicalAffiliation', 'secondaryData.affiliations.politicalAffiliation',
+            'secondaryData.previousJihadistActions'
+        ]);
+
         return view('system.personal_data.print', compact('personalData'));
     }
 
@@ -229,6 +297,11 @@ class PersonalDataController extends Controller
             'directorate',
             'subArea',
             'village',
+            'placeOfBirthCountry',
+            'placeOfBirthGovernorate',
+            'placeOfBirthDirectorate',
+            'placeOfBirthSubArea',
+            'placeOfBirthVillage',
             'arrests.arrestingAuthority',
             'arrests.caseType',
             'secondaryData.healthStatus',
@@ -236,6 +309,7 @@ class PersonalDataController extends Controller
             'secondaryData.affiliations.ideologicalAffiliation',
             'secondaryData.affiliations.politicalAffiliation',
             'secondaryData.previousJihadistActions',
+            'securityFiles.preparingEntity',
             'suspects',
             'photos',
         ]);
@@ -285,13 +359,13 @@ class PersonalDataController extends Controller
     public function update(Request $request, PersonalData $personalData)
     {
         $request->validate([
-            'name' => 'nullable|string|max:255',
+            'name' => 'required|string|max:255|unique:personal_data,name,'.$personalData->id,
             'jihadi_name' => 'nullable|string|max:255',
             'phone_1' => 'nullable|string|max:20',
             'phone_2' => 'nullable|string|max:20',
             'phone_3' => 'nullable|string|max:20',
-            'national_id_number' => 'nullable|string|max:255',
-            'military_number' => 'nullable|string|max:255',
+            'national_id_number' => 'nullable|string|max:255|unique:personal_data,national_id_number,'.$personalData->id,
+            'military_number' => 'nullable|string|max:255|unique:personal_data,military_number,'.$personalData->id,
             'date_of_birth_gregorian' => 'nullable|date',
             'date_of_birth_hijri' => 'nullable|string|max:255',
             'blood_type_id' => 'nullable|exists:blood_types,id',
@@ -300,28 +374,76 @@ class PersonalDataController extends Controller
             'number_classification_id' => 'nullable|exists:number_classifications,id',
             'job_status_id' => 'nullable|exists:job_statuses,id',
             'rank_id' => 'nullable|exists:ranks,id',
-            'military_district_id' => 'nullable|exists:military_districts,id',
-            'division_id' => 'nullable|exists:divisions,id',
+            'military_district_id' => 'nullable|string|max:255',
+            'division_id' => 'nullable|string|max:255',
             'place_of_birth_country_id' => 'nullable|exists:countries,id',
             'place_of_birth_governorate_id' => 'nullable|exists:governorates,id',
-            'place_of_birth_directorate_id' => 'nullable|exists:directorates,id',
-            'place_of_birth_sub_area_id' => 'nullable|exists:sub_areas,id',
-            'place_of_birth_village_id' => 'nullable|exists:villages,id',
+            'place_of_birth_directorate_id' => 'nullable|string|max:255',
+            'place_of_birth_sub_area_id' => 'nullable|string|max:255',
+            'place_of_birth_village_id' => 'nullable|string|max:255',
             'country_id' => 'nullable|exists:countries,id',
             'governorate_id' => 'nullable|exists:governorates,id',
-            'directorate_id' => 'nullable|exists:directorates,id',
-            'sub_area_id' => 'nullable|exists:sub_areas,id',
-            'village_id' => 'nullable|exists:villages,id',
+            'directorate_id' => 'nullable|string|max:255',
+            'sub_area_id' => 'nullable|string|max:255',
+            'village_id' => 'nullable|string|max:255',
             'unit' => 'nullable|string|max:255',
             'job' => 'nullable|string|max:255',
             'workplace' => 'nullable|string|max:255',
             'job_specialty' => 'nullable|string|max:255',
-            'jihadist_number' => 'nullable|string|max:255',
+            'jihadist_number' => 'nullable|string|max:255|unique:personal_data,jihadist_number,'.$personalData->id,
             'financial_status_id' => 'nullable|exists:financial_statuses,id',
             'personal_photos.*' => 'image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+        ], [
+            'name.required' => 'الاسم الكامل مطلوب ولا يمكن تركه فارغاً.',
+            'name.unique' => 'يوجد قيد سابق بنفس هذا الاسم الكامل في السجلات (يمنع التكرار).',
+            'national_id_number.unique' => 'رقم الهوية الوطنية هذا مسجل مسبقاً بفرد آخر (يمنع التكرار).',
+            'military_number.unique' => 'الرقم العسكري هذا مسجل مسبقاً بفرد آخر (يمنع التكرار).',
+            'jihadist_number.unique' => 'الرقم الجهادي هذا مسجل مسبقاً بفرد آخر (يمنع التكرار).',
         ]);
 
         $data = $request->except(['personal_photos', 'main_profile_photo']);
+
+        // Resolve Place of Birth Directorate
+        $pobDirId = $this->resolveDirectorate(
+            $data['place_of_birth_governorate_id'] ?? null,
+            $data['place_of_birth_directorate_id'] ?? null
+        );
+        $data['place_of_birth_directorate_id'] = $pobDirId;
+
+        // Resolve Residence Directorate
+        $dirId = $this->resolveDirectorate(
+            $data['governorate_id'] ?? null,
+            $data['directorate_id'] ?? null
+        );
+        $data['directorate_id'] = $dirId;
+
+        // Resolve Place of Birth SubArea & Village (supports both dropdown selection and manual text entry)
+        [$pobSubAreaId, $pobVillageId] = $this->resolveSubAreaAndVillage(
+            $data['place_of_birth_governorate_id'] ?? null,
+            $pobDirId,
+            $data['place_of_birth_sub_area_id'] ?? null,
+            $data['place_of_birth_village_id'] ?? null
+        );
+        $data['place_of_birth_sub_area_id'] = $pobSubAreaId;
+        $data['place_of_birth_village_id'] = $pobVillageId;
+
+        // Resolve Residence SubArea & Village (supports both dropdown selection and manual text entry)
+        [$subAreaId, $villageId] = $this->resolveSubAreaAndVillage(
+            $data['governorate_id'] ?? null,
+            $dirId,
+            $data['sub_area_id'] ?? null,
+            $data['village_id'] ?? null
+        );
+        $data['sub_area_id'] = $subAreaId;
+        $data['village_id'] = $villageId;
+
+        // Resolve Military District & Division (supports both dropdown selection and manual text entry)
+        [$distId, $divId] = $this->resolveMilitaryDistrictAndDivision(
+            $data['military_district_id'] ?? null,
+            $data['division_id'] ?? null
+        );
+        $data['military_district_id'] = $distId;
+        $data['division_id'] = $divId;
 
         // Automatically assign internal_entity_id if missing (for safety, though usually kept from creation)
         if (!isset($data['internal_entity_id']) && auth()->user()->internal_entity_id) {
@@ -348,6 +470,168 @@ class PersonalDataController extends Controller
         }
 
         return redirect()->route('system.personal-data.index')->with('success', 'تم التحديث بنجاح');
+    }
+
+    /**
+     * Resolve Directorate ID from either integer ID or manually typed name.
+     */
+    protected function resolveDirectorate($govId, $dirInput): ?int
+    {
+        if (empty($dirInput)) {
+            return null;
+        }
+
+        $dirInput = trim((string) $dirInput);
+        if (is_numeric($dirInput) && Directorate::where('id', $dirInput)->exists()) {
+            return (int) $dirInput;
+        }
+
+        $govId = !empty($govId) ? (int) $govId : null;
+        if ($govId) {
+            $dir = Directorate::firstOrCreate(
+                ['governorate_id' => $govId, 'name' => $dirInput]
+            );
+            return $dir->id;
+        }
+
+        $dir = Directorate::where('name', $dirInput)->first();
+        if ($dir) {
+            return $dir->id;
+        }
+
+        $dir = Directorate::create(['name' => $dirInput]);
+        return $dir->id;
+    }
+
+    /**
+     * Resolve Military District and Division IDs from either integer IDs or manually typed names.
+     */
+    protected function resolveMilitaryDistrictAndDivision($distInput, $divInput): array
+    {
+        $distId = null;
+        $divId = null;
+
+        if (!empty($distInput)) {
+            $distInput = trim((string) $distInput);
+            if (is_numeric($distInput) && MilitaryDistrict::where('id', $distInput)->exists()) {
+                $distId = (int) $distInput;
+            } else {
+                $dist = MilitaryDistrict::firstOrCreate(['name' => $distInput]);
+                $distId = $dist->id;
+            }
+        }
+
+        if (!empty($divInput)) {
+            $divInput = trim((string) $divInput);
+            if (is_numeric($divInput) && Division::where('id', $divInput)->exists()) {
+                $divId = (int) $divInput;
+            } else {
+                if ($distId) {
+                    $div = Division::firstOrCreate(
+                        ['military_district_id' => $distId, 'name' => $divInput]
+                    );
+                    $divId = $div->id;
+                } else {
+                    $div = Division::firstOrCreate(['name' => $divInput]);
+                    $divId = $div->id;
+                }
+            }
+        }
+
+        return [$distId, $divId];
+    }
+
+    /**
+     * Resolve SubArea and Village IDs from either integer IDs or manually typed names.
+     */
+    protected function resolveSubAreaAndVillage($govId, $dirId, $subAreaInput, $villageInput): array
+    {
+        $subAreaId = null;
+        $villageId = null;
+
+        $govId = !empty($govId) ? (int) $govId : null;
+        $dirId = !empty($dirId) ? (int) $dirId : null;
+        $subAreaInput = $subAreaInput !== null ? trim((string) $subAreaInput) : '';
+        $villageInput = $villageInput !== null ? trim((string) $villageInput) : '';
+
+        if ($dirId && !$govId) {
+            $dir = Directorate::find($dirId);
+            if ($dir) {
+                $govId = $dir->governorate_id;
+            }
+        }
+
+        // 1. Resolve Sub Area
+        if ($subAreaInput !== '') {
+            if (is_numeric($subAreaInput) && SubArea::where('id', $subAreaInput)->exists()) {
+                $subAreaId = (int) $subAreaInput;
+                $sub = SubArea::find($subAreaId);
+                if ($sub) {
+                    if (!$dirId) $dirId = $sub->directorate_id;
+                    if (!$govId) $govId = $sub->governorate_id;
+                }
+            } else {
+                // Manually entered text
+                if ($dirId && $govId) {
+                    $sub = SubArea::firstOrCreate(
+                        ['directorate_id' => $dirId, 'name' => $subAreaInput],
+                        ['governorate_id' => $govId]
+                    );
+                    $subAreaId = $sub->id;
+                } elseif ($dirId) {
+                    $dir = Directorate::find($dirId);
+                    $govId = $dir?->governorate_id;
+                    if ($govId) {
+                        $sub = SubArea::firstOrCreate(
+                            ['directorate_id' => $dirId, 'name' => $subAreaInput],
+                            ['governorate_id' => $govId]
+                        );
+                        $subAreaId = $sub->id;
+                    }
+                } else {
+                    $sub = SubArea::where('name', $subAreaInput)->first();
+                    if ($sub) {
+                        $subAreaId = $sub->id;
+                        $dirId = $sub->directorate_id;
+                        $govId = $sub->governorate_id;
+                    }
+                }
+            }
+        }
+
+        // 2. Resolve Village
+        if ($villageInput !== '') {
+            if (is_numeric($villageInput) && Village::where('id', $villageInput)->exists()) {
+                $villageId = (int) $villageInput;
+            } else {
+                // Manually entered text
+                if ($subAreaId && $dirId && $govId) {
+                    $vil = Village::firstOrCreate(
+                        ['sub_area_id' => $subAreaId, 'name' => $villageInput],
+                        ['governorate_id' => $govId, 'directorate_id' => $dirId]
+                    );
+                    $villageId = $vil->id;
+                } elseif ($subAreaId) {
+                    $sub = SubArea::find($subAreaId);
+                    $vDirId = $dirId ?: $sub?->directorate_id;
+                    $vGovId = $govId ?: $sub?->governorate_id;
+                    if ($vDirId && $vGovId) {
+                        $vil = Village::firstOrCreate(
+                            ['sub_area_id' => $subAreaId, 'name' => $villageInput],
+                            ['governorate_id' => $vGovId, 'directorate_id' => $vDirId]
+                        );
+                        $villageId = $vil->id;
+                    }
+                } else {
+                    $vil = Village::where('name', $villageInput)->first();
+                    if ($vil) {
+                        $villageId = $vil->id;
+                    }
+                }
+            }
+        }
+
+        return [$subAreaId, $villageId];
     }
 
     public function destroy(PersonalData $personalData)
@@ -444,6 +728,7 @@ class PersonalDataController extends Controller
             'national_id_number' => $person->national_id_number ?? '-',
             'phone_1' => $person->phone_1 ?? '-',
             'phone_2' => $person->phone_2 ?? '-',
+            'photo_url' => $person->photo_url,
             'address' => ($person->governorate->name ?? '').' - '.($person->directorate->name ?? '').' - '.($person->village->name ?? ''),
             // For auto-filling forms
             'governorate_id' => $person->governorate_id,

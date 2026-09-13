@@ -32,6 +32,10 @@ class ArrestController extends Controller
             });
         }
 
+        if ($request->filled('personal_data_id')) {
+            $query->where('personal_data_id', $request->personal_data_id);
+        }
+
         if ($sort = $request->input('sort')) {
             $direction = $request->input('direction', 'asc');
             $query->orderBy($sort, $direction);
@@ -40,9 +44,10 @@ class ArrestController extends Controller
         }
 
         $perPage = $request->input('per_page', 50);
-        $arrests = $query->paginate($perPage);
+        $arrests = $query->paginate($perPage)->withQueryString();
+        $personalDataList = PersonalData::select('id', 'name', 'jihadi_name', 'military_number')->orderBy('name')->get();
 
-        return view('system.cases.arrests.index', compact('arrests'));
+        return view('system.cases.arrests.index', compact('arrests', 'personalDataList'));
     }
 
     public function export(Request $request)
@@ -233,11 +238,33 @@ class ArrestController extends Controller
             'jihadi_name' => $person->jihadi_name ?? '',
             'date_of_birth' => $person->date_of_birth_gregorian ? $person->date_of_birth_gregorian->format('Y-m-d') : '',
             'blood_type' => $person->bloodType->type ?? '',
+            'photo_url' => $person->photo_url,
             'governorate' => $person->governorate->name ?? '',
             'directorate' => $person->directorate->name ?? '',
             'sub_area' => $person->subArea->name ?? '',
             'village' => $person->village->name ?? '',
             'qualification' => $person->qualification->name ?? '',
+        ]);
+    }
+
+    /**
+     * Print single arrest record.
+     */
+    public function print(Arrest $arrest)
+    {
+        $arrest->load(['personalData', 'arrestingAuthority', 'caseType', 'governorate', 'directorate']);
+        return view('system.cases.arrests.print', compact('arrest'));
+    }
+
+    /**
+     * Print all arrests listing.
+     */
+    public function printAll(Request $request)
+    {
+        $arrests = Arrest::with(['personalData', 'arrestingAuthority', 'caseType'])->get();
+        return view('system.cases.arrests.print', [
+            'arrests' => $arrests,
+            'isList' => true,
         ]);
     }
 }

@@ -1,4 +1,4 @@
-<style>
+﻿<style>
     .page-header {
         display: flex;
         justify-content: space-between;
@@ -114,7 +114,7 @@
         color: #999;
     }
 
-    .upload-secondary {
+    .upload-btnsecondary {
         border: 2px dashed rgba(255,255,255,0.3);
         border-radius: 12px;
         padding: 30px 20px;
@@ -124,12 +124,12 @@
         margin-bottom: 20px;
     }
 
-    .upload-secondary:hover {
+    .upload-btnsecondary:hover {
         background: rgba(255,255,255,0.05);
         border-color: #4cc9f0;
     }
 
-    .upload-secondary i {
+    .upload-btnsecondary i {
         font-size: 2rem;
         color: #4cc9f0;
         margin-bottom: 10px;
@@ -408,7 +408,7 @@
         color: #2ec4b6;
     }
 
-    /* Action Buttons in Table rows */
+    /* Action Buttons in table rows */
     .row-btn-action {
         background: none;
         border: none;
@@ -428,3 +428,5 @@
         color: #4cc9f0;
     }
 </style>
+
+

@@ -4,162 +4,204 @@
 @section('page_title', 'السجلات الأساسية')
 
 @section('content')
-<div class="container-fluid mx-auto px-4 py-8" dir="rtl">
-    {{-- رأس الصفحة مع الإحصائيات --}}
-    <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
-        <div class="flex items-center gap-4">
-            <div class="w-16 h-16 bg-blue-600 rounded-3xl shadow-xl shadow-blue-100 flex items-center justify-center text-white">
-                <i class="fas fa-user-secret text-2xl"></i>
+<div class="space-y-6" dir="rtl">
+    {{-- Breadcrumbs --}}
+    <nav class="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400 mb-2 print:hidden">
+        <a href="{{ route('dashboard') }}" class="hover:text-brand-600 dark:hover:text-brand-400 transition-colors">الرئيسية</a>
+        <span>/</span>
+        <span class="text-slate-900 dark:text-white font-semibold">المشتبه بهم</span>
+    </nav>
+
+    {{-- Header & Actions --}}
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-2 print:hidden">
+        <div class="flex items-center gap-3.5">
+            <div class="w-12 h-12 rounded-2xl bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center font-bold shadow-sm shrink-0">
+                <i class="fas fa-user-secret text-xl"></i>
             </div>
             <div>
-                <h2 class="text-3xl font-extrabold text-slate-800 header-font mb-1">سجل المشتبه بهم</h2>
-                <p class="text-slate-500 text-sm flex items-center gap-2">
-                    <i class="fas fa-database text-slate-400"></i> إجمالي السجلات:
-                    <span class="text-slate-700 font-bold">{{ $suspects->total() }}</span>
-                </p>
+                <h1 class="font-display font-bold text-2xl text-slate-900 dark:text-white m-0">سجل المشتبه بهم</h1>
+                <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">متابعة وإدارة ملفات المشتبه بهم ودرجات الخطورة الأمنية.</p>
             </div>
         </div>
-        <div class="flex flex-wrap gap-3">
+        
+        <div class="flex flex-wrap items-center gap-2.5">
+            <x-print-button :url="route('system.suspicious.print-all', request()->all())" text="طباعة الكشف" />
             <a href="{{ route('system.suspicious.export', request()->all()) }}"
-                class="px-5 py-3 bg-emerald-600 text-white rounded-2xl font-bold hover:bg-emerald-700 transition-all shadow-xl shadow-emerald-100 flex items-center gap-2 text-sm">
-                <i class="fas fa-file-excel"></i> تصدير (Excel)
+                class="inline-flex items-center gap-2 px-3.5 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-xs sm:text-sm font-bold shadow-sm">
+                <i class="fas fa-file-excel text-emerald-600"></i>
+                <span>تصدير Excel</span>
             </a>
             <a href="{{ route('data.import.index', ['type' => 'suspicious']) }}"
-                class="px-5 py-3 bg-indigo-600 text-white rounded-2xl font-bold hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-100 flex items-center gap-2 text-sm">
-                <i class="fas fa-file-import"></i> استيراد
+                class="inline-flex items-center gap-2 px-3.5 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-xs sm:text-sm font-bold shadow-sm">
+                <i class="fas fa-file-import text-brand-600"></i>
+                <span>استيراد</span>
             </a>
             <a href="{{ route('system.suspicious.create') }}"
-                class="px-6 py-3 bg-blue-600 text-white rounded-2xl font-bold hover:bg-blue-700 transition-all shadow-xl shadow-blue-100 flex items-center gap-2 text-sm">
-                <i class="fas fa-plus-circle"></i> إضافة مشتبه به جديد
+                class="inline-flex items-center gap-2 px-4 py-2.5 bg-brand-600 text-white rounded-xl hover:bg-brand-700 transition-all text-xs sm:text-sm font-bold shadow-sm shadow-brand-500/30">
+                <i class="fas fa-plus"></i>
+                <span>إضافة مشتبه به</span>
             </a>
         </div>
     </div>
 
-    {{-- رسائل النظام --}}
+    {{-- System Alerts --}}
     @if(session('success'))
-        <div class="bg-emerald-50 border border-emerald-100 text-emerald-700 px-6 py-4 rounded-2xl mb-8 flex items-center justify-between shadow-sm" role="alert">
+        <div class="bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 text-emerald-800 dark:text-emerald-300 px-4 py-3 rounded-2xl flex items-center justify-between shadow-sm" role="alert">
             <div class="flex items-center gap-3">
-                <i class="fas fa-check-circle text-xl"></i>
-                <span class="font-bold">{{ session('success') }}</span>
+                <i class="fas fa-check-circle text-emerald-500 text-base"></i>
+                <span class="text-sm font-bold">{{ session('success') }}</span>
             </div>
-            <button type="button" class="text-emerald-400 hover:text-emerald-600 transition-colors" onclick="this.parentElement.remove()">
+            <button type="button" class="text-emerald-400 hover:text-emerald-600 p-1" onclick="this.parentElement.remove()">
                 <i class="fas fa-times"></i>
             </button>
         </div>
     @endif
 
-    {{-- منطقة البحث --}}
-    <div class="bg-white rounded-[2rem] p-4 soft-shadow border border-slate-100 mb-8">
-        <form method="GET" action="{{ route('system.suspicious.index') }}" class="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
-            <div class="md:col-span-8 relative">
-                <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+    {{-- Search Toolbar --}}
+    <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 shadow-sm transition-colors">
+        <form method="GET" action="{{ route('system.suspicious.index') }}" class="flex flex-col md:flex-row items-center gap-3">
+            <div class="relative flex-1 w-full">
+                <div class="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none text-slate-400 dark:text-slate-500">
+                    <i class="fas fa-search"></i>
+                </div>
                 <input type="text" name="search"
-                    class="w-full pl-12 pr-4 py-3 bg-slate-50 border-0 rounded-2xl focus:ring-2 focus:ring-blue-100 transition-all text-slate-600 font-bold"
-                    placeholder="ابحث بالاسم، رقم المشتبه، نوع الاشتباه..." value="{{ request('search') }}">
+                    class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl pr-10 pl-4 py-2.5 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all"
+                    placeholder="ابحث بالاسم، رقم الأشتباه، النوع..." value="{{ request('search') }}">
             </div>
-            <div class="md:col-span-2">
+
+            <div class="w-full md:w-64">
+                <select name="personal_data_id" onchange="this.form.submit()" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 shadow-sm">
+                    <option value="">-- فرز بالشخص المعني (الكل) --</option>
+                    @foreach($personalDataList as $p)
+                        <option value="{{ $p->id }}" {{ request('personal_data_id') == $p->id ? 'selected' : '' }}>
+                            {{ $p->name }} {{ $p->jihadi_name ? '('.$p->jihadi_name.')' : '' }} {{ $p->military_number ? '- م: '.$p->military_number : '' }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div class="w-full md:w-36">
                 @include('partials._pagination_limit')
             </div>
-            <div class="md:col-span-2">
-                <button type="submit" class="w-full py-3 bg-slate-800 text-white rounded-2xl font-bold hover:bg-slate-900 transition-all shadow-lg shadow-slate-200">
-                    تصفية النتائج
+
+            <div class="flex items-center gap-2 w-full md:w-auto">
+                <button type="submit"
+                    class="w-full md:w-auto px-5 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-sm font-bold transition-colors">
+                    تصفية
                 </button>
-            </div>
-            @if(request('search'))
-                <div class="md:col-span-12 px-2">
-                    <a href="{{ route('system.suspicious.index') }}" class="text-xs text-slate-400 hover:text-slate-600 flex items-center gap-1 transition-colors">
-                        <i class="fas fa-times-circle"></i> مسح البحث
+                @if(request()->anyFilled(['search', 'personal_data_id']))
+                    <a href="{{ route('system.suspicious.index') }}"
+                        class="px-3 py-2.5 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 text-sm font-semibold transition-colors"
+                        title="مسح البحث">
+                        <i class="fas fa-times"></i>
                     </a>
-                </div>
-            @endif
+                @endif
+            </div>
         </form>
     </div>
 
-    {{-- جدول البيانات --}}
-    <div class="bg-white rounded-[2.5rem] soft-shadow border border-slate-100 overflow-hidden">
+    {{-- Data table Container --}}
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm overflow-hidden transition-colors">
         <div class="overflow-x-auto">
-            <table class="w-full text-right border-collapse">
-                <thead>
-                    <tr class="bg-slate-50/50 border-b border-slate-100">
-                        <th class="px-8 py-6 text-slate-400 font-bold uppercase tracking-widest text-[10px]">#</th>
-                        <th class="px-6 py-6 text-slate-400 font-bold uppercase tracking-widest text-[10px]">اسم المشتبه به</th>
-                        <th class="px-6 py-6 text-slate-400 font-bold uppercase tracking-widest text-[10px]">رقم الاشتباه</th>
-                        <th class="px-6 py-6 text-slate-400 font-bold uppercase tracking-widest text-[10px] text-center">تاريخ الاشتباه</th>
-                        <th class="px-6 py-6 text-slate-400 font-bold uppercase tracking-widest text-[10px]">نوع الاشتباه</th>
-                        <th class="px-6 py-6 text-slate-400 font-bold uppercase tracking-widest text-[10px] text-center">المستوى</th>
-                        <th class="px-8 py-6 text-slate-400 font-bold uppercase tracking-widest text-[10px] text-left">الإجراءات</th>
+            <table class="w-full text-sm text-right">
+                <thead class="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 font-bold">
+                    <tr>
+                        <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider w-20">#</th>
+                        <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider">اسم المشتبه به</th>
+                        <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider">رقم الاشتباه</th>
+                        <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-center">تاريخ الاشتباه</th>
+                        <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider">نوع الاشتباه</th>
+                        <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-center">مستوى الخطورة</th>
+                        <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-left">الإجراءات</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-50">
+                <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
                     @forelse($suspects as $suspect)
-                        <tr class="group hover:bg-slate-50/30 transition-colors">
-                            <td class="px-8 py-5">
-                                <span class="text-slate-400 font-mono text-xs">{{ str_pad($suspect->id, 4, '0', STR_PAD_LEFT) }}</span>
+                        <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/25 transition-colors">
+                            <td class="px-6 py-4 text-slate-400 dark:text-slate-500 font-mono text-xs font-semibold">
+                                #{{ str_pad($suspect->id, 4, '0', STR_PAD_LEFT) }}
                             </td>
-                            <td class="px-6 py-5">
+                            <td class="px-6 py-4">
                                 <div class="flex items-center gap-3">
-                                    <div class="w-10 h-10 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center font-bold text-sm border border-amber-100">
-                                        <i class="fas fa-user-secret"></i>
-                                    </div>
+                                    @if($suspect->personalData && $suspect->personalData->photo_url)
+                                        <img src="{{ $suspect->personalData->photo_url }}" class="w-10 h-10 rounded-full object-cover border border-slate-200 dark:border-slate-700 shadow-sm shrink-0" alt="{{ $suspect->personalData->name }}">
+                                    @else
+                                        <div class="w-10 h-10 rounded-full bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center font-bold text-xs shrink-0">
+                                            <i class="fas fa-user-secret"></i>
+                                        </div>
+                                    @endif
                                     <div>
                                         @if($suspect->personalData)
-                                            <a href="{{ route('system.personal-data.show', $suspect->personalData->id) }}" class="font-bold text-slate-700 hover:text-blue-600 transition-colors block">
+                                            <a href="{{ route('system.personal-data.show', $suspect->personalData->id) }}" class="font-bold text-slate-900 dark:text-white hover:text-brand-600 dark:hover:text-brand-400 transition-colors block">
                                                 {{ $suspect->personalData->name }}
                                             </a>
-                                            <span class="text-[10px] text-slate-400 font-mono">{{ $suspect->personalData->military_number ?? '' }}</span>
+                                            <div class="flex items-center gap-2 text-xs font-mono text-slate-400 dark:text-slate-500">
+                                                @if($suspect->personalData->jihadi_name)
+                                                    <span>({{ $suspect->personalData->jihadi_name }})</span>
+                                                @endif
+                                                @if($suspect->personalData->military_number)
+                                                    <span>م: {{ $suspect->personalData->military_number }}</span>
+                                                @endif
+                                            </div>
                                         @else
-                                            <span class="font-bold text-slate-700">{{ $suspect->name ?? '-' }}</span>
+                                            <span class="font-bold text-slate-900 dark:text-white">{{ $suspect->name ?? '-' }}</span>
                                         @endif
                                     </div>
                                 </div>
                             </td>
-                            <td class="px-6 py-5 font-mono font-bold text-xs text-slate-700">
+                            <td class="px-6 py-4 font-mono font-bold text-xs text-slate-700 dark:text-slate-300">
                                 {{ $suspect->suspect_number ?? '-' }}
                             </td>
-                            <td class="px-6 py-5 text-center">
-                                <span class="px-3 py-1 bg-slate-100 text-slate-600 rounded-lg text-[10px] font-bold">
-                                    <i class="far fa-calendar-alt me-1 text-slate-400"></i>
+                            <td class="px-6 py-4 text-center">
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-xs font-semibold">
+                                    <i class="far fa-calendar-alt text-slate-400"></i>
                                     {{ $suspect->suspect_date ? $suspect->suspect_date->format('Y-m-d') : '-' }}
                                 </span>
                             </td>
-                            <td class="px-6 py-5">
-                                <span class="px-3 py-1 bg-purple-50 text-purple-700 border border-purple-100 rounded-lg text-xs font-bold">
-                                    {{ $suspect->suspect_type ?? '-' }}
-                                </span>
+                            <td class="px-6 py-4 text-xs font-semibold text-slate-700 dark:text-slate-300">
+                                {{ $suspect->suspect_type ?? '-' }}
                             </td>
-                            <td class="px-6 py-5 text-center">
-                                @if($suspect->danger_level == 'عالي' || $suspect->danger_level == 'خطير')
-                                    <span class="px-3 py-1 bg-rose-50 text-rose-700 border border-rose-100 rounded-lg text-[10px] font-bold">
-                                        {{ $suspect->danger_level }}
-                                    </span>
+                            <td class="px-6 py-4 text-center">
+                                @if(in_array($suspect->danger_level, ['عالي', 'خطير', 'مطلوب أمنياً']))
+                                    <x-security-badge level="critical" :label="$suspect->danger_level" />
                                 @elseif($suspect->danger_level)
-                                    <span class="px-3 py-1 bg-amber-50 text-amber-700 border border-amber-100 rounded-lg text-[10px] font-bold">
-                                        {{ $suspect->danger_level }}
-                                    </span>
+                                    <x-security-badge level="warning" :label="$suspect->danger_level" />
                                 @else
-                                    <span class="text-slate-400">-</span>
+                                    <x-security-badge level="neutral" label="عادي" />
                                 @endif
                             </td>
-                            <td class="px-8 py-5">
-                                <div class="flex justify-end items-center gap-2">
-                                    <a href="{{ route('system.suspicious.edit', $suspect->id) }}" class="w-9 h-9 flex items-center justify-center rounded-xl bg-amber-50 text-amber-600 hover:bg-amber-600 hover:text-white shadow-sm transition-all" title="تعديل"><i class="fas fa-pen text-xs"></i></a>
+                            <td class="px-6 py-4 text-left">
+                                <div class="flex items-center justify-end gap-1.5">
+                                    <a href="{{ route('system.suspicious.edit', $suspect->id) }}"
+                                        class="p-2 rounded-2xl bg-slate-100 dark:bg-slate-800 text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-500/20 transition-colors"
+                                        title="تعديل">
+                                        <i class="fas fa-edit text-sm"></i>
+                                    </a>
                                     <form action="{{ route('system.suspicious.destroy', $suspect->id) }}"
-                                        method="POST" class="inline" onsubmit="return confirm('هل أنت متأكد من الحذف؟')">
+                                        method="POST" class="inline" onsubmit="return confirm('هل أنت متأكد من حذف هذا السجل؟')">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="w-9 h-9 flex items-center justify-center rounded-xl bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white shadow-sm transition-all" title="حذف"><i class="fas fa-trash text-xs"></i></button>
+                                        <button type="submit"
+                                            class="p-2 rounded-2xl bg-slate-100 dark:bg-slate-800 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/20 transition-colors"
+                                            title="حذف">
+                                            <i class="fas fa-trash-alt text-sm"></i>
+                                        </button>
                                     </form>
                                 </div>
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" class="py-20 text-center">
-                                <div class="flex flex-col items-center">
-                                    <div class="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-4">
-                                        <i class="fas fa-search text-slate-200 text-3xl"></i>
+                            <td colspan="7" class="px-6 py-12 text-center text-slate-500 dark:text-slate-400">
+                                <div class="flex flex-col items-center justify-center">
+                                    <div class="w-16 h-16 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center mb-3 text-slate-400 dark:text-slate-500">
+                                        <i class="fas fa-user-secret text-2xl"></i>
                                     </div>
-                                    <p class="text-slate-400 font-bold">لا توجد سجلات مشتبه بهم حالياً</p>
+                                    <p class="font-bold text-slate-700 dark:text-slate-300 mb-1">لا توجد سجلات للمشتبه بهم حالياً</p>
+                                    <a href="{{ route('system.suspicious.create') }}"
+                                        class="mt-3 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-brand-600 text-white hover:bg-brand-700 font-bold text-xs shadow-sm transition-all">
+                                        <i class="fas fa-plus"></i> إضافة مشتبه به جديد الآن
+                                    </a>
                                 </div>
                             </td>
                         </tr>
@@ -167,11 +209,19 @@
                 </tbody>
             </table>
         </div>
-    </div>
 
-    {{-- الترقيم --}}
-    <div class="mt-10 flex justify-center">
-        {{ $suspects->withQueryString()->links() }}
+        {{-- Pagination --}}
+        @if($suspects->hasPages())
+            <div class="px-6 py-4 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex items-center justify-between transition-colors print:hidden">
+                <div class="text-xs text-slate-500 dark:text-slate-400">
+                    عرض <span class="font-bold text-slate-900 dark:text-white">{{ $suspects->firstItem() ?? 0 }}</span> إلى <span class="font-bold text-slate-900 dark:text-white">{{ $suspects->lastItem() ?? 0 }}</span> من أصل <span class="font-bold text-slate-900 dark:text-white">{{ $suspects->total() }}</span> سجل
+                </div>
+                <div>
+                    {{ $suspects->withQueryString()->links() }}
+                </div>
+            </div>
+        @endif
     </div>
 </div>
 @endsection
+

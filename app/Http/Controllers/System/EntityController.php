@@ -29,10 +29,13 @@ class EntityController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name' => 'required|string|max:255',
+            'name' => 'required|string|max:255|unique:internal_entities,name',
             'parent_id' => 'nullable|exists:internal_entities,id',
             'governorate_id' => 'nullable|exists:governorates,id',
             'directorate_id' => 'nullable|exists:directorates,id',
+        ], [
+            'name.required' => 'اسم الجهة مطلوب.',
+            'name.unique' => 'اسم هذه الجهة موجود مسبقاً في النظام (يمنع التكرار).',
         ]);
 
         InternalEntity::create($request->all());
@@ -59,10 +62,13 @@ class EntityController extends Controller
     public function update(Request $request, InternalEntity $entity)
     {
         $request->validate([
-            'name' => 'required|string|max:255',
+            'name' => 'required|string|max:255|unique:internal_entities,name,'.$entity->id,
             'parent_id' => 'nullable|exists:internal_entities,id|different:id',
             'governorate_id' => 'nullable|exists:governorates,id',
             'directorate_id' => 'nullable|exists:directorates,id',
+        ], [
+            'name.required' => 'اسم الجهة مطلوب.',
+            'name.unique' => 'اسم هذه الجهة موجود مسبقاً في النظام (يمنع التكرار).',
         ]);
 
         $entity->update($request->all());

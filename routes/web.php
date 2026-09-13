@@ -77,34 +77,72 @@ Route::middleware('auth')->prefix('system')->name('system.')->group(function () 
 
     Route::get('personal-data/fast-entry', [\App\Http\Controllers\PersonalDataController::class, 'fastEntry'])->name('personal-data.fast-entry');
     Route::post('personal-data/bulk-store', [\App\Http\Controllers\PersonalDataController::class, 'bulkStore'])->name('personal-data.bulk-store');
+    // Personal Data Print
     Route::get('personal-data/{personal_data}/print', [\App\Http\Controllers\PersonalDataController::class, 'print'])->name('personal-data.print');
     Route::get('personal-data/{personal_data}/print-all', [\App\Http\Controllers\PersonalDataController::class, 'printFull'])->name('personal-data.print-all');
     Route::resource('personal-data', \App\Http\Controllers\PersonalDataController::class)->parameters(['personal-data' => 'personal_data']);
     Route::delete('personal-data/photo/{id}', [\App\Http\Controllers\PersonalDataController::class, 'deletePhoto'])->name('personal-data.delete-photo');
+
+    // Secondary Data Print & Resource
+    Route::get('secondary-data/print-all', [\App\Http\Controllers\System\SecondaryDataController::class, 'printAll'])->name('secondary-data.print-all');
+    Route::get('secondary-data/{secondary_data}/print', [\App\Http\Controllers\System\SecondaryDataController::class, 'print'])->name('secondary-data.print');
     Route::get('secondary-data/export', [\App\Http\Controllers\System\SecondaryDataController::class, 'export'])->name('secondary-data.export');
     Route::resource('secondary-data', App\Http\Controllers\System\SecondaryDataController::class)->parameters(['secondary-data' => 'secondary_data']);
+
+    // Courses Print & Resource
+    Route::get('courses/print-all', [CourseController::class, 'printAll'])->name('courses.print-all');
+    Route::get('courses/{course}/print', [CourseController::class, 'print'])->name('courses.print');
     Route::get('courses/export', [CourseController::class, 'export'])->name('courses.export');
     Route::resource('courses', CourseController::class);
+
+    // Wives Print & Resource
+    Route::get('wives/print-all', [WifeController::class, 'printAll'])->name('wives.print-all');
+    Route::get('wives/{wife}/print', [WifeController::class, 'print'])->name('wives.print');
     Route::get('wives/export', [WifeController::class, 'export'])->name('wives.export');
     Route::resource('wives', WifeController::class);
+
+    // Security Files Resource & Print
+    Route::get('security-files/export', [\App\Http\Controllers\System\SecurityFileController::class, 'export'])->name('security-files.export');
+    Route::get('security-files/print-all', [\App\Http\Controllers\System\SecurityFileController::class, 'printAll'])->name('security-files.print-all');
+    Route::get('security-files/{security_file}/print', [\App\Http\Controllers\System\SecurityFileController::class, 'print'])->name('security-files.print');
+    Route::get('security-files/person-details/{id}', [\App\Http\Controllers\System\SecurityFileController::class, 'getPersonDetails'])->name('security-files.get-person-details');
+    Route::delete('security-files/{security_file}/attachment', [\App\Http\Controllers\System\SecurityFileController::class, 'deleteAttachment'])->name('security-files.delete-attachment');
+    Route::resource('security-files', \App\Http\Controllers\System\SecurityFileController::class)->parameters(['security-files' => 'security_file']);
+
+    // Relatives Print & Resource
+    Route::get('relatives/print-all', [RelativeController::class, 'printAll'])->name('relatives.print-all');
+    Route::get('relatives/{relative}/print', [RelativeController::class, 'print'])->name('relatives.print');
     Route::get('relatives/export', [RelativeController::class, 'export'])->name('relatives.export');
     Route::get('relatives/person/{id}', [RelativeController::class, 'getPersonRelatives'])->name('relatives.person-relatives');
     Route::delete('relatives/enemy-relative/{id}', [RelativeController::class, 'destroyEnemyRelative'])->name('relatives.destroy-enemy');
     Route::delete('relatives/traveling-relative/{id}', [RelativeController::class, 'destroyTravelingRelative'])->name('relatives.destroy-traveling');
     Route::resource('relatives', RelativeController::class);
+
+    // Arrests Print & Resource
+    Route::get('arrests/print-all', [ArrestController::class, 'printAll'])->name('arrests.print-all');
+    Route::get('arrests/{arrest}/print', [ArrestController::class, 'print'])->name('arrests.print');
     Route::get('arrests/export', [ArrestController::class, 'export'])->name('arrests.export');
     Route::resource('arrests', ArrestController::class);
     Route::get('arrests/personal-data/{id}', [ArrestController::class, 'getPersonalData'])->name('arrests.get-personal-data');
     Route::delete('arrests/{arrest}/attachment', [ArrestController::class, 'deleteAttachment'])->name('arrests.delete-attachment');
+
+    // Suspicious Print & Resource
+    Route::get('suspicious/print-all', [SuspectController::class, 'printAll'])->name('suspicious.print-all');
+    Route::get('suspicious/{suspicious}/print', [SuspectController::class, 'print'])->name('suspicious.print');
     Route::get('suspicious/export', [SuspectController::class, 'export'])->name('suspicious.export');
     Route::resource('suspicious', SuspectController::class);
     Route::get('suspicious/personal-data/{id}', [SuspectController::class, 'getPersonalData'])->name('suspicious.get-personal-data');
     Route::delete('suspicious/{suspicious}/attachment', [SuspectController::class, 'deleteAttachment'])->name('suspicious.delete-attachment');
+
+    // Security Reports Print & Resource
+    Route::get('security-reports/print-all', [SecurityReportController::class, 'printAll'])->name('security-reports.print-all');
+    Route::get('security-reports/{security_report}/print', [SecurityReportController::class, 'print'])->name('security-reports.print');
     Route::get('security-reports/import', [SecurityReportController::class, 'import'])->name('security-reports.import');
     Route::post('security-reports/upload', [SecurityReportController::class, 'upload'])->name('security-reports.upload');
     Route::get('security-reports/export', [SecurityReportController::class, 'export'])->name('security-reports.export');
     Route::resource('security-reports', SecurityReportController::class)->parameters(['security-reports' => 'security_report']);
     Route::post('security-reports/store-import', [SecurityReportController::class, 'storeImport'])->name('security-reports.store-import');
+
     Route::get('wives/person-details/{id}', [WifeController::class, 'getPersonDetails'])->name('wives.get-person-details');
     Route::get('courses/person-details/{id}', [CourseController::class, 'getPersonDetails'])->name('courses.get-person-details');
     Route::get('personal-data/details/{id}', [\App\Http\Controllers\PersonalDataController::class, 'getDetails'])->name('personal-data.details');
@@ -134,6 +172,7 @@ Route::middleware('auth')->prefix('system')->name('system.')->group(function () 
     Route::get('users/export', [App\Http\Controllers\System\UserController::class, 'export'])->name('users.export');
     Route::resource('users', App\Http\Controllers\System\UserController::class);
     Route::resource('entities', App\Http\Controllers\System\EntityController::class);
+    Route::get('sections/print', [App\Http\Controllers\System\SectionController::class, 'print'])->name('sections.print');
     Route::resource('sections', App\Http\Controllers\System\SectionController::class);
 
     // Profile Management
@@ -167,7 +206,7 @@ Route::middleware('auth')->prefix('configuration')->name('configuration.')->grou
         Route::post($resource.'/validate-import', [$controller, 'validateImport'])->name($resource.'.validate-import');
         Route::get($resource.'/template', [$controller, 'template'])->name($resource.'.template');
     };
-
+        Route::post('quick-store', [\App\Http\Controllers\Configuration\QuickStoreController::class, 'quickStore'])->name('quick-store');
     Route::get('villages/fast-entry', [VillageController::class, 'fastEntry'])->name('villages.fast-entry');
     Route::post('villages/bulk-store', [VillageController::class, 'bulkStore'])->name('villages.bulk-store');
 

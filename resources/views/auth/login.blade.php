@@ -1,312 +1,194 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="ar" dir="rtl" class="scroll-smooth">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>تسجيل الدخول - النظام الموحد</title>
-    <!-- Local Font Awesome -->
-    <link rel="stylesheet" href="{{ asset('vendor/fontawesome/all.min.css') }}">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+    <title>تسجيل الدخول — {{ config('app.name', 'بوابة الأمن الذكية') }}</title>
 
-        body {
-            font-family: 'Tajawal', 'Cairo', system-ui, sans-serif;
-            background: #f1f5f9;
-            height: 100vh;
-            overflow: hidden;
-        }
-
-        /* الحاوية الرئيسية بدون أي header */
-        .split-screen-container {
-            display: flex;
-            min-height: 100vh;
-            width: 100%;
-        }
-
-        /* القسم الأيمن (الشعار والخلفية) */
-        .right-side {
-            flex: 1.2;
-            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            padding: 40px;
-            color: white;
-            text-align: center;
-        }
-
-        .right-side .overlay {
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.85) 100%);
-        }
-
-        .brand-content {
-            position: relative;
-            z-index: 2;
-        }
-
-        .main-logo img {
-    width: 300px;
-    height: 300px;
-    object-fit: contain;
-    filter: drop-shadow(0 0 12px rgba(0,0,0,0.3));
-}
-        .brand-name {
-            font-size: 2.2rem;
-            font-weight: 700;
-            margin-top: 20px;
-            margin-bottom: 10px;
-        }
-
-        .brand-tagline {
-            font-size: 1rem;
-            opacity: 0.85;
-            font-weight: 300;
-        }
-
-        .footer-note {
-            position: absolute;
-            bottom: 25px;
-            font-size: 0.75rem;
-            opacity: 0.5;
-            z-index: 2;
-        }
-
-        /* القسم الأيسر (النموذج) */
-        .left-side {
-            flex: 1;
-            background: #ffffff;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 40px;
-        }
-
-        .login-wrapper {
-            width: 100%;
-            max-width: 420px;
-        }
-
-        .form-header h2 {
-            font-size: 1.8rem;
-            font-weight: 700;
-            color: #0f172a;
-            margin-bottom: 8px;
-        }
-
-        .form-header p {
-            color: #64748b;
-            margin-bottom: 30px;
-            font-size: 0.9rem;
-        }
-
-        .form-group-custom {
-            margin-bottom: 22px;
-        }
-
-        .form-group-custom label {
-            display: block;
-            font-weight: 600;
-            font-size: 0.85rem;
-            color: #1e293b;
-            margin-bottom: 8px;
-        }
-
-        .form-group-custom input {
-            width: 100%;
-            padding: 14px 16px;
-            border: 1px solid #e2e8f0;
-            border-radius: 12px;
-            font-size: 0.95rem;
-            background: #f8fafc;
-            transition: 0.2s;
-            font-family: inherit;
-        }
-
-        .form-group-custom input:focus {
-            outline: none;
-            border-color: #2563eb;
-            background: white;
-            box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
-        }
-
-        .password-input-wrapper {
-            position: relative;
-        }
-
-        .password-input-wrapper i {
-            position: absolute;
-            left: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #94a3b8;
-            cursor: pointer;
-            font-size: 1.1rem;
-        }
-
-        .form-utils {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin: 20px 0 30px;
-            font-size: 0.85rem;
-        }
-
-        .remember-me-label {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            cursor: pointer;
-            color: #475569;
-        }
-
-        .forgot-link {
-            color: #2563eb;
-            text-decoration: none;
-            font-weight: 500;
-        }
-
-        .btn-login-exec {
-            width: 100%;
-            padding: 14px;
-            background: #1e293b;
-            color: white;
-            border: none;
-            border-radius: 12px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-
-        .btn-login-exec:hover {
-            background: #0f172a;
-            transform: translateY(-1px);
-        }
-
-        .alert-modern {
-            background: #fff1f2;
-            border: 1px solid #ffe4e6;
-            color: #be123c;
-            padding: 12px 16px;
-            border-radius: 12px;
-            margin-bottom: 25px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            font-size: 0.85rem;
-        }
-
-        .login-footer {
-            margin-top: 40px;
-            text-align: center;
-            font-size: 0.85rem;
-            color: #64748b;
-        }
-
-        .login-footer a {
-            color: #2563eb;
-            text-decoration: none;
-            font-weight: 600;
-        }
-
-        @media (max-width: 900px) {
-            .right-side {
-                display: none;
+    {{-- Zero-Flash Dark Mode Initialization --}}
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('theme');
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
             }
-            .left-side {
-                flex: 1;
-                padding: 30px 20px;
-            }
-        }
-    </style>
+        })();
+    </script>
+
+    {{-- Google Fonts: Cairo & Tajawal (Identical to tem) --}}
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body>
-    <div class="split-screen-container">
-        <!-- القسم الأيمن: الشعار والخلفية -->
-        <div class="right-side">
-            <div class="overlay"></div>
-            <div class="brand-content">
-                <div class="main-logo">
-                    <img src="{{ asset('images/logo.png') }}" alt="الشعار الرئيسي">
-                </div>
-                <h1 class="brand-name">نظام المعلومات</h1>
-                <p class="brand-tagline">نظام المعلومات بالأمن الوقائي</p>
-            </div>
-            <div class="footer-note">إصدار النظام 2026.1.0</div>
-        </div>
 
-        <!-- القسم الأيسر: نموذج الدخول فقط (بدون أي شريط علوي) -->
-        <div class="left-side">
-            <div class="login-wrapper">
-                <div class="form-header">
-                    <h2>تسجيل الدخول</h2>
+<body class="min-h-screen flex bg-slate-50 dark:bg-slate-950 font-sans text-slate-900 dark:text-slate-50 antialiased transition-colors duration-300 selection:bg-brand-500/20 selection:text-brand-600" dir="rtl">
+
+    <div class="min-h-screen flex flex-col lg:flex-row w-full relative overflow-hidden">
+
+        {{-- ═══════════════════════════════════════════════════════════
+             🎯 RIGHT SIDE: Login Form Area (Matching tem Login.tsx)
+        ═══════════════════════════════════════════════════════════ --}}
+        <div class="w-full lg:w-1/2 flex items-center justify-center p-4 sm:p-8 lg:p-12 relative z-10">
+            <div class="w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl p-8 sm:p-10 border border-slate-200 dark:border-slate-800 shadow-2xl shadow-slate-200/50 dark:shadow-none transition-colors">
+                
+                {{-- Form Header --}}
+                <div class="mb-8">
+                    <div class="lg:hidden inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 text-slate-900 shadow-lg shadow-amber-500/30 mb-6">
+                        <svg class="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                        </svg>
+                    </div>
+                    <h1 class="font-display font-bold text-3xl text-slate-900 dark:text-white mb-2">
+                        مرحباً بك مجدداً
+                    </h1>
+                    <p class="text-slate-500 dark:text-slate-400 text-sm font-medium">
+                        سجل الدخول للمتابعة إلى لوحة التحكم والتحليل
+                    </p>
                 </div>
 
+                {{-- Alert / Error Messages --}}
                 @if ($errors->any())
-                    <div class="alert-modern">
-                        <i class="fas fa-exclamation-circle"></i>
+                    <div class="mb-6 p-4 rounded-xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 text-red-600 dark:text-red-400 text-sm font-semibold flex items-center gap-2 transition-colors">
+                        <svg class="w-5 h-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+                        </svg>
                         <span>{{ $errors->first() }}</span>
                     </div>
                 @endif
 
-                <form action="{{ route('login') }}" method="POST">
+                {{-- Form --}}
+                <form action="{{ route('login') }}" method="POST" class="space-y-6" id="loginForm">
                     @csrf
-                    <div class="form-group-custom">
-                        <label>اسم المستخدم</label>
-                        <input type="text" name="username" placeholder="أدخل اسم المستخدم" value="{{ old('username') }}" required autofocus>
+
+                    {{-- Username / Email --}}
+                    <div class="space-y-2">
+                        <label class="block text-sm font-bold text-slate-700 dark:text-slate-300">
+                            اسم المستخدم / البريد الإلكتروني
+                        </label>
+                        <input 
+                            type="text" 
+                            name="username" 
+                            value="{{ old('username') }}" 
+                            placeholder="أدخل اسم المستخدم"
+                            required 
+                            autofocus
+                            class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3.5 text-sm font-semibold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all placeholder:text-slate-400 dark:placeholder:text-slate-600"
+                        >
                     </div>
 
-                    <div class="form-group-custom">
-                        <label>كلمة المرور</label>
-                        <div class="password-input-wrapper">
-                            <input type="password" name="password" id="password" placeholder="••••••••" required>
-                            <i class="far fa-eye" id="togglePassword" onclick="togglePasswordVisibility()"></i>
+                    {{-- Password --}}
+                    <div class="space-y-2">
+                        <label class="block text-sm font-bold text-slate-700 dark:text-slate-300">
+                            كلمة المرور
+                        </label>
+                        <div class="relative">
+                            <input 
+                                type="password" 
+                                name="password" 
+                                id="passwordField" 
+                                placeholder="أدخل كلمة المرور"
+                                required 
+                                class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3.5 text-sm font-semibold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all placeholder:text-slate-400 dark:placeholder:text-slate-600 pl-12"
+                            >
+                            <button 
+                                type="button" 
+                                id="togglePasswordBtn"
+                                class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer"
+                                aria-label="إظهار كلمة المرور"
+                            >
+                                <svg id="eyeIcon" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="7" r="3"/>
+                                </svg>
+                                <svg id="eyeOffIcon" class="w-5 h-5 hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" x2="22" y1="2" y2="22"/>
+                                </svg>
+                            </button>
                         </div>
                     </div>
 
-                    <div class="form-utils">
-                        <label class="remember-me-label">
-                            <input type="checkbox" name="remember" checked>
-                            <span class="checkmark"></span> تذكرني (البقاء مسجلاً لمدة طويلة)
+                    {{-- Remember Me & Forgot Password --}}
+                    <div class="flex items-center justify-between pt-1">
+                        <label class="flex items-center gap-2 cursor-pointer group select-none">
+                            <input 
+                                type="checkbox" 
+                                name="remember" 
+                                checked
+                                class="w-4 h-4 rounded text-brand-600 focus:ring-brand-500 border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 cursor-pointer transition-colors"
+                            >
+                            <span class="text-sm font-semibold text-slate-600 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-white transition-colors">تذكرني</span>
                         </label>
-                        <a href="#" class="forgot-link">هل نسيت كلمة المرور؟</a>
+                        <a href="#" class="text-sm font-bold text-brand-600 dark:text-brand-400 hover:text-brand-700 dark:hover:text-brand-300 transition-colors">
+                            نسيت كلمة المرور؟
+                        </a>
                     </div>
 
-                    <button type="submit" class="btn-login-exec">
-                        <span>دخول المنصة</span>
+                    {{-- Submit Button --}}
+                    <button 
+                        type="submit" 
+                        id="submitBtn"
+                        class="w-full flex items-center justify-center gap-2 bg-slate-900 dark:bg-brand-600 text-white rounded-xl px-4 py-3.5 text-sm font-bold shadow-lg shadow-slate-900/20 dark:shadow-brand-500/30 hover:bg-slate-800 dark:hover:bg-brand-700 transition-all cursor-pointer mt-4"
+                    >
+                        <span>تسجيل الدخول</span>
                     </button>
                 </form>
 
-                <div class="login-footer">
-                    <p>تواجه مشكلة في الدخول؟ <a href="#">اتصل بالدعم الفني</a></p>
+                {{-- Security Notice --}}
+                <div class="mt-8 pt-6 border-t border-slate-100 dark:border-slate-800 text-center">
+                    <p class="text-xs text-slate-400 dark:text-slate-500 flex items-center justify-center gap-1.5">
+                        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                        <span>جلسة مشفرة ومحمية ببروتوكولات الأمان القياسية</span>
+                    </p>
                 </div>
             </div>
         </div>
+
+        {{-- ═══════════════════════════════════════════════════════════
+             🌌 LEFT SIDE: Branding Area (Matching tem Navy & Gold)
+        ═══════════════════════════════════════════════════════════ --}}
+        <div class="hidden lg:flex w-1/2 bg-slate-900 relative items-center justify-center overflow-hidden">
+            {{-- Decorative Background Elements --}}
+            <div class="absolute top-0 right-0 w-[500px] h-[500px] bg-brand-600/20 rounded-full blur-[100px] translate-x-1/3 -translate-y-1/3 pointer-events-none"></div>
+            <div class="absolute bottom-0 left-0 w-[600px] h-[600px] bg-amber-500/10 rounded-full blur-[120px] -translate-x-1/3 translate-y-1/3 pointer-events-none"></div>
+
+            {{-- Glassmorphism Branding Card --}}
+            <div class="relative z-10 w-full max-w-lg p-12 rounded-3xl bg-white/5 border border-white/10 backdrop-blur-xl shadow-2xl flex flex-col items-center text-center">
+                <img src="{{ asset('images/logo.png') }}" alt="Logo" class="w-48 h-48 rounded-3xl mb-8">
+                <h2 class="text-3xl font-display font-bold text-white mb-2">
+                    {{ config('app.name', 'نظام المعلومات') }}
+                </h2>
+                <p class="text-slate-300 text-sm font-medium">
+                    بالأمن الوقائي بالتعبئة العامة
+                </p>
+                
+            </div>
+        </div>
+
     </div>
 
+    {{-- Password Toggle JS --}}
     <script>
-        function togglePasswordVisibility() {
-            const passwordInput = document.getElementById('password');
-            const icon = document.getElementById('togglePassword');
-            if (passwordInput.type === 'password') {
-                passwordInput.type = 'text';
-                icon.classList.remove('fa-eye');
-                icon.classList.add('fa-eye-slash');
+        document.getElementById('togglePasswordBtn')?.addEventListener('click', function() {
+            const passwordField = document.getElementById('passwordField');
+            const eyeIcon = document.getElementById('eyeIcon');
+            const eyeOffIcon = document.getElementById('eyeOffIcon');
+            if (passwordField.type === 'password') {
+                passwordField.type = 'text';
+                eyeIcon.classList.add('hidden');
+                eyeOffIcon.classList.remove('hidden');
             } else {
-                passwordInput.type = 'password';
-                icon.classList.remove('fa-eye-slash');
-                icon.classList.add('fa-eye');
+                passwordField.type = 'password';
+                eyeIcon.classList.remove('hidden');
+                eyeOffIcon.classList.add('hidden');
             }
-        }
+        });
     </script>
 </body>
 </html>

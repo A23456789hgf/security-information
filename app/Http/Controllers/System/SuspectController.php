@@ -26,6 +26,10 @@ class SuspectController extends Controller
             });
         }
 
+        if ($request->filled('personal_data_id')) {
+            $query->where('personal_data_id', $request->personal_data_id);
+        }
+
         if ($sort = $request->input('sort')) {
             $direction = $request->input('direction', 'asc');
             $query->orderBy($sort, $direction);
@@ -34,9 +38,10 @@ class SuspectController extends Controller
         }
 
         $perPage = $request->input('per_page', 50);
-        $suspects = $query->paginate($perPage);
+        $suspects = $query->paginate($perPage)->withQueryString();
+        $personalDataList = PersonalData::select('id', 'name', 'jihadi_name', 'military_number')->orderBy('name')->get();
 
-        return view('system.cases.suspicious.index', compact('suspects'));
+        return view('system.cases.suspicious.index', compact('suspects', 'personalDataList'));
     }
 
     public function export(Request $request)
@@ -200,11 +205,33 @@ class SuspectController extends Controller
             'jihadi_name' => $person->jihadi_name ?? '',
             'date_of_birth' => $person->date_of_birth_gregorian ? $person->date_of_birth_gregorian->format('Y-m-d') : '',
             'blood_type' => $person->bloodType->type ?? '',
+            'photo_url' => $person->photo_url,
             'governorate' => $person->governorate->name ?? '',
             'directorate' => $person->directorate->name ?? '',
             'sub_area' => $person->subArea->name ?? '',
             'village' => $person->village->name ?? '',
             'qualification' => $person->qualification->name ?? '',
+        ]);
+    }
+
+    /**
+     * Print single suspect record.
+     */
+    public function print(Suspect $suspicious)
+    {
+        $suspicious->load(['personalData', 'caseType', 'governorate', 'directorate']);
+        return view('system.cases.suspicious.print', compact('suspicious'));
+    }
+
+    /**
+     * Print all suspicious records listing.
+     */
+    public function printAll(Request $request)
+    {
+        $suspects = Suspect::with(['personalData', 'caseType'])->get();
+        return view('system.cases.suspicious.print', [
+            'suspects' => $suspects,
+            'isList' => true,
         ]);
     }
 }

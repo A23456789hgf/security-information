@@ -1,88 +1,123 @@
 @extends('layouts.app')
 
 @section('title', 'تفاصيل المستخدم')
-@section('page_title', 'ملف المستخدم: ' . $user->name)
+@section('page_title', 'إدارة النظام')
 
 @section('content')
-<div class="mb-4 d-flex justify-content-between align-items-center">
-    <a href="{{ route('system.users.index') }}" class="btn btn-outline-secondary rounded-pill px-4 btn-sm">
-        <i class="fas fa-arrow-right me-1"></i>العودة للقائمة
-    </a>
-    <div class="gap-2 d-flex">
-        <a href="{{ route('system.users.edit', $user) }}" class="btn btn-warning rounded-pill px-4 btn-sm shadow-sm">
-            <i class="fas fa-edit me-1"></i>تعديل البيانات
-        </a>
-    </div>
-</div>
-
-<div class="row g-4">
-    {{-- بطاقة التعريف الأساسية --}}
-    <div class="col-lg-4">
-        <div class="card shadow-sm border-0 rounded-4 text-center p-4 h-100">
-            <div class="mx-auto mb-3 rounded-circle bg-primary bg-opacity-10 p-4 d-flex align-items-center justify-content-center" style="width: 100px; height: 100px;">
-                <i class="fas fa-user text-primary fa-4x"></i>
-            </div>
-            <h4 class="fw-bold text-dark mb-1">{{ $user->name }}</h4>
-            <div class="mb-3">
-                @foreach($user->roles as $role)
-                    <span class="badge bg-info bg-opacity-10 text-info rounded-pill px-3">{{ $role->name }}</span>
-                @endforeach
-            </div>
-            <hr class="opacity-50">
-            <div class="text-right">
-                <p class="mb-1 text-muted small"><i class="fas fa-envelope me-2"></i>البريد الإلكتروني</p>
-                <p class="fw-bold text-dark">{{ $user->email }}</p>
-                
-                <p class="mb-1 text-muted small mt-3"><i class="fas fa-calendar-alt me-2"></i>تاريخ الانضمام</p>
-                <p class="fw-bold text-dark">{{ $user->created_at->format('Y-m-d') }}</p>
-            </div>
+<div class="space-y-6" dir="rtl">
+    {{-- Header Actions --}}
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+            <h1 class="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-3">
+                <div class="p-2.5 bg-brand-500/10 text-brand-600 dark:text-brand-400 rounded-xl">
+                    <i class="fas fa-user text-xl"></i>
+                </div>
+                ملف المستخدم: {{ $user->name }}
+            </h1>
+            <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                عرض تفاصيل الحساب والصلاحيات والجهة التابع لها
+            </p>
+        </div>
+        <div class="flex items-center gap-3">
+            <a href="{{ route('system.users.index') }}"
+                class="inline-flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 text-sm font-semibold rounded-xl transition-all shadow-sm">
+                <i class="fas fa-arrow-right"></i>
+                العودة للقائمة
+            </a>
+            <a href="{{ route('system.users.edit', $user) }}"
+                class="inline-flex items-center gap-2 px-4 py-2.5 bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold rounded-xl shadow-sm hover:shadow transition-all">
+                <i class="fas fa-edit"></i>
+                تعديل البيانات
+            </a>
         </div>
     </div>
 
-    {{-- بطاقة الصلاحيات والارتباطات --}}
-    <div class="col-lg-8">
-        <div class="card shadow-sm border-0 rounded-4 p-4 h-100">
-            <h5 class="fw-bold mb-4 border-bottom pb-2"><i class="fas fa-id-card-clip me-2 text-primary"></i>معلومات إضافية</h5>
-            
-            <div class="row g-4">
-                <div class="col-md-6">
-                    <div class="p-3 rounded-3 bg-light">
-                        <label class="text-muted small d-block mb-1">الجهة التابع لها</label>
-                        @if($user->internal_entity)
-                            <div class="d-flex align-items-center">
-                                <i class="fas fa-building text-primary me-2"></i>
-                                <span class="fw-bold">{{ $user->internal_entity->name }}</span>
+    {{-- Detail Grid: Right Profile summary + Left detailed cards --}}
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {{-- Profile Summary bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden mb-4 --}}
+        <div class="lg:col-span-1">
+            <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm text-center">
+                <div class="w-20 h-20 mx-auto rounded-2xl bg-brand-500/10 border border-brand-500/20 text-brand-600 dark:text-brand-400 flex items-center justify-center font-bold text-2xl uppercase mb-4">
+                    {{ mb_substr($user->name, 0, 2) }}
+                </div>
+                <h2 class="text-lg font-bold text-slate-900 dark:text-white mb-1">{{ $user->name }}</h2>
+                <p class="text-xs font-mono font-semibold text-slate-500 dark:text-slate-400 mb-3">{{ '@' . $user->username }}</p>
+
+                <div class="flex flex-wrap justify-center gap-1.5 mb-6">
+                    @foreach($user->roles as $role)
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-brand-500/10 text-brand-600 dark:text-brand-400 border border-brand-500/20">
+                            {{ $role->name }}
+                        </span>
+                    @endforeach
+                </div>
+
+                <div class="border-t border-slate-100 dark:border-slate-800 pt-4 space-y-3 text-right text-xs">
+                    <div>
+                        <span class="text-slate-400 block mb-0.5"><i class="fas fa-envelope ml-1"></i> البريد الإلكتروني</span>
+                        <span class="font-semibold text-slate-800 dark:text-slate-200 dark:text-slate-200">{{ $user->email ?? '-' }}</span>
+                    </div>
+                    <div>
+                        <span class="text-slate-400 block mb-0.5"><i class="fas fa-phone ml-1"></i> رقم الهاتف</span>
+                        <span class="font-semibold text-slate-800 dark:text-slate-200 dark:text-slate-200">{{ $user->phone ?? '-' }}</span>
+                    </div>
+                    <div>
+                        <span class="text-slate-400 block mb-0.5"><i class="fas fa-calendar-alt ml-1"></i> تاريخ الإنشاء</span>
+                        <span class="font-semibold text-slate-800 dark:text-slate-200 dark:text-slate-200">{{ $user->created_at->format('Y-m-d') }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- Details & Permissions bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden mb-4 --}}
+        <div class="lg:col-span-2 space-y-6">
+            <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm">
+                <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2 mb-6 pb-4 border-b border-slate-100 dark:border-slate-800">
+                    <span class="w-2 h-5 bg-brand-600 rounded-full"></span>
+                    معلومات الارتباط والحالة
+                </h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                    <div class="bg-slate-50 dark:bg-slate-950/50 p-4 rounded-xl border border-slate-200 dark:border-slate-800">
+                        <span class="text-slate-400 block mb-1">الجهة التابع لها</span>
+                        <div class="flex items-center gap-2 font-bold text-slate-800 dark:text-slate-200 dark:text-slate-200 text-sm">
+                            <i class="fas fa-building text-brand-600 dark:text-brand-400"></i>
+                            <span>{{ $user->internal_entity->name ?? 'مستخدم عام / غير محدد' }}</span>
+                        </div>
+                    </div>
+                    <div class="bg-slate-50 dark:bg-slate-950/50 p-4 rounded-xl border border-slate-200 dark:border-slate-800">
+                        <span class="text-slate-400 block mb-1">حالة الحساب</span>
+                        @if($user->is_active)
+                            <div class="flex items-center gap-2 font-bold text-emerald-600 dark:text-emerald-400 text-sm">
+                                <i class="fas fa-check-circle"></i>
+                                <span>نشط (مفعل)</span>
                             </div>
                         @else
-                            <span class="text-muted italic">لا يوجد جهة محددة</span>
+                            <div class="flex items-center gap-2 font-bold text-rose-600 dark:text-rose-400 text-sm">
+                                <i class="fas fa-times-circle"></i>
+                                <span>غير نشط (معطل)</span>
+                            </div>
                         @endif
                     </div>
                 </div>
+            </div>
 
-                <div class="col-md-6">
-                    <div class="p-3 rounded-3 bg-light">
-                        <label class="text-muted small d-block mb-1">حالة الحساب</label>
-                        <div class="d-flex align-items-center">
-                            <i class="fas fa-check-circle text-success me-2"></i>
-                            <span class="fw-bold">نشط</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-12">
-                    <h6 class="fw-bold mt-2 mb-3">الصلاحيات الممنوحة لهذا الدور:</h6>
-                    <div class="d-flex flex-wrap gap-2">
-                        @forelse($user->getAllPermissions() as $permission)
-                            <span class="badge bg-secondary bg-opacity-10 text-secondary rounded-pill px-3">
-                                {{ $permission->name }}
-                            </span>
-                        @empty
-                            <p class="text-muted small italic">لا توجد صلاحيات فردية مخصصة</p>
-                        @endforelse
-                    </div>
+            <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm">
+                <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2 mb-6 pb-4 border-b border-slate-100 dark:border-slate-800">
+                    <span class="w-2 h-5 bg-purple-600 rounded-full"></span>
+                    الصلاحيات الممنوحة
+                </h3>
+                <div class="flex flex-wrap gap-2">
+                    @forelse($user->getAllPermissions() as $permission)
+                        <span class="inline-flex items-center px-3 py-1.5 rounded-2xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                            <i class="fas fa-shield-alt text-brand-600 dark:text-brand-400 text-[10px] ml-1.5"></i>
+                            {{ $permission->name }}
+                        </span>
+                    @empty
+                        <p class="text-slate-400 text-xs italic">لا توجد صلاحيات فردية مخصصة لهذا المستخدم</p>
+                    @endforelse
                 </div>
             </div>
         </div>
     </div>
 </div>
 @endsection
+

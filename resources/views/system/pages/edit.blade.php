@@ -1,38 +1,47 @@
+@extends('layouts.app')
+
 @section('title', 'باني الصفحات: ' . $page->name)
 @section('content')
-<div class="container-fluid mt-4">
-    <div class="row align-items-center mb-4">
-        <div class="col-md-6">
-            <h2 class="fw-bold text-dark">
-                <i class="fas fa-tools text-primary me-2"></i>باني الصفحات: <span class="text-primary">{{ $page->name }}</span>
-            </h2>
-            <p class="text-muted">تحكم في إعدادات الصفحة وحقولها المخصصة</p>
+<div class="space-y-6" dir="rtl">
+    <!-- Header Banner -->
+    <div class="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col md:flex-flex flex-wrap gap-4 md:items-center justify-between gap-4">
+        <div>
+            <h1 class="text-2xl font-black text-slate-900 dark:text-white flex items-center gap-3">
+                <span class="w-10 h-10 rounded-2xl bg-brand-50 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 flex items-center justify-center text-lg shadow-sm">
+                    <i class="fas fa-tools"></i>
+                </span>
+                باني الصفحات: <span class="text-brand-600 dark:text-brand-400">{{ $page->name }}</span>
+            </h1>
+            <p class="text-slate-500 dark:text-slate-400 mt-1 text-sm">تحكم في إعدادات الصفحة وحقولها المخصصة.</p>
         </div>
-        <div class="col-md-6 text-md-end">
-            <a href="{{ route('system.pages.index') }}" class="btn btn-outline-secondary rounded-pill px-4">
-                <i class="fas fa-arrow-right me-1"></i> العودة لقائمة الصفحات
+        <div>
+            <a href="{{ route('system.pages.index') }}" class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold rounded-2xl transition-all inline-flex items-center gap-2 text-sm">
+                <i class="fas fa-arrow-right"></i>
+                <span>العودة لقائمة الصفحات</span>
             </a>
         </div>
     </div>
 
-    <div class="row g-4">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
         <!-- إعدادات الصفحة -->
-        <div class="col-lg-4">
-            <div class="card shadow-sm border-0 rounded-4 mb-4 overflow-hidden">
-                <div class="card-header bg-gradient-primary text-white py-3" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-                    <h5 class="mb-0 fw-bold small uppercase"><i class="fas fa-cog me-2"></i>الإعدادات العامة</h5>
+        <div class="lg:col-span-4 space-y-6">
+            <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden">
+                <div class="bg-slate-50/80 dark:bg-slate-800/50 p-6 border-b border-slate-100 dark:border-slate-800">
+                    <h3 class="font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2 text-base">
+                        <i class="fas fa-cog text-brand-500"></i> الإعدادات العامة
+                    </h3>
                 </div>
-                <div class="card-body p-4">
-                    <form action="{{ route('system.pages.update', $page) }}" method="POST">
+                <div class="p-6">
+                    <form action="{{ route('system.pages.update', $page) }}" method="POST" class="space-y-4">
                         @csrf
                         @method('PUT')
-                        <div class="mb-4">
-                            <label class="form-label fw-bold small text-muted">اسم الصفحة</label>
-                            <input type="text" name="name" class="form-control rounded-3" value="{{ $page->name }}" required>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">اسم الصفحة</label>
+                            <input type="text" name="name" class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl text-sm focus:ring-2 focus:ring-brand-500/20 text-slate-800 dark:text-slate-200" value="{{ $page->name }}" required>
                         </div>
-                        <div class="mb-4">
-                            <label class="form-label fw-bold small text-muted">الالقسم الإداري <span class="text-danger">*</span></label>
-                            <select name="section_id" class="form-control rounded-3 shadow-sm" required>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">القسم الإداري <span class="text-rose-500">*</span></label>
+                            <select name="section_id" class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl text-sm focus:ring-2 focus:ring-brand-500/20 text-slate-800 dark:text-slate-200" required>
                                 <option value="" disabled>اختر القسم الإداري</option>
                                 @foreach($sections as $sec)
                                     <option value="{{ $sec->id }}" {{ old('section_id', $page->section_id) == $sec->id ? 'selected' : '' }}>
@@ -40,121 +49,225 @@
                                     </option>
                                 @endforeach
                             </select>
-                            <small class="text-muted d-block mt-1">يستخدم لتجميع الصفحات في القائمة الجانبية</small>
+                            <span class="text-xs text-slate-400 mt-1 block">يستخدم لتجميع الصفحات في القائمة الجانبية</span>
                         </div>
-                        <div class="mb-4">
-                            <label class="form-label fw-bold small text-muted">الرابط (Slug)</label>
-                            <input type="text" class="form-control rounded-3 bg-light" value="{{ $page->slug }}" readonly disabled>
-                            <small class="text-muted small">يتم توليد الرابط تلقائياً ولا يمكن تعديله يدوياً.</small>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">الرابط (Slug)</label>
+                            <input type="text" class="w-full px-4 py-2 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-xs text-slate-500 cursor-not-allowed font-mono" value="{{ $page->slug }}" readonly disabled>
+                            <span class="text-xs text-slate-400 mt-1 block">يتم توليد الرابط تلقائياً ولا يمكن تعديله.</span>
                         </div>
-                        <div class="mb-4">
-                            <div class="form-check form-switch p-0 ms-4">
-                                <input class="form-check-input ms-0 me-2" type="checkbox" name="is_unique_id" value="1" id="isUniqueId" {{ $page->is_unique_id ? 'checked' : '' }}>
-                                <label class="form-check-label fw-bold" for="isUniqueId">معرف فريد (Unique ID)</label>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">الأيقونة (Icon)</label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 right-0 flex items-center pr-4 text-slate-400">
+                                    <i class="fas {{ $page->icon ?? 'fa-icons' }} text-sm"></i>
+                                </span>
+                                <input type="text" name="icon" class="w-full pl-4 pr-10 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl text-sm focus:ring-2 focus:ring-brand-500/20 transition-all text-slate-800 dark:text-slate-200" placeholder="مثال: fa-users" value="{{ old('icon', $page->icon) }}" dir="ltr">
+                            </div>
+                            <span class="text-xs text-slate-400 mt-1 block">فئة FontAwesome</span>
+                        </div>
+                        <div class="pt-2 space-y-3">
+                            <label class="flex items-center gap-3 cursor-pointer">
+                                <input class="w-4 h-4 text-brand-600 focus:ring-brand-500 border-gray-300 rounded" type="checkbox" name="is_unique_id" value="1" id="isUniqueId" {{ $page->is_unique_id ? 'checked' : '' }}>
+                                <span class="text-xs font-bold text-slate-700 dark:text-slate-300">معرف فريد (Unique ID)</span>
+                            </label>
+                            <label class="flex items-center gap-3 cursor-pointer">
+                                <input class="w-4 h-4 text-brand-600 focus:ring-brand-500 border-gray-300 rounded" type="checkbox" name="is_active" value="1" id="isActive" {{ $page->is_active ? 'checked' : '' }}>
+                                <span class="text-xs font-bold text-slate-700 dark:text-slate-300">تفعيل الصفحة</span>
+                            </label>
+                            <label class="flex items-center gap-3 cursor-pointer">
+                                <input class="w-4 h-4 text-brand-600 focus:ring-brand-500 border-gray-300 rounded" type="checkbox" name="show_in_sidebar" value="1" id="showInSidebar" {{ ($page->show_in_sidebar ?? true) ? 'checked' : '' }}>
+                                <span class="text-xs font-bold text-slate-700 dark:text-slate-300">إظهار الصفحة في القائمة الجانبية</span>
+                            </label>
+                        </div>
+                        
+                        <div class="pt-4 border-t border-slate-100 dark:border-slate-800">
+                            <label class="text-xs font-bold text-slate-400 mb-2 block">موقع العرض في القائمة الجانبية</label>
+                            <div class="text-[10px] text-slate-500 mb-3">الترتيب الحالي: {{ $page->order_column }}. للقسم: {{ $page->section->name ?? '' }}</div>
+                            <div class="grid grid-cols-1 gap-2">
+                                <label class="flex items-center gap-2 p-2 bg-slate-50 border border-slate-100 rounded-xl cursor-pointer hover:bg-slate-100 transition-all">
+                                    <input type="radio" name="position_type" value="no_change" checked onchange="togglePageSelect()"
+                                        class="w-4 h-4 text-brand-600 rounded-full focus:ring-0">
+                                    <span class="font-bold text-slate-700 text-xs">بدون تغيير</span>
+                                </label>
+                                <label class="flex items-center gap-2 p-2 bg-slate-50 border border-slate-100 rounded-xl cursor-pointer hover:bg-slate-100 transition-all">
+                                    <input type="radio" name="position_type" value="at_end" onchange="togglePageSelect()"
+                                        class="w-4 h-4 text-brand-600 rounded-full focus:ring-0">
+                                    <span class="font-bold text-slate-700 text-xs">نقل للنهاية</span>
+                                </label>
+                                <label class="flex items-center gap-2 p-2 bg-slate-50 border border-slate-100 rounded-xl cursor-pointer hover:bg-slate-100 transition-all">
+                                    <input type="radio" name="position_type" value="before" onchange="togglePageSelect()"
+                                        class="w-4 h-4 text-brand-600 rounded-full focus:ring-0">
+                                    <span class="font-bold text-slate-700 text-xs">قبل صفحة محددة</span>
+                                </label>
+                                <label class="flex items-center gap-2 p-2 bg-slate-50 border border-slate-100 rounded-xl cursor-pointer hover:bg-slate-100 transition-all">
+                                    <input type="radio" name="position_type" value="after" onchange="togglePageSelect()"
+                                        class="w-4 h-4 text-brand-600 rounded-full focus:ring-0">
+                                    <span class="font-bold text-slate-700 text-xs">بعد صفحة محددة</span>
+                                </label>
+                            </div>
+                            <div id="relativePageContainer" class="mt-3 hidden">
+                                <select name="relative_page_id" id="relative_page_id"
+                                    class="w-full px-4 py-2 bg-slate-50 border-0 rounded-xl focus:ring-2 focus:ring-brand-100 transition-all font-bold text-slate-700 text-xs">
+                                    <option value="">-- اختر الصفحة --</option>
+                                    @foreach($pages as $p)
+                                        <option value="{{ $p->id }}" data-section-id="{{ $p->section_id }}">{{ $p->name }}</option>
+                                    @endforeach
+                                </select>
+                                <span class="text-[9px] text-slate-400 mt-1 block">تظهر فقط الصفحات التابعة لنفس القسم المحدد أعلاه.</span>
                             </div>
                         </div>
-                        <div class="mb-4">
-                            <div class="form-check form-switch p-0 ms-4">
-                                <input class="form-check-input ms-0 me-2" type="checkbox" name="is_active" value="1" id="isActive" {{ $page->is_active ? 'checked' : '' }}>
-                                <label class="form-check-label fw-bold" for="isActive">نشطة (تظهر للمستخدمين)</label>
-                            </div>
+
+                        <script>
+                            function togglePageSelect() {
+                                const type = document.querySelector('input[name="position_type"]:checked').value;
+                                const container = document.getElementById('relativePageContainer');
+                                const select = document.getElementById('relative_page_id');
+                                if (type === 'before' || type === 'after') {
+                                    container.classList.remove('hidden');
+                                    select.required = true;
+                                    filterPagesBySection();
+                                } else {
+                                    container.classList.add('hidden');
+                                    select.required = false;
+                                }
+                            }
+
+                            function filterPagesBySection() {
+                                const sectionId = document.querySelector('select[name="section_id"]').value;
+                                const select = document.getElementById('relative_page_id');
+                                const options = select.querySelectorAll('option[data-section-id]');
+                                let hasVisibleOptions = false;
+                                
+                                options.forEach(opt => {
+                                    if (opt.getAttribute('data-section-id') === sectionId) {
+                                        opt.style.display = '';
+                                        hasVisibleOptions = true;
+                                    } else {
+                                        opt.style.display = 'none';
+                                        if (select.value === opt.value) {
+                                            select.value = "";
+                                        }
+                                    }
+                                });
+                            }
+                            
+                            // Initialize on load if section changes
+                            document.addEventListener('DOMContentLoaded', function() {
+                                const sectionSelect = document.querySelector('select[name="section_id"]');
+                                if(sectionSelect) {
+                                    sectionSelect.addEventListener('change', filterPagesBySection);
+                                }
+                            });
+                        </script>
+                        <div class="pt-4">
+                            <button type="submit" class="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-2xl shadow-lg shadow-brand-500/25 transition-all flex items-center justify-center gap-2 text-sm">
+                                <i class="fas fa-save"></i>
+                                <span>تحديث الإعدادات</span>
+                            </button>
                         </div>
-                        <button type="submit" class="btn btn-primary w-100 rounded-pill shadow-sm">
-                            <i class="fas fa-save me-1"></i> تحديث الإعدادات
-                        </button>
                     </form>
                 </div>
             </div>
 
-            <div class="card shadow-sm border-0 rounded-4 bg-light border-start border-4 border-info">
-                <div class="card-body">
-                    <h6><i class="fas fa-info-circle text-info me-2"></i>معلومات</h6>
-                    <p class="small text-muted mb-0">تأكد من أن أسماء الحقول التدخلية (Database Name) فريدة داخل نفس الصفحة.</p>
+            <div class="bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-200/80 dark:border-indigo-800/50 p-4 rounded-3xl flex items-start gap-3">
+                <div class="text-indigo-600 dark:text-indigo-400 mt-0.5"><i class="fas fa-info-circle"></i></div>
+                <p class="text-xs text-indigo-900 dark:text-indigo-300 leading-relaxed">
+                    تأكد من أن أسماء الحقول التدخلية (Database Name) فريدة داخل نفس الصفحة لضمان سلامة تخزين البيانات.
+                </p>
+            </div>
+        </div>
+
+        <!-- Operations Selection Card -->
+        <div class="lg:col-span-8 mb-6">
+            <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden">
+                <div class="bg-slate-50/80 dark:bg-slate-800/50 p-6 border-b border-slate-100 dark:border-slate-800">
+                    <h3 class="font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2 text-base">
+                        <i class="fas fa-shield-alt text-brand-500"></i> صلاحيات وعمليات الصفحة (Operations)
+                    </h3>
+                    <p class="text-xs text-slate-500 mt-1">العمليات المدعومة لهذه الصفحة حالياً. يمكنك تفعيل عمليات إضافية وسيتم توليد صلاحيات (Permissions) لها تلقائياً.</p>
+                </div>
+                <div class="p-6">
+                    <form action="{{ route('system.pages.update', $page) }}" method="POST" id="operationsForm">
+                        @csrf
+                        @method('PUT')
+                        <input type="hidden" name="name" value="{{ $page->name }}">
+                        <input type="hidden" name="section_id" value="{{ $page->section_id }}">
+                        <input type="hidden" name="is_unique_id" value="{{ $page->is_unique_id ? 1 : 0 }}">
+                        <input type="hidden" name="is_active" value="{{ $page->is_active ? 1 : 0 }}">
+                        <input type="hidden" name="show_in_sidebar" value="{{ $page->show_in_sidebar ? 1 : 0 }}">
+                        <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-4 mb-4">
+                            @php $currentOperations = $page->operations ?? ['view', 'create', 'edit', 'delete']; @endphp
+                            @foreach(\App\Models\Page::AVAILABLE_OPERATIONS as $key => $label)
+                                <label class="flex items-center gap-2 cursor-pointer p-3 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700/50 rounded-xl hover:bg-slate-100 transition-colors">
+                                    <input class="w-4 h-4 text-brand-600 focus:ring-brand-500 border-gray-300 rounded" type="checkbox" name="operations[]" value="{{ $key }}" {{ in_array($key, $currentOperations) ? 'checked' : '' }}>
+                                    <span class="text-xs font-bold text-slate-700 dark:text-slate-300">{{ $label }}</span>
+                                </label>
+                            @endforeach
+                        </div>
+                        <div class="flex justify-end">
+                            <button type="submit" class="px-6 py-2 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl shadow-sm text-xs">حفظ العمليات</button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
 
         <!-- إدارة الحقول -->
-        <div class="col-lg-8">
-            <div class="card shadow-sm border-0 rounded-4 overflow-hidden">
-                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0 fw-bold"><i class="fas fa-list-ul text-primary me-2"></i>هيكلية الصفحة (الحقول)</h5>
-                    <button type="button" class="btn btn-success btn-sm rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#addFieldModal">
-                        <i class="fas fa-plus me-1"></i> إضافة حقل جديد
+        <div class="lg:col-span-8">
+            <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden">
+                <div class="bg-slate-50/80 dark:bg-slate-800/50 p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                    <h3 class="font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2 text-base">
+                        <i class="fas fa-list-ul text-brand-500"></i> هيكلية الصفحة (الحقول)
+                    </h3>
+                    <button type="button" class="px-4 py-2 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 font-bold rounded-2xl transition-all text-xs flex items-center gap-1.5" data-bs-toggle="modal" data-bs-target="#addFieldModal">
+                        <i class="fas fa-plus"></i> إضافة حقل جديد
                     </button>
                 </div>
-                <div class="card-body p-0">
+                <div class="p-0">
                     @if($page->fields->isEmpty())
-                        <div class="text-center py-5">
-                            <div class="mb-3">
-                                <i class="fas fa-layer-group fa-3x text-light"></i>
+                        <div class="text-center py-12">
+                            <div class="w-16 h-16 rounded-3xl bg-slate-100 dark:bg-slate-800 text-slate-400 flex items-center justify-center mx-auto mb-3 text-2xl">
+                                <i class="fas fa-layer-group"></i>
                             </div>
-                            <h5 class="text-muted">لا توجد حقول حتى الآن</h5>
-                            <p class="text-muted small">ابدأ بإضافة أول حقل لبناء هذه الصفحة</p>
+                            <h4 class="font-bold text-slate-700 dark:text-slate-300 text-sm">لا توجد حقول حتى الآن</h4>
+                            <p class="text-xs text-slate-400 mt-1">ابدأ بإضافة أول حقل لبناء هذه الصفحة</p>
                         </div>
                     @else
-                        <div class="table-responsive">
-                            <table class="table table-hover align-middle mb-0">
-                                <thead class="bg-light text-muted small">
-                                    <tr>
-                                        <th class="ps-4">اسم الحقل</th>
-                                        <th>النوع</th>
-                                        <th>الاسم التقني</th>
-                                        <th class="text-center">إلزامي</th>
-                                        <th class="text-center pe-4">الإجراءات</th>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-right border-collapse">
+                                <thead>
+                                    <tr class="bg-slate-50/80 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800 text-slate-400 font-bold uppercase tracking-wider text-[11px]">
+                                        <th class="py-3 px-6">اسم الحقل</th>
+                                        <th class="py-3 px-4">النوع</th>
+                                        <th class="py-3 px-4">الاسم التقني</th>
+                                        <th class="py-3 px-4 text-center">إلزامي</th>
+                                        <th class="py-3 px-6 text-center">الإجراءات</th>
                                     </tr>
                                 </thead>
-                                <tbody>
+                                <tbody class="divide-y divide-slate-100 dark:divide-slate-800 text-sm">
                                     @foreach($page->fields as $field)
-                                    <tr>
-                                        <td class="ps-4 fw-bold text-dark">{{ $field->label }}</td>
-                                        <td>
-                                            @php
-                                                $icons = [
-                                                    'text' => 'fa-font text-primary',
-                                                    'number' => 'fa-hashtag text-success',
-                                                    'textarea' => 'fa-align-left text-info',
-                                                    'select' => 'fa-list text-warning',
-                                                    'date' => 'fa-calendar-alt text-danger',
-                                                    'datetime' => 'fa-clock text-danger',
-                                                    'checkbox' => 'fa-check-square text-success',
-                                                    'link' => 'fa-link text-primary',
-                                                    'table' => 'fa-table text-dark',
-                                                    'file' => 'fa-paperclip text-secondary',
-                                                    'image' => 'fa-image text-secondary'
-                                                ];
-                                                $labels = [
-                                                    'text' => 'نص قصير',
-                                                    'number' => 'رقمي',
-                                                    'textarea' => 'نص طويل',
-                                                    'select' => 'قائمة',
-                                                    'date' => 'تاريخ',
-                                                    'datetime' => 'تاريخ ووقت',
-                                                    'checkbox' => 'نعم/لا',
-                                                    'link' => 'ارتباط',
-                                                    'table' => 'جدول فرعي',
-                                                    'file' => 'ملف',
-                                                    'image' => 'صورة'
-                                                ];
-                                            @endphp
-                                            <span class="small">
-                                                <i class="fas {{ $icons[$field->type] ?? 'fa-circle' }} me-1 opacity-75"></i> {{ $labels[$field->type] ?? $field->type }}
+                                    <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
+                                        <td class="py-3.5 px-6 font-bold text-slate-900 dark:text-white">{{ $field->label }}</td>
+                                        <td class="py-3.5 px-4 text-xs text-slate-600 dark:text-slate-400">
+                                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 font-medium">
+                                                {{ $field->type }}
                                             </span>
                                         </td>
-                                        <td><code class="small">{{ $field->name }}</code></td>
-                                        <td class="text-center">
+                                        <td class="py-3.5 px-4"><code class="text-xs font-mono text-brand-600 dark:text-brand-400">{{ $field->name }}</code></td>
+                                        <td class="py-3.5 px-4 text-center">
                                             @if($field->is_required)
-                                                <i class="fas fa-check text-success"></i>
+                                                <span class="w-6 h-6 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 inline-flex items-center justify-center text-xs"><i class="fas fa-check"></i></span>
                                             @else
-                                                <i class="fas fa-times text-light"></i>
+                                                <span class="text-slate-300 dark:text-slate-600">-</span>
                                             @endif
                                         </td>
-                                        <td class="text-center pe-4">
-                                            <form action="{{ route('system.fields.destroy', $field) }}" method="POST" class="d-inline" onsubmit="return confirm('هل تريد حذف هذا الحقل؟ سيؤدي ذلك لحذف البيانات المرتبطة به في السجلات.')">
+                                        <td class="py-3.5 px-6 text-center">
+                                            <form action="{{ route('system.fields.destroy', $field) }}" method="POST" class="inline-block" onsubmit="return confirm('هل تريد حذف هذا الحقل؟ سيؤدي ذلك لحذف البيانات المرتبطة به في السجلات.')">
                                                 @csrf
                                                 @method('DELETE')
-                                                <button type="submit" class="btn btn-outline-danger btn-sm rounded-circle shadow-sm" style="width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center;">
-                                                    <i class="fas fa-trash small"></i>
+                                                <button type="submit" class="w-8 h-8 rounded-full bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 hover:bg-rose-100 flex items-center justify-center mx-auto transition-colors" title="حذف الحقل">
+                                                    <i class="fas fa-trash text-xs"></i>
                                                 </button>
                                             </form>
                                         </td>
@@ -170,24 +283,28 @@
     </div>
 </div>
 
-<!-- Modal التحسين -->
+<!-- Modal إضافة حقل -->
 <div class="modal fade" id="addFieldModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
-        <form action="{{ route('system.pages.fields.store', $page) }}" method="POST" class="w-100">
+        <form action="{{ route('system.pages.fields.store', $page) }}" method="POST" class="w-full">
             @csrf
-            <div class="modal-content border-0 shadow-lg rounded-4">
-                <div class="modal-header border-0 pb-0">
-                    <h5 class="fw-bold"><i class="fas fa-plus-square text-success me-2"></i>إضافة حقل جديد</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden">
+                <div class="p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                    <h3 class="font-bold text-slate-900 dark:text-white flex items-center gap-2 text-base">
+                        <i class="fas fa-plus-square text-brand-500"></i> إضافة حقل جديد
+                    </h3>
+                    <button type="button" class="text-slate-400 hover:text-slate-600" data-bs-dismiss="modal">
+                        <i class="fas fa-times"></i>
+                    </button>
                 </div>
-                <div class="modal-body p-4">
-                    <div class="mb-3">
-                        <label class="form-label fw-bold small">اسم الحقل (يظهر للمستخدم)</label>
-                        <input type="text" name="label" class="form-control rounded-3" required placeholder="مثلاً: تاريخ الواقعة">
+                <div class="p-6 space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">اسم الحقل (يظهر للمستخدم)</label>
+                        <input type="text" name="label" class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl text-sm focus:ring-2 focus:ring-brand-500/20 text-slate-800 dark:text-slate-200" required placeholder="مثلاً: تاريخ الواقعة">
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-bold small">نوع البيانات</label>
-                        <select name="type" class="form-select rounded-3 field-type-select-modal" required>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">نوع البيانات</label>
+                        <select name="type" class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl text-sm focus:ring-2 focus:ring-brand-500/20 text-slate-800 dark:text-slate-200 field-type-select-modal" required>
                             <option value="text">بيانات (نص قصير)</option>
                             <option value="textarea">نص (نص طويل)</option>
                             <option value="date">تاريخ</option>
@@ -196,40 +313,41 @@
                             <option value="checkbox">تحقق (نعم/لا)</option>
                             <option value="select">قائمة منسدلة (خيارات)</option>
                             <option value="link">ارتباط بصفحة أخرى</option>
-                            <option value="table">جدول فرعي (Child Table)</option>
+                            <option value="table">جدول فرعي (Child table)</option>
                             <option value="file">مرفقات / صور</option>
                         </select>
                     </div>
-                    <div class="mb-3 extra-settings-modal">
-                        <div class="options-group" style="display:none;">
-                            <label class="form-label fw-bold small text-info">خيارات القائمة (فصل بينها بفاصلة)</label>
-                            <textarea name="options" class="form-control rounded-3" rows="3" placeholder='عسكري, مدني, آخر'></textarea>
+                    <div class="extra-settings-modal space-y-3">
+                        <div class="options-group" class="hidden">
+                            <label class="block text-xs font-bold text-brand-600 dark:text-brand-400 mb-1.5">خيارات القائمة (فصل بينها بفاصلة)</label>
+                            <textarea name="options" class="w-full p-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl text-xs focus:ring-2 focus:ring-brand-500/20 text-slate-800 dark:text-slate-200" rows="3" placeholder='عسكري, مدني, آخر'></textarea>
                         </div>
                         
-                        <div class="link-group" style="display:none;">
-                            <label class="form-label fw-bold small text-primary">الصفحة المستهدفة</label>
-                            <select name="metadata[target_page_id]" class="form-select rounded-3">
+                        <div class="link-group" class="hidden">
+                            <label class="block text-xs font-bold text-brand-600 dark:text-brand-400 mb-1.5">الصفحة المستهدفة</label>
+                            <select name="metadata[target_page_id]" class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl text-sm focus:ring-2 focus:ring-brand-500/20 text-slate-800 dark:text-slate-200">
                                 <option value="" disabled selected>اختر الصفحة</option>
-                                {{-- Here we need $pages, but if not passed we might need a workaround or ensure it is passed --}}
                                 @foreach(App\Models\Page::where('is_active', true)->get() as $p)
                                     <option value="{{ $p->id }}">{{ $p->name }}</option>
                                 @endforeach
                             </select>
                         </div>
 
-                        <div class="table-group" style="display:none;">
-                            <label class="form-label fw-bold small text-dark">أعمدة الجدول (فصل بينها بفاصلة)</label>
-                            <input type="text" name="metadata[table_columns]" class="form-control rounded-3" placeholder="الاسم, السن, العنوان">
+                        <div class="table-group" class="hidden">
+                            <label class="block text-xs font-bold text-brand-600 dark:text-brand-400 mb-1.5">أعمدة الجدول (فصل بينها بفاصلة)</label>
+                            <input type="text" name="metadata[table_columns]" class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl text-sm focus:ring-2 focus:ring-brand-500/20 text-slate-800 dark:text-slate-200" placeholder="الاسم, السن, العنوان">
                         </div>
                     </div>
-                    <div class="form-check form-switch p-0 ms-4">
-                        <input class="form-check-input ms-0 me-2" type="checkbox" name="is_required" value="1" id="isRequired">
-                        <label class="form-check-label fw-bold small" for="isRequired">هذا الحقل إلزامي</label>
+                    <div>
+                        <label class="flex items-center gap-3 cursor-pointer">
+                            <input class="w-4 h-4 text-brand-600 focus:ring-brand-500 border-gray-300 rounded" type="checkbox" name="is_required" value="1" id="isRequired">
+                            <span class="text-xs font-bold text-slate-700 dark:text-slate-300">هذا الحقل إلزامي</span>
+                        </label>
                     </div>
                 </div>
-                <div class="modal-footer border-0 pt-0">
-                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-toggle="modal">إلغاء</button>
-                    <button type="submit" class="btn btn-primary rounded-pill px-4">إضافة الحقل</button>
+                <div class="p-6 bg-slate-50/80 dark:bg-slate-800/50 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-3">
+                    <button type="button" class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold rounded-2xl transition-all text-xs" data-bs-dismiss="modal">إلغاء</button>
+                    <button type="submit" class="px-6 py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-2xl shadow-lg shadow-brand-500/25 transition-all text-xs">إضافة الحقل</button>
                 </div>
             </div>
         </form>
@@ -263,3 +381,5 @@
 </script>
 @endpush
 @endsection
+
+

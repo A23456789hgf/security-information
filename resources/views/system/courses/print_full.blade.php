@@ -92,7 +92,7 @@
         flex: 1;
     }
 
-    .flex-row {
+    .flex-flex flex-wrap gap-4 {
         display: flex;
         gap: 20px;
     }
@@ -145,7 +145,7 @@
             <i class="fas fa-user-id"></i> البيانات الشخصية والتعريفية
         </div>
         <div class="section-body">
-            <div class="flex-row">
+            <div class="flex-flex flex-wrap gap-4">
                 <div class="photo-area">
                     @if($personalData->main_profile_photo)
                         <img src="{{ public_path('storage/' . $personalData->main_profile_photo) }}" class="profile-photo">
@@ -310,3 +310,5 @@
     </button>
 </div>
 @endsection
+
+

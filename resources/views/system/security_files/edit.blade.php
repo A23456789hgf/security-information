@@ -1,0 +1,238 @@
+@extends('layouts.app')
+
+@section('title', 'تعديل الملف الأمني')
+@section('page_title', 'الملفات الأمنية')
+
+@section('content')
+<div class="space-y-6" dir="rtl">
+
+    {{-- Breadcrumb & Header --}}
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-2 print:hidden">
+        <div class="flex items-center gap-3.5">
+            <a href="{{ route('system.security-files.index') }}" class="w-10 h-10 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:text-brand-600 flex items-center justify-center transition-colors shadow-xs">
+                <i class="fas fa-arrow-right text-sm"></i>
+            </a>
+            <div>
+                <h1 class="font-display font-bold text-2xl text-slate-900 dark:text-white m-0">تعديل الملف الأمني #{{ $securityFile->file_number ?? $securityFile->id }}</h1>
+                <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">تعديل بيانات الملف والملخصات والمرفقات الخاصة بـ {{ $securityFile->personalData->name ?? 'الفرد' }}.</p>
+            </div>
+        </div>
+    </div>
+
+    @if ($errors->any())
+        <div class="p-4 bg-rose-500/10 border border-rose-500/20 rounded-2xl text-rose-600 dark:text-rose-400 text-xs font-bold space-y-1">
+            @foreach ($errors->all() as $error)
+                <div><i class="fas fa-exclamation-circle me-1"></i> {{ $error }}</div>
+            @endforeach
+        </div>
+    @endif
+
+    <form action="{{ route('system.security-files.update', $securityFile) }}" method="POST" enctype="multipart/form-data" class="space-y-6">
+        @csrf
+        @method('PUT')
+
+        {{-- قسم 1: الفرد المرتبط --}}
+        <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
+            <h2 class="text-base font-bold text-slate-900 dark:text-white border-b border-slate-100 dark:border-slate-800 pb-3 flex items-center gap-2">
+                <i class="fas fa-user-shield text-brand-600"></i>
+                <span>أولاً: الفرد المرتبط بالملف</span>
+            </h2>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">الفرد المسجل</label>
+                    <select name="personal_data_id" id="personalDataSelect" required class="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:border-brand-500 transition-colors select2">
+                        @foreach($allPeople as $person)
+                            <option value="{{ $person->id }}" {{ old('personal_data_id', $securityFile->personal_data_id) == $person->id ? 'selected' : '' }}>
+                                {{ $person->name }} {{ $person->jihadi_name ? '('.$person->jihadi_name.')' : '' }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        {{-- قسم 2: بيانات الملف الأمني الأساسية --}}
+        <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
+            <h2 class="text-base font-bold text-slate-900 dark:text-white border-b border-slate-100 dark:border-slate-800 pb-3 flex items-center gap-2">
+                <i class="fas fa-file-alt text-brand-600"></i>
+                <span>ثانياً: بيانات الملف الأمني</span>
+            </h2>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">رقم الملف الأمني</label>
+                    <input type="text" name="file_number" value="{{ old('file_number', $securityFile->file_number) }}"
+                        class="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:border-brand-500 transition-colors">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">تاريخ الملف الميلادي</label>
+                    <input type="date" id="file_date_gregorian" name="file_date_gregorian" value="{{ old('file_date_gregorian', optional($securityFile->file_date_gregorian)->format('Y-m-d')) }}"
+                        class="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:border-brand-500 transition-colors">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">تاريخ الملف الهجري</label>
+                    <input type="text" id="file_date_hijri" name="file_date_hijri" value="{{ old('file_date_hijri', $securityFile->file_date_hijri) }}" readonly
+                        class="w-full px-3 py-2.5 bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-700 dark:text-slate-300 font-mono">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">الجهة المعدة للملف</label>
+                    <select name="preparing_entity_id" class="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:border-brand-500 transition-colors">
+                        <option value="">-- اختر الجهة --</option>
+                        @foreach($entities as $id => $name)
+                            <option value="{{ $id }}" {{ old('preparing_entity_id', $securityFile->preparing_entity_id) == $id ? 'selected' : '' }}>{{ $name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">المعد للملف</label>
+                    <input type="text" name="file_preparer" value="{{ old('file_preparer', $securityFile->file_preparer) }}"
+                        class="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:border-brand-500 transition-colors">
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">أبرز البيانات الملخصة من الملف</label>
+                <textarea name="highlight_summary" rows="4"
+                    class="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:border-brand-500 transition-colors">{{ old('highlight_summary', $securityFile->highlight_summary) }}</textarea>
+            </div>
+
+            {{-- إتاحة رفع وإدارة مرفقات الملف الموجودة --}}
+            <div class="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+                <label class="block text-xs font-bold text-slate-700 dark:text-slate-300">مرفقات الملف المسجلة حالياً</label>
+                @if(!empty($securityFile->file_attachments))
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
+                        @foreach($securityFile->file_attachments as $idx => $path)
+                            <div class="p-2.5 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 flex items-center justify-between text-xs">
+                                <a href="{{ asset('storage/' . $path) }}" target="_blank" class="text-brand-600 dark:text-brand-400 font-bold truncate me-2">
+                                    <i class="fas fa-file-pdf me-1"></i> مرفق {{ $idx + 1 }}
+                                </a>
+                                <form action="{{ route('system.security-files.delete-attachment', $securityFile) }}" method="POST" onsubmit="return confirm('حذف المرفق؟')">
+                                    @csrf
+                                    @method('DELETE')
+                                    <input type="hidden" name="type" value="file">
+                                    <input type="hidden" name="index" value="{{ $idx }}">
+                                    <button type="submit" class="text-rose-500 hover:text-rose-700 p-1"><i class="fas fa-trash-alt"></i></button>
+                                </form>
+                            </div>
+                        @endforeach
+                    </div>
+                @else
+                    <div class="text-xs text-slate-400">لا توجد مرفقات ملف سابقة.</div>
+                @endif
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">إضافة مرفقات ملف جديدة</label>
+                    <input type="file" name="file_attachments[]" multiple class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs">
+                </div>
+            </div>
+        </div>
+
+        {{-- قسم 3: التلخيص والوضع الجهادي --}}
+        <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
+            <h2 class="text-base font-bold text-slate-900 dark:text-white border-b border-slate-100 dark:border-slate-800 pb-3 flex items-center gap-2">
+                <i class="fas fa-journal-whills text-brand-600"></i>
+                <span>ثالثاً: بيانات التلخيص والوضع الجهادي</span>
+            </h2>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">معد التلخيص</label>
+                    <input type="text" name="summary_preparer" value="{{ old('summary_preparer', $securityFile->summary_preparer) }}"
+                        class="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:border-brand-500 transition-colors">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">تاريخ التلخيص الميلادي</label>
+                    <input type="date" id="summary_date_gregorian" name="summary_date_gregorian" value="{{ old('summary_date_gregorian', optional($securityFile->summary_date_gregorian)->format('Y-m-d')) }}"
+                        class="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:border-brand-500 transition-colors">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">تاريخ التلخيص الهجري</label>
+                    <input type="text" id="summary_date_hijri" name="summary_date_hijri" value="{{ old('summary_date_hijri', $securityFile->summary_date_hijri) }}" readonly
+                        class="w-full px-3 py-2.5 bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-700 dark:text-slate-300 font-mono">
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">الوضع الجهادي</label>
+                <textarea name="jihadist_status" rows="4"
+                    class="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:border-brand-500 transition-colors">{{ old('jihadist_status', $securityFile->jihadist_status) }}</textarea>
+            </div>
+
+            {{-- إتاحة رفع وإدارة مرفقات الملخص --}}
+            <div class="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+                <label class="block text-xs font-bold text-slate-700 dark:text-slate-300">مرفقات الملخص المسجلة حالياً</label>
+                @if(!empty($securityFile->summary_attachments))
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
+                        @foreach($securityFile->summary_attachments as $idx => $path)
+                            <div class="p-2.5 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 flex items-center justify-between text-xs">
+                                <a href="{{ asset('storage/' . $path) }}" target="_blank" class="text-indigo-600 dark:text-indigo-400 font-bold truncate me-2">
+                                    <i class="fas fa-file-alt me-1"></i> ملخص {{ $idx + 1 }}
+                                </a>
+                                <form action="{{ route('system.security-files.delete-attachment', $securityFile) }}" method="POST" onsubmit="return confirm('حذف هذا الملخص؟')">
+                                    @csrf
+                                    @method('DELETE')
+                                    <input type="hidden" name="type" value="summary">
+                                    <input type="hidden" name="index" value="{{ $idx }}">
+                                    <button type="submit" class="text-rose-500 hover:text-rose-700 p-1"><i class="fas fa-trash-alt"></i></button>
+                                </form>
+                            </div>
+                        @endforeach
+                    </div>
+                @else
+                    <div class="text-xs text-slate-400">لا توجد مرفقات ملخص سابقة.</div>
+                @endif
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">إضافة مرفقات ملخص جديدة</label>
+                    <input type="file" name="summary_attachments[]" multiple class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs">
+                </div>
+            </div>
+        </div>
+
+        {{-- Submit buttons --}}
+        <div class="flex items-center gap-3">
+            <button type="submit" class="px-6 py-3 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl text-xs shadow-md transition-all flex items-center gap-2">
+                <i class="fas fa-save"></i> تحديث الملف الأمني
+            </button>
+            <a href="{{ route('system.security-files.index') }}" class="px-6 py-3 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 font-bold rounded-xl text-xs hover:bg-slate-200 transition-colors">
+                إلغاء
+            </a>
+        </div>
+    </form>
+
+</div>
+
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        function convertToHijri(gregDateStr) {
+            if (!gregDateStr) return '';
+            const d = new Date(gregDateStr);
+            if (isNaN(d.getTime())) return '';
+            try {
+                return new Intl.DateTimeFormat('ar-SA-u-ca-islamic', {
+                    day: 'numeric',
+                    month: 'long',
+                    year: 'numeric'
+                }).format(d);
+            } catch(e) {
+                return '';
+            }
+        }
+
+        document.getElementById('file_date_gregorian').addEventListener('change', function() {
+            document.getElementById('file_date_hijri').value = convertToHijri(this.value);
+        });
+
+        document.getElementById('summary_date_gregorian').addEventListener('change', function() {
+            document.getElementById('summary_date_hijri').value = convertToHijri(this.value);
+        });
+    });
+</script>
+@endpush
+@endsection

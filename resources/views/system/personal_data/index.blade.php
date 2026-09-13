@@ -4,409 +4,291 @@
 @section('page_title', 'السجلات الأساسية')
 
 @section('content')
-    <div class="container-fluid mt-3" dir="rtl">
-        {{-- الرأس مع إحصائيات مختصرة --}}
-        <div class="row align-items-center mb-4">
-            <div class="col-md-7">
-                <div class="d-flex align-items-center gap-3">
-                    <div class="bg-blue-500 bg-opacity-10 p-3 rounded-2xl text-blue-600">
-                        <i class="fas fa-id-card fa-xl"></i>
-                    </div>
-                    <div>
-                        <h4 class="fw-bold mb-1 text-slate-800 header-font">قاعدة البيانات الشخصية</h4>
-                        <div class="flex gap-4">
-                            <small class="text-slate-500" style="font-size: 0.75rem;">
-                                <i class="fas fa-database me-1 text-slate-400"></i> إجمالي السجلات: <span
-                                    class="text-slate-700 font-bold">{{ $personalDataList->total() }}</span>
-                            </small>
-                            <small class="text-slate-500" style="font-size: 0.75rem;">
-                                <i class="fas fa-plus-circle me-1 text-emerald-500"></i> سُجل اليوم: <span
-                                    class="text-emerald-600 font-bold">{{ $personalDataList->getCollection()->where('created_at', '>=', now()->startOfDay())->count() }}</span>
-                            </small>
-                        </div>
+<div class="space-y-6" dir="rtl">
+    {{-- Breadcrumbs --}}
+    <nav class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400 mb-4 print:hidden" aria-label="Breadcrumb">
+        <a href="{{ route('dashboard') }}" class="hover:text-brand-600 dark:hover:text-brand-400 transition-colors font-medium">الرئيسية</a>
+        <i class="fas fa-chevron-left text-[10px] text-slate-400"></i>
+        <span class="text-slate-900 dark:text-white font-bold" aria-current="page">إدارة السجلات الأساسية</span>
+    </nav>
+
+    {{-- Header & Metrics --}}
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg shadow-sm p-5 print:hidden">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-5">
+            
+            {{-- Title & Stats --}}
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 rounded-lg bg-brand-50 dark:bg-brand-500/10 text-brand-600 dark:text-brand-400 flex items-center justify-center border border-brand-100 dark:border-brand-500/20 shrink-0">
+                    <i class="fas fa-users text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-2xl text-slate-900 dark:text-white m-0 tracking-tight">البيانات الشخصية</h1>
+                    <div class="flex items-center gap-4 mt-1.5 text-sm text-slate-600 dark:text-slate-400">
+                        <span class="flex items-center gap-1.5" title="إجمالي الأشخاص المسجلين في النظام">
+                            <i class="fas fa-database text-slate-400"></i>
+                            إجمالي الأشخاص: <strong class="text-slate-900 dark:text-slate-100">{{ number_format($personalDataList->total()) }}</strong>
+                        </span>
+                        <span class="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-700"></span>
+                        <span class="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400" title="الأشخاص الذين تمت إضافتهم اليوم">
+                            <i class="fas fa-arrow-trend-up"></i>
+                            مُدخلات اليوم: <strong>{{ $personalDataList->getCollection()->where('created_at', '>=', now()->startOfDay())->count() }}</strong>
+                        </span>
                     </div>
                 </div>
             </div>
-            <div class="col-md-5 mt-3 mt-md-0">
-                <div class="flex flex-wrap gap-2 justify-start md:justify-end w-full">
-                    <a href="{{ route('system.personal-data.export') }}"
-                        class="btn btn-success rounded-pill px-3 sm:px-4 py-2 shadow-sm d-flex align-items-center gap-1.5 text-xs sm:text-sm">
-                        <i class="fas fa-file-excel"></i> <span class="hidden sm:inline">تصدير</span> (Excel)
+
+            {{-- Primary Actions --}}
+            <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
+                <div class="flex items-center bg-slate-50 dark:bg-slate-800 p-1 rounded-md border border-slate-200 dark:border-slate-700">
+                    <a href="{{ route('system.personal-data.export') }}" class="px-3 py-1.5 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700 hover:shadow-sm rounded transition-all" title="تصدير (Excel)">
+                        <i class="fas fa-file-excel text-emerald-600 ml-1"></i> تصدير
                     </a>
-                    <a href="{{ route('system.personal-data.import') }}"
-                        class="btn btn-info text-white rounded-pill px-3 sm:px-4 py-2 shadow-sm d-flex align-items-center gap-1.5 text-xs sm:text-sm">
-                        <i class="fas fa-file-import"></i> استيراد
-                    </a>
-                    <a href="{{ route('system.personal-data.fast-entry') }}"
-                        class="btn btn-warning rounded-pill px-3 sm:px-4 py-2 shadow-sm d-flex align-items-center gap-1.5 text-xs sm:text-sm">
-                        <i class="fas fa-bolt"></i> إدخال سريع
-                    </a>
-                    <a href="{{ route('system.personal-data.create') }}"
-                        class="btn btn-primary rounded-pill px-3 sm:px-4 py-2 shadow-sm d-flex align-items-center gap-1.5 text-xs sm:text-sm font-bold">
-                        <i class="fas fa-plus-circle"></i> إضافة سجل جديد
+                    <div class="w-px h-4 bg-slate-300 dark:bg-slate-600 mx-1"></div>
+                    <a href="{{ route('system.personal-data.import') }}" class="px-3 py-1.5 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700 hover:shadow-sm rounded transition-all" title="استيراد دفعات">
+                        <i class="fas fa-file-import text-brand-600 ml-1"></i> استيراد
                     </a>
                 </div>
+
+                <a href="{{ route('system.personal-data.fast-entry') }}" class="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-amber-50 border border-amber-200 text-amber-700 hover:bg-amber-100 text-sm font-bold shadow-sm transition-colors dark:bg-amber-500/10 dark:border-amber-500/20 dark:text-amber-400 dark:hover:bg-amber-500/20">
+                    <i class="fas fa-bolt"></i> إدخال سريع
+                </a>
+                
+                <a href="{{ route('system.personal-data.create') }}" class="inline-flex items-center gap-2 px-5 py-2 rounded-md bg-brand-600 text-white hover:bg-brand-700 text-sm font-bold shadow-sm transition-all focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900">
+                    <i class="fas fa-user-plus"></i> إضافة شخص جديد
+                </a>
             </div>
         </div>
+    </div>
 
-        {{-- رسائل النظام --}}
-        @if(session('success'))
-            <div class="bg-emerald-50 border border-emerald-100 text-emerald-700 px-4 py-3 rounded-2xl mb-4 flex items-center justify-between shadow-sm animate-pulse"
-                role="alert">
-                <div class="flex items-center gap-3">
-                    <i class="fas fa-check-circle"></i>
-                    <span class="text-sm font-bold">{{ session('success') }}</span>
-                </div>
-                <button type="button" class="text-emerald-400 hover:text-emerald-600" onclick="this.parentElement.remove()">
-                    <i class="fas fa-times"></i>
-                </button>
+    {{-- System Alerts --}}
+    @if(session('success'))
+        <div class="bg-emerald-50 dark:bg-emerald-500/10 border-l-4 border-emerald-500 text-emerald-800 dark:text-emerald-300 px-4 py-3 rounded-md shadow-sm flex items-center justify-between" role="alert">
+            <div class="flex items-center gap-3">
+                <i class="fas fa-check-circle text-emerald-500"></i>
+                <span class="text-sm font-bold">{{ session('success') }}</span>
             </div>
-        @endif
+            <button type="button" class="text-emerald-500 hover:text-emerald-700 p-1" onclick="this.parentElement.remove()" aria-label="إغلاق">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    @endif
 
-        {{-- منطقة البحث والفلترة --}}
-        <div class="bg-white rounded-3xl p-3 soft-shadow border border-slate-100 mb-6">
-            <form method="GET" action="{{ route('system.personal-data.index') }}" class="row g-2 align-items-center">
-                <div class="col-md-8">
-                    <div class="input-group input-group-sm bg-slate-50 rounded-2xl border-0 px-3 py-1">
-                        <span class="bg-transparent border-0 flex items-center px-2">
-                            <i class="fas fa-search text-slate-400"></i>
-                        </span>
-                        <input type="text" name="search"
-                            class="form-control bg-transparent border-0 focus:ring-0 text-slate-600"
-                            placeholder="ابحث بالاسم، الرقم العسكري، أو رقم الهوية..." value="{{ request('search') }}"
-                            style="font-size: 0.9rem;">
+    {{-- Data Grid Container --}}
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg shadow-sm overflow-hidden">
+        
+        {{-- Toolbar (Search & Filters) --}}
+        <div class="p-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/20">
+            <form method="GET" action="{{ route('system.personal-data.index') }}" class="flex flex-col md:flex-row items-center gap-3">
+                <div class="relative flex-1 w-full">
+                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
+                        <i class="fas fa-search"></i>
                     </div>
+                    <input type="text" name="search" 
+                        class="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-md pr-10 pl-4 py-2 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-brand-500 focus:border-brand-500 transition-all shadow-sm" 
+                        placeholder="بحث برقم الهوية، الرقم العسكري، أو الاسم الرباعي..." 
+                        value="{{ request('search') }}">
                 </div>
-                <div class="col-md-2">
+                
+                @if(isset($allPeople) && $allPeople->count() > 0)
+                <div class="w-full md:w-64">
+                    <select name="personal_data_id" onchange="this.form.submit()" class="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-md px-3 py-2 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-brand-500 shadow-sm">
+                        <option value="">-- فرز بالشخص المعني --</option>
+                        @foreach($allPeople as $person)
+                            <option value="{{ $person->id }}" {{ request('personal_data_id') == $person->id ? 'selected' : '' }}>
+                                {{ $person->name }} {{ $person->jihadi_name ? '('.$person->jihadi_name.')' : '' }} {{ $person->military_number ? '- م: '.$person->military_number : '' }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                @endif
+
+                <div class="w-full md:w-48">
                     @include('partials._pagination_limit')
                 </div>
-                <div class="col-md-2">
-                    <button type="submit"
-                        class="btn btn-secondary w-100 rounded-pill py-2 shadow-sm fw-bold" style="font-size: 0.85rem;">
-                        تصفية النتائج
+                
+                <div class="flex items-center gap-2 w-full md:w-auto">
+                    <button type="submit" class="w-full md:w-auto px-6 py-2 rounded-md bg-slate-800 text-white hover:bg-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600 text-sm font-bold shadow-sm transition-colors">
+                        استعلام
                     </button>
-                </div>
-                @if(request('search'))
-                    <div class="col-12 mt-2 px-3">
-                        <a href="{{ route('system.personal-data.index') }}"
-                            class="text-xs text-slate-400 hover:text-slate-600 flex items-center gap-1">
-                            <i class="fas fa-times-circle"></i> مسح سجل البحث
+                    @if(request('search') || request('personal_data_id'))
+                        <a href="{{ route('system.personal-data.index') }}" class="px-4 py-2 rounded-md border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 text-sm font-semibold transition-colors bg-white dark:bg-slate-900" title="إلغاء التصفية">
+                            إلغاء
                         </a>
-                    </div>
-                @endif
+                    @endif
+                </div>
             </form>
         </div>
 
-        {{-- جدول البيانات - مع إزالة أي overflow hidden --}}
-        <div class="bg-white rounded-3xl soft-shadow border border-slate-100" style="overflow: visible !important;">
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0 w-100" style="font-size: 1rem;">
-                    <thead class="bg-slate-50/80 border-b border-slate-100">
-                        <tr>
-                            <th class="ps-6 py-4 text-slate-400 font-bold uppercase tracking-wider text-[10px]"
-                                style="width: 80px;">الرقم</th>
-                            <th class="py-4 text-slate-400 font-bold uppercase tracking-wider text-[10px]">الاسم الكامل</th>
-                            <th class="py-4 text-slate-400 font-bold uppercase tracking-wider text-[10px]">الهوية / العسكري
-                            </th>
-                            <th class="py-4 text-slate-400 font-bold uppercase tracking-wider text-[10px]">تاريخ الميلاد
-                            </th>
-                            <th class="py-4 text-slate-400 font-bold uppercase tracking-wider text-[10px]">الحالة</th>
-                            <th class="pe-6 py-4 text-slate-400 font-bold uppercase tracking-wider text-[10px] text-end">
-                                الإجراءات</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-50">
-                        @forelse($personalDataList as $record)
-                            <tr class="group hover:bg-slate-50/50 transition-colors">
-                                <td class="ps-6">
-                                    <span
-                                        class="text-slate-400 font-mono text-[10px]">{{ str_pad($record->id, 5, '0', STR_PAD_LEFT) }}</span>
-                                </td>
-                                <td>
-                                    <div class="flex items-center gap-3">
-                                        <div
-                                            class="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center font-bold text-xs">
-                                            {{ substr($record->name ?? '-', 0, 2) }}
+        {{-- Enterprise Data Table --}}
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm text-right whitespace-nowrap">
+                <thead class="bg-slate-100 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300">
+                    <tr>
+                        <th scope="col" class="px-6 py-3.5 text-xs font-bold uppercase tracking-wider w-20 border-r border-slate-200 dark:border-slate-700"># المرجع</th>
+                        <th scope="col" class="px-6 py-3.5 text-xs font-bold uppercase tracking-wider">بيانات السجل (الاسم الكامل)</th>
+                        <th scope="col" class="px-6 py-3.5 text-xs font-bold uppercase tracking-wider">المعرفات الرسمية</th>
+                        <th scope="col" class="px-6 py-3.5 text-xs font-bold uppercase tracking-wider">تاريخ الميلاد</th>
+                        <th scope="col" class="px-6 py-3.5 text-xs font-bold uppercase tracking-wider">حالة القيد</th>
+                        <th scope="col" class="px-6 py-3.5 text-xs font-bold uppercase tracking-wider text-left">الإجراءات</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-200 dark:divide-slate-800">
+                    @forelse($personalDataList as $record)
+                        <tr class="hover:bg-brand-50/50 dark:hover:bg-brand-900/10 even:bg-slate-50 dark:even:bg-slate-800/30 transition-colors">
+                            
+                            {{-- ID Column --}}
+                            <td class="px-6 py-4 border-r border-slate-100 dark:border-slate-800 text-slate-500 dark:text-slate-400 font-mono text-xs">
+                                {{ str_pad($record->id, 6, '0', STR_PAD_LEFT) }}
+                            </td>
+                            
+                            {{-- Name Column --}}
+                            <td class="px-6 py-4">
+                                <div class="flex items-center gap-3">
+                                    @if($record->photo_url)
+                                        <img src="{{ $record->photo_url }}" class="w-10 h-10 rounded-full object-cover border border-slate-200 dark:border-slate-700 shadow-sm shrink-0" alt="{{ $record->name }}">
+                                    @else
+                                        <div class="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 flex items-center justify-center font-bold text-xs shrink-0 border border-slate-300 dark:border-slate-600">
+                                            {{ mb_substr($record->name ?? '-', 0, 2, 'utf-8') }}
                                         </div>
-                                        <div>
-                                            <p class="font-bold text-slate-700 mb-0">{{ $record->name }}</p>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td>
-                                    <div class="flex flex-col gap-1">
-                                        <div class="flex items-center gap-2">
-                                            <i class="fas fa-id-card text-slate-300 text-[10px]"></i>
-                                            <span
-                                                class="text-slate-600 font-mono text-[11px]">{{ $record->national_id_number ?? '-' }}</span>
-                                        </div>
-                                        @if($record->military_number)
-                                            <div class="flex items-center gap-2">
-                                                <i class="fas fa-id-badge text-blue-300 text-[10px]"></i>
-                                                <span
-                                                    class="text-blue-600 font-mono text-[11px] font-bold">{{ $record->military_number }}</span>
+                                    @endif
+                                    <div>
+                                        <a href="{{ route('system.personal-data.show', $record) }}" class="font-bold text-slate-900 dark:text-white hover:text-brand-600 dark:hover:text-brand-400 hover:underline transition-all">
+                                            {{ $record->name }}
+                                        </a>
+                                        @if($record->jihadi_name)
+                                            <div class="text-[11px] text-slate-500 dark:text-slate-400 font-medium mt-0.5">
+                                                <i class="fas fa-tag ml-1 text-slate-400"></i>{{ $record->jihadi_name }}
                                             </div>
                                         @endif
                                     </div>
-                                </td>
-                                <td>
-                                    <span class="px-2 py-1 bg-slate-100 text-slate-600 rounded-lg text-[10px] font-bold">
-                                        <i class="far fa-calendar-alt me-1"></i>
-                                        {{ $record->date_of_birth_gregorian ? $record->date_of_birth_gregorian->format('Y-m-d') : '-' }}
-                                    </span>
-                                </td>
-                                <td>
-                                    <span
-                                        class="px-3 py-1 bg-emerald-50 text-emerald-600 rounded-full text-[10px] font-bold border border-emerald-100">
-                                        مكتمل
-                                    </span>
-                                </td>
-                                <td class="pe-6 py-3 text-end">
-                                    <div class="flex justify-end items-center gap-2">
-                                        <!-- زر العرض -->
-                                        <a href="{{ route('system.personal-data.show', $record) }}"
-                                            class="btn btn-sm btn-primary rounded-lg d-flex align-items-center justify-content-center p-2 shadow-sm"
-                                            title="عرض">
-                                            <i class="fas fa-eye"></i>
-                                        </a>
+                                </div>
+                            </td>
+                            
+                            {{-- Official IDs Column --}}
+                            <td class="px-6 py-4">
+                                <div class="space-y-1.5">
+                                    @if($record->national_id_number)
+                                        <div class="flex items-center gap-2 text-xs text-slate-700 dark:text-slate-300 font-mono">
+                                            <span class="w-5 text-center"><i class="fas fa-id-card text-slate-400"></i></span>
+                                            <span>{{ $record->national_id_number }}</span>
+                                        </div>
+                                    @endif
+                                    @if($record->military_number)
+                                        <div class="flex items-center gap-2 text-xs text-slate-700 dark:text-slate-300 font-mono">
+                                            <span class="w-5 text-center"><i class="fas fa-shield-alt text-brand-500"></i></span>
+                                            <span class="font-bold">{{ $record->military_number }}</span>
+                                        </div>
+                                    @endif
+                                    @if(!$record->national_id_number && !$record->military_number)
+                                        <span class="text-xs text-slate-400 italic">غير متوفر</span>
+                                    @endif
+                                </div>
+                            </td>
+                            
+                            {{-- Date Column --}}
+                            <td class="px-6 py-4 text-sm font-medium text-slate-700 dark:text-slate-300">
+                                @if($record->date_of_birth_gregorian)
+                                    <div class="flex items-center gap-2">
+                                        <i class="far fa-calendar-alt text-slate-400"></i>
+                                        <span dir="ltr">{{ $record->date_of_birth_gregorian->format('Y-m-d') }}</span>
+                                    </div>
+                                @else
+                                    <span class="text-slate-400">-</span>
+                                @endif
+                            </td>
+                            
+                            {{-- Status Column --}}
+                            <td class="px-6 py-4">
+                                <x-security-badge level="resolved" label="مكتمل" />
+                            </td>
+                            
+                            {{-- Actions Column --}}
+                            <td class="px-6 py-4 text-left">
+                                <div class="flex items-center justify-end gap-1.5">
+                                    <a href="{{ route('system.personal-data.show', $record) }}" class="p-2 rounded-lg bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-500/20 transition-all" title="استعراض الملف">
+                                        <i class="fas fa-eye text-sm"></i>
+                                    </a>
+                                    
+                                    <a href="{{ route('system.personal-data.edit', $record) }}" class="p-2 rounded-lg bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-500/20 transition-all" title="تعديل السجل">
+                                        <i class="fas fa-pen text-sm"></i>
+                                    </a>
+                                    
+                                    <form action="{{ route('system.personal-data.destroy', $record) }}" method="POST" class="inline m-0 p-0" onsubmit="return confirm('تحذير: سيتم حذف هذا السجل بشكل نهائي من قاعدة البيانات. هل أنت متأكد؟')">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="p-2 rounded-lg bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-500/20 transition-all" title="حذف القيد">
+                                            <i class="fas fa-trash-alt text-sm"></i>
+                                        </button>
+                                    </form>
 
-                                        <!-- زر التعديل -->
-                                        <a href="{{ route('system.personal-data.edit', $record) }}"
-                                            class="btn btn-sm btn-warning rounded-lg d-flex align-items-center justify-content-center p-2 shadow-sm"
-                                            title="تعديل">
-                                            <i class="fas fa-edit"></i>
-                                        </a>
-
-                                        <!-- زر الحذف -->
-                                        <form action="{{ route('system.personal-data.destroy', $record) }}" method="POST"
-                                            class="inline" onsubmit="return confirm('هل أنت متأكد؟')">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit"
-                                                class="btn btn-sm btn-danger rounded-lg d-flex align-items-center justify-content-center p-2 shadow-sm"
-                                                title="حذف">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                        </form>
-
-                                        <!-- زر الإضافات السريعة (dropdown) -->
-                                        <div class="dropdown d-inline-block" style="position: relative; z-index: 1;">
-                                            <button
-                                                class="btn btn-sm btn-secondary rounded-lg d-flex align-items-center justify-content-center p-2 shadow-sm"
-                                                type="button" data-bs-toggle="dropdown" aria-expanded="false"
-                                                title="إجراءات إضافية">
-                                                <i class="fas fa-bars"></i>
-                                            </button>
-
-                                            <!-- القائمة المنسدلة مع z-index عالٍ جدًا -->
-                                            <ul class="dropdown-menu dropdown-menu-end border-0 shadow-2xl rounded-2xl p-2 mt-2"
-                                                style="font-size: 0.85rem; min-width: 200px; position: absolute; z-index: 9999;">
-
-                                                {{-- خيار الطباعة الشاملة --}}
-                                                <li>
-                                                    <a class="dropdown-item rounded-xl py-2.5 px-3 flex items-center gap-3 hover:bg-blue-50 hover:text-blue-600 transition-colors font-bold"
-                                                        href="{{ route('system.personal-data.print-all', $record) }}"
-                                                        target="_blank">
-                                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                                            stroke-width="1.5" stroke="currentColor"
-                                                            class="w-4 h-4 text-blue-500">
-
-                                                            <path
-                                                                d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"
-                                                                stroke-linecap="round" stroke-linejoin="round" />
-                                                        </svg>
-                                                        طباعة بيانات شخصية
-                                                    </a>
-                                                </li>
-                                                {{-- خيار الطباعة الشاملة --}}
-                                                <li>
-                                                    <a class="dropdown-item rounded-xl py-2.5 px-3 flex items-center gap-3 hover:bg-blue-50 hover:text-blue-600 transition-colors font-bold"
-                                                        href="{{ route('system.personal-data.print', $record) }}"
-                                                        target="_blank">
-                                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                                            stroke-width="1.5" stroke="currentColor"
-                                                            class="w-4 h-4 text-blue-500">
-
-                                                            <path
-                                                                d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"
-                                                                stroke-linecap="round" stroke-linejoin="round" />
-                                                        </svg>
-                                                        طباعة شاملة
-                                                    </a>
-                                                </li>
-
-                                                {{-- خيار الطباعة الشاملة --}}
-                                                <li>
-                                                    <a class="dropdown-item rounded-xl py-2.5 px-3 flex items-center gap-3 hover:bg-blue-50 hover:text-blue-600 transition-colors font-bold"
-                                                        href="{{ route('system.personal-data.print-all', $record) }}"
-                                                        target="_blank">
-                                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                                            stroke-width="1.5" stroke="currentColor"
-                                                            class="w-4 h-4 text-blue-500">
-
-                                                            <path
-                                                                d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"
-                                                                stroke-linecap="round" stroke-linejoin="round" />
-                                                        </svg>
-                                                        طباعة شاملة
-                                                    </a>
-                                                </li>
-
-                                                <li>
-                                                    <hr class="dropdown-divider border-slate-100 my-1">
-                                                </li>
-
-                                                {{-- خيار إضافة دورات --}}
-                                                <li>
-                                                    <a class="dropdown-item rounded-xl py-2.5 px-3 flex items-center gap-3 hover:bg-emerald-50 hover:text-emerald-600 transition-colors font-bold"
-                                                        href="{{ route('system.courses.create', ['personal_data_id' => $record->id]) }}">
-                                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                                            stroke-width="1.5" stroke="currentColor"
-                                                            class="w-4 h-4 text-emerald-500">
-                                                            <path stroke-linecap="round" stroke-linejoin="round"
-                                                                d="M4.26 10.174L10.778 19.03a1.5 1.5 0 012.444 0l6.518-8.856A1.5 1.5 0 0118.522 8h-13.044a1.5 1.5 0 01-1.218-2.174z" />
-                                                            <path stroke-linecap="round" stroke-linejoin="round"
-                                                                d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
-                                                        </svg>
-                                                        إضافة دورات
-                                                    </a>
-                                                </li>
-
-                                                {{-- خيار بيانات ثانوية --}}
-                                                <li>
-                                                    <a class="dropdown-item rounded-xl py-2.5 px-3 flex items-center gap-3 hover:bg-purple-50 hover:text-purple-600 transition-colors font-bold"
-                                                        href="{{ route('system.secondary-data.create', ['personal_data_id' => $record->id]) }}">
-                                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                                            stroke-width="1.5" stroke="currentColor"
-                                                            class="w-4 h-4 text-purple-500">
-                                                            <path stroke-linecap="round" stroke-linejoin="round"
-                                                                d="M20.25 6.375c0 2.278-3.694 4.125-8.25 4.125S3.75 8.653 3.75 6.375m16.5 0c0-2.278-3.694-4.125-8.25-4.125S3.75 4.097 3.75 6.375m16.5 0v11.25c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125V6.375m16.5 0v3.75m-16.5-3.75v3.75m16.5 0v3.75C20.25 16.128 16.556 17.975 12 17.975s-8.25-1.847-8.25-4.125v-3.75m16.5 0v3.75" />
-                                                        </svg>
-                                                        إضافة بيانات ثانوية
-                                                    </a>
-                                                </li>
-
-                                                {{-- خيار توقيف --}}
-                                                <li>
-                                                    <a class="dropdown-item rounded-xl py-2.5 px-3 flex items-center gap-3 hover:bg-rose-50 hover:text-rose-600 transition-colors font-bold"
-                                                        href="{{ route('system.arrests.create', ['personal_data_id' => $record->id]) }}">
-                                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                                            stroke-width="1.5" stroke="currentColor"
-                                                            class="w-4 h-4 text-rose-500">
-                                                            <path stroke-linecap="round" stroke-linejoin="round"
-                                                                d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
-                                                        </svg>
-                                                        إضافة سجلات توقيف
-                                                    </a>
-                                                </li>
-
-                                                {{-- خيار إضافة زوجة --}}
-                                                <li>
-                                                    <a class="dropdown-item rounded-xl py-2.5 px-3 flex items-center gap-3 hover:bg-pink-50 hover:text-pink-600 transition-colors font-bold"
-                                                        href="{{ route('system.wives.create', ['personal_data_id' => $record->id]) }}">
-                                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                                            stroke-width="1.5" stroke="currentColor"
-                                                            class="w-4 h-4 text-pink-500">
-                                                            <path stroke-linecap="round" stroke-linejoin="round"
-                                                                d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" />
-                                                        </svg>
-                                                        إضافة زوجة
-                                                    </a>
-                                                </li>
-
-                                                {{-- خيار الأهل والأقارب --}}
-                                                <li>
-                                                    <a class="dropdown-item rounded-xl py-2.5 px-3 flex items-center gap-3 hover:bg-indigo-50 hover:text-indigo-600 transition-colors font-bold"
-                                                        href="{{ route('system.relatives.create', ['personal_data_id' => $record->id]) }}">
-                                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                                            stroke-width="1.5" stroke="currentColor"
-                                                            class="w-4 h-4 text-indigo-500">
-                                                            <path stroke-linecap="round" stroke-linejoin="round"
-                                                                d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
-                                                        </svg>
-                                                        الأهل والأقارب
-                                                    </a>
-                                                </li>
-                                            </ul>
+                                    {{-- Options Dropdown --}}
+                                    <div class="dropdown relative inline-block text-right">
+                                        <button data-bs-toggle="dropdown" aria-expanded="false" type="button" class="p-2 rounded-lg bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all focus:outline-none" title="خيارات إضافية">
+                                            <i class="fas fa-ellipsis-v text-sm"></i>
+                                        </button>
+                                        <div class="dropdown-menu dropdown-menu-end shadow-xl border border-slate-200 dark:border-slate-700 py-1.5 z-50 text-xs bg-white dark:bg-slate-800 rounded-xl m-0 w-56">
+                                            <a class="dropdown-item flex items-center px-4 py-2 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/50 hover:text-brand-600 transition-colors" href="{{ route('system.personal-data.print', $record) }}" target="_blank">
+                                                <i class="fas fa-print text-slate-400 w-5 ml-1"></i> طباعة البطاقة الأساسية
+                                            </a>
+                                            <a class="dropdown-item flex items-center px-4 py-2 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/50 hover:text-brand-600 transition-colors" href="{{ route('system.personal-data.print-all', $record) }}" target="_blank">
+                                                <i class="fas fa-file-contract text-slate-400 w-5 ml-1"></i> طباعة السجل الشامل
+                                            </a>
+                                            <div class="border-t border-slate-100 dark:border-slate-700 my-1"></div>
+                                            <a class="dropdown-item flex items-center px-4 py-2 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors" href="{{ route('system.secondary-data.create', ['personal_data_id' => $record->id]) }}">
+                                                <i class="fas fa-database text-purple-500 w-5 ml-1"></i> إلحاق بيانات ثانوية
+                                            </a>
+                                            <a class="dropdown-item flex items-center px-4 py-2 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors" href="{{ route('system.wives.create', ['personal_data_id' => $record->id]) }}">
+                                                <i class="fas fa-heart text-pink-500 w-5 ml-1"></i> إضافة بيانات عائلية (زوجة)
+                                            </a>
+                                            <a class="dropdown-item flex items-center px-4 py-2 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors" href="{{ route('system.relatives.create', ['personal_data_id' => $record->id]) }}">
+                                                <i class="fas fa-users text-indigo-500 w-5 ml-1"></i> ارتباطات (أهل وأقارب)
+                                            </a>
+                                            <a class="dropdown-item flex items-center px-4 py-2 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors" href="{{ route('system.courses.create', ['personal_data_id' => $record->id]) }}">
+                                                <i class="fas fa-graduation-cap text-emerald-500 w-5 ml-1"></i> ربط دورات تدريبية
+                                            </a>
+                                            <a class="dropdown-item flex items-center px-4 py-2 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors" href="{{ route('system.arrests.create', ['personal_data_id' => $record->id]) }}">
+                                                <i class="fas fa-gavel text-rose-500 w-5 ml-1"></i> تسجيل قيد توقيف
+                                            </a>
+                                            <div class="border-t border-slate-100 dark:border-slate-700 my-1"></div>
+                                            <a class="dropdown-item flex items-center px-4 py-2 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 font-bold transition-colors" href="{{ route('system.security-files.create', ['personal_data_id' => $record->id]) }}">
+                                                <i class="fas fa-shield-alt text-rose-500 w-5 ml-1"></i> إنشاء ملف أمني سري
+                                            </a>
                                         </div>
                                     </div>
-                                </td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="6" class="py-12 text-center">
-                                    <div class="flex flex-col items-center justify-center">
-                                        <div class="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-4">
-                                            <i class="fas fa-folder-open text-slate-200 text-3xl"></i>
-                                        </div>
-                                        <p class="text-slate-400 font-bold">لا توجد سجلات مطابقة للبحث</p>
-                                        <a href="{{ route('system.personal-data.create') }}"
-                                            class="mt-4 text-blue-600 font-bold text-sm underline underline-offset-4">إضافة سجل
-                                            جديد الآن</a>
+                                </div>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="6" class="px-6 py-16 text-center bg-slate-50 dark:bg-slate-800/50">
+                                <div class="flex flex-col items-center justify-center">
+                                    <div class="w-16 h-16 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center mb-4 text-slate-400 shadow-sm">
+                                        <i class="fas fa-folder-open text-2xl"></i>
                                     </div>
-                                </td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
+                                    <h3 class="text-sm font-bold text-slate-900 dark:text-white mb-1">لا توجد قيود مسجلة</h3>
+                                    <p class="text-sm text-slate-500 dark:text-slate-400 mb-5 max-w-sm">لم يتم العثور على أي سجلات تطابق معايير البحث الحالية، أو أن قاعدة البيانات فارغة.</p>
+                                    <a href="{{ route('system.personal-data.create') }}" class="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-brand-600 text-white hover:bg-brand-700 font-bold text-sm shadow-sm transition-all">
+                                        <i class="fas fa-plus"></i> إدراج قيد جديد
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+
+        {{-- Pagination --}}
+        @if($personalDataList->hasPages())
+            <div class="px-6 py-3 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 flex items-center justify-between print:hidden">
+                <div class="text-sm text-slate-500 dark:text-slate-400">
+                    يتم عرض <span class="font-bold text-slate-900 dark:text-white">{{ $personalDataList->firstItem() ?? 0 }}</span> إلى <span class="font-bold text-slate-900 dark:text-white">{{ $personalDataList->lastItem() ?? 0 }}</span> من إجمالي <span class="font-bold text-slate-900 dark:text-white">{{ number_format($personalDataList->total()) }}</span> قيد
+                </div>
+                <div class="pagination-wrapper">
+                    {{ $personalDataList->withQueryString()->links() }}
+                </div>
             </div>
-        </div>
-
-        {{-- الترقيم --}}
-        <div class="mt-8 flex justify-center">
-            {{ $personalDataList->withQueryString()->links() }}
-        </div>
+        @endif
     </div>
+</div>
 @endsection
-
-@push('styles')
-    <style>
-        .pagination {
-            @apply flex gap-1;
-        }
-
-        .page-item .page-link {
-            @apply border-0 rounded-xl text-slate-500 font-bold text-xs px-4 py-2 hover:bg-slate-100 transition-all;
-        }
-
-        .page-item.active .page-link {
-            @apply bg-blue-600 text-white shadow-lg shadow-blue-100;
-        }
-
-        /* ضمان ظهور القوائم المنسدلة فوق أي عنصر آخر في الصفحة */
-        .dropdown-menu {
-            z-index: 9999 !important;
-            position: absolute !important;
-        }
-
-        /* التأكد من أن أي حاوية لا تحتوي على overflow: hidden */
-        .table-responsive,
-        .bg-white.rounded-3xl,
-        .container-fluid {
-            overflow: visible !important;
-        }
-
-        /* منع أي تقطيع للقوائم */
-        .table {
-            overflow: visible !important;
-        }
-
-        /* إضافة سياق تراصح للخلية التي تحتوي على dropdown لتجنب مشاكل z-index النسبية */
-        td.pe-6 {
-            position: relative;
-            z-index: auto;
-        }
-
-        /* التأكد من أن عنصر dropdown له سياق تراصح خاص به */
-        .dropdown {
-            position: relative;
-            z-index: 100;
-        }
-
-        /* حل إضافي: جعل القائمة تظهر فوق كل شيء حتى لو كان هناك عناصر أخرى */
-        .dropdown-menu.show {
-            display: block;
-            z-index: 9999 !important;
-        }
-    </style>
-@endpush

@@ -4,16 +4,16 @@
 @section('page_title', 'الهيكل التنظيمي')
 
 @section('content')
-<div class="container-fluid mx-auto px-4 py-8" dir="rtl">
+<div class="space-y-6" dir="rtl">
     {{-- رأس الصفحة --}}
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10 max-w-6xl mx-auto">
         <div class="flex items-center gap-4">
-            <div class="w-16 h-16 bg-blue-600 rounded-3xl shadow-xl shadow-blue-100 flex items-center justify-center text-white">
+            <div class="w-16 h-16 bg-brand-600 rounded-3xl shadow-xl shadow-blue-100 flex items-center justify-center text-white">
                 <i class="fas fa-building text-2xl"></i>
             </div>
             <div>
-                <h2 class="text-3xl font-extrabold text-slate-800 header-font mb-1">تفاصيل الجهة</h2>
-                <p class="text-slate-500 text-sm">عرض ملف الجهة: <span class="font-bold text-blue-600">{{ $entity->name }}</span></p>
+                <h2 class="font-display font-bold text-2xl text-slate-900 dark:text-white m-0">تفاصيل الجهة</h2>
+                <p class="text-slate-500 text-sm">عرض ملف الجهة: <span class="font-bold text-brand-600">{{ $entity->name }}</span></p>
             </div>
         </div>
         <div class="flex flex-wrap gap-3">
@@ -31,21 +31,21 @@
     <div class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8">
         {{-- تفاصيل الهيكل والجهات التابعة --}}
         <div class="lg:col-span-5 space-y-6">
-            <div class="bg-white rounded-[2.5rem] soft-shadow border border-slate-100 overflow-hidden">
+            <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden transition-colors">
                 <div class="px-8 py-6 border-b border-slate-50 bg-slate-50/50 flex items-center gap-3">
-                    <span class="w-2 h-6 bg-blue-600 rounded-full"></span>
-                    <h5 class="text-lg font-bold text-slate-800 header-font">هيكل الجهة</h5>
+                    <span class="w-2 h-6 bg-brand-600 rounded-full"></span>
+                    <h5 class="text-lg font-bold text-slate-800 dark:text-slate-200 header-font">هيكل الجهة</h5>
                 </div>
                 <div class="p-8 space-y-6">
                     <div class="bg-slate-50 rounded-2xl p-4 border border-slate-100 text-center">
                         <span class="text-xs font-bold text-slate-400 block mb-1">الجهة الأعلى (الأب)</span>
                         <span class="font-bold text-slate-700">
                             @if($entity->parent)
-                                <a href="{{ route('system.entities.show', $entity->parent) }}" class="text-blue-600 hover:underline">
+                                <a href="{{ route('system.entities.show', $entity->parent) }}" class="text-brand-600 hover:underline">
                                     <i class="fas fa-level-up-alt text-xs me-1"></i> {{ $entity->parent->name }}
                                 </a>
                             @else
-                                <span class="px-3 py-1 bg-slate-200 text-slate-600 rounded-lg text-xs font-bold">جهة رئيسية (بدون أب)</span>
+                                <span class="px-3 py-1 bg-slate-200 text-slate-600 rounded-2xl text-xs font-bold">جهة رئيسية (بدون أب)</span>
                             @endif
                         </span>
                     </div>
@@ -54,7 +54,7 @@
                         <span class="text-xs font-bold text-slate-400 mb-3 block px-2">الجهات التابعة (الأبناء):</span>
                         <div class="space-y-2">
                             @forelse($entity->children as $child)
-                                <a href="{{ route('system.entities.show', $child) }}" class="flex items-center justify-between p-4 bg-slate-50 hover:bg-blue-50 border border-slate-100 rounded-2xl transition-all">
+                                <a href="{{ route('system.entities.show', $child) }}" class="flex items-center justify-between p-4 bg-slate-50 hover:bg-soft-primary border border-slate-100 rounded-2xl transition-all">
                                     <span class="font-bold text-slate-700 text-xs flex items-center gap-2">
                                         <i class="fas fa-building text-slate-400"></i> {{ $child->name }}
                                     </span>
@@ -71,10 +71,10 @@
 
         {{-- الموقع والمستخدمين --}}
         <div class="lg:col-span-7 space-y-6">
-            <div class="bg-white rounded-[2.5rem] soft-shadow border border-slate-100 overflow-hidden">
+            <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden transition-colors">
                 <div class="px-8 py-6 border-b border-slate-50 bg-slate-50/50 flex items-center gap-3">
                     <span class="w-2 h-6 bg-emerald-500 rounded-full"></span>
-                    <h5 class="text-lg font-bold text-slate-800 header-font">الموقع الجغرافي</h5>
+                    <h5 class="text-lg font-bold text-slate-800 dark:text-slate-200 header-font">الموقع الجغرافي</h5>
                 </div>
                 <div class="p-8 grid grid-cols-2 gap-4">
                     <div class="bg-slate-50 rounded-2xl p-4 border border-slate-100 flex flex-col gap-1">
@@ -88,10 +88,10 @@
                 </div>
             </div>
 
-            <div class="bg-white rounded-[2.5rem] soft-shadow border border-slate-100 overflow-hidden">
+            <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden transition-colors">
                 <div class="px-8 py-6 border-b border-slate-50 bg-slate-50/50 flex items-center gap-3">
                     <span class="w-2 h-6 bg-purple-600 rounded-full"></span>
-                    <h5 class="text-lg font-bold text-slate-800 header-font">المستخدمون المرتبطون</h5>
+                    <h5 class="text-lg font-bold text-slate-800 dark:text-slate-200 header-font">المستخدمون المرتبطون</h5>
                 </div>
                 <div class="p-0">
                     <table class="w-full text-right border-collapse text-xs">
@@ -101,7 +101,7 @@
                                 <th class="px-6 py-4 text-slate-400 font-bold">اسم المستخدم</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-slate-100">
+                        <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
                             @forelse($entity->users as $u)
                                 <tr class="hover:bg-slate-50/50 transition-colors">
                                     <td class="px-6 py-4 font-bold text-slate-700">{{ $u->name }}</td>
@@ -120,3 +120,5 @@
     </div>
 </div>
 @endsection
+
+

@@ -4,7 +4,7 @@
 @section('page_title', 'الترميزات الأساسية')
 
 @section('content')
-    <div class="container-fluid mx-auto px-4 py-8" dir="rtl">
+    <div class="space-y-6" dir="rtl">
         {{-- رأس الصفحة --}}
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
             <div class="flex items-center gap-4">
@@ -12,7 +12,7 @@
                     <i class="fas fa-edit text-2xl"></i>
                 </div>
                 <div>
-                    <h2 class="text-3xl font-extrabold text-slate-800 header-font mb-1">تعديل حالة وظيفية</h2>
+                    <h2 class="font-display font-bold text-2xl text-slate-900 dark:text-white m-0">تعديل حالة وظيفية</h2>
                     <p class="text-slate-500 text-sm">تعديل بيانات الحالة: <span class="text-amber-600 font-bold">{{ $jobStatus->job_status }}</span></p>
                 </div>
             </div>
@@ -23,9 +23,9 @@
         </div>
 
         <div class="max-w-2xl mx-auto">
-            <div class="bg-white rounded-[2.5rem] soft-shadow border border-slate-100 overflow-hidden">
+            <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden transition-colors">
                 <div class="px-8 py-6 border-b border-slate-50 bg-slate-50/50">
-                    <h5 class="text-lg font-bold text-slate-800 header-font flex items-center gap-3">
+                    <h5 class="text-lg font-bold text-slate-800 dark:text-slate-200 header-font flex items-center gap-3">
                         <span class="w-2 h-6 bg-amber-500 rounded-full"></span>
                         تحديث البيانات
                     </h5>
@@ -57,3 +57,4 @@
         </div>
     </div>
 @endsection
+

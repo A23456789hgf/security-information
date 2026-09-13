@@ -4,15 +4,15 @@
 @section('page_title', 'الملف الشخصي')
 
 @section('content')
-<div class="container-fluid mx-auto px-4 py-8" dir="rtl">
+<div class="space-y-6" dir="rtl">
 
     {{-- Page Header --}}
     <div class="flex items-center gap-4 mb-10">
-        <div class="w-16 h-16 bg-blue-600 rounded-3xl shadow-xl shadow-blue-100 flex items-center justify-center text-white">
+        <div class="w-16 h-16 bg-brand-600 rounded-3xl shadow-xl shadow-blue-100 flex items-center justify-center text-white">
             <i class="fas fa-user-circle text-2xl"></i>
         </div>
         <div>
-            <h2 class="text-3xl font-extrabold text-slate-800 header-font mb-1">الملف الشخصي</h2>
+            <h2 class="font-display font-bold text-2xl text-slate-900 dark:text-white m-0">الملف الشخصي</h2>
             <p class="text-slate-500 text-sm">إدارة بيانات حسابك الشخصي وتحديث كلمة المرور.</p>
         </div>
     </div>
@@ -27,9 +27,9 @@
 
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 max-w-7xl mx-auto">
 
-        {{-- ===== LEFT: Profile Card ===== --}}
+        {{-- ===== LEFT: Profile bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden mb-4 ===== --}}
         <div class="lg:col-span-4">
-            <div class="bg-white rounded-[2.5rem] soft-shadow border border-slate-100 overflow-hidden sticky top-8">
+            <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden sticky top-8">
 
                 {{-- Avatar Banner --}}
                 <div class="bg-gradient-to-br from-blue-600 to-blue-800 px-8 pt-10 pb-16 text-center">
@@ -44,10 +44,10 @@
 
                 {{-- Info Stats --}}
                 <div class="px-8 py-6 -mt-8">
-                    <div class="bg-white rounded-[2rem] soft-shadow border border-slate-100 divide-y divide-slate-50 overflow-hidden">
+                    <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
                         <div class="flex items-center justify-between px-6 py-4">
                             <span class="text-xs font-bold text-slate-400 flex items-center gap-2">
-                                <i class="fas fa-id-badge text-blue-400"></i> معرف الدخول
+                                <i class="fas fa-id-badge text-brand-400"></i> معرف الدخول
                             </span>
                             <span class="font-bold text-slate-700 text-sm">{{ $user->username }}</span>
                         </div>
@@ -88,13 +88,13 @@
         <div class="lg:col-span-8 space-y-8">
 
             {{-- ---- Form 1: Update Basic Info ---- --}}
-            <div class="bg-white rounded-[2.5rem] soft-shadow border border-slate-100 overflow-hidden">
+            <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden transition-colors">
                 <div class="px-8 py-6 border-b border-slate-50 bg-slate-50/50 flex items-center gap-4">
-                    <div class="w-10 h-10 bg-blue-100 rounded-2xl flex items-center justify-center">
-                        <i class="fas fa-user-pen text-blue-600"></i>
+                    <div class="w-10 h-10 bg-brand-100 rounded-2xl flex items-center justify-center">
+                        <i class="fas fa-user-pen text-brand-600"></i>
                     </div>
                     <div>
-                        <h5 class="text-lg font-bold text-slate-800 header-font">تعديل المعلومات الأساسية</h5>
+                        <h5 class="text-lg font-bold text-slate-800 dark:text-slate-200 header-font">تعديل المعلومات الأساسية</h5>
                         <p class="text-xs text-slate-400 font-bold">تحديث اسمك ورقم هاتفك وحالتك الوظيفية.</p>
                     </div>
                 </div>
@@ -158,7 +158,7 @@
 
                     <div class="flex justify-end mt-8">
                         <button type="submit"
-                            class="px-10 py-4 bg-blue-600 text-white rounded-[2rem] font-bold hover:bg-blue-700 transition-all shadow-xl shadow-blue-100 flex items-center gap-2">
+                            class="px-10 py-4 bg-brand-600 text-white rounded-[2rem] font-bold hover:bg-brand-700 transition-all shadow-xl shadow-blue-100 flex items-center gap-2">
                             <i class="fas fa-save"></i> حفظ التعديلات
                         </button>
                     </div>
@@ -166,13 +166,13 @@
             </div>
 
             {{-- ---- Form 2: Change Password ---- --}}
-            <div class="bg-white rounded-[2.5rem] soft-shadow border border-slate-100 overflow-hidden">
+            <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden transition-colors">
                 <div class="px-8 py-6 border-b border-slate-50 bg-amber-50/50 flex items-center gap-4">
                     <div class="w-10 h-10 bg-amber-100 rounded-2xl flex items-center justify-center">
                         <i class="fas fa-key text-amber-600"></i>
                     </div>
                     <div>
-                        <h5 class="text-lg font-bold text-slate-800 header-font">تغيير كلمة المرور</h5>
+                        <h5 class="text-lg font-bold text-slate-800 dark:text-slate-200 header-font">تغيير كلمة المرور</h5>
                         <p class="text-xs text-slate-400 font-bold">استخدم كلمة مرور قوية لا تقل عن 8 رموز.</p>
                     </div>
                 </div>
@@ -276,3 +276,5 @@ function togglePassword(fieldId, eyeId) {
 </script>
 @endpush
 @endsection
+
+

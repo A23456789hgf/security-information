@@ -31,3 +31,5 @@
     <!-- Interactive JS handlers, Simulators, CSV Export & Printing Engine -->
     @include('data.differentiation.partials._scripts')
 @endsection
+
+

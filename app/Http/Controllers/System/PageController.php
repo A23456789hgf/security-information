@@ -21,7 +21,7 @@ class PageController extends Controller
     public function create()
     {
         $sections = Section::where('is_active', true)->get();
-        $pages = Page::where('is_active', true)->get();
+        $pages = Page::where('is_active', true)->orderBy('order_column')->get();
 
         return view('system.pages.create', compact('sections', 'pages'));
     }
@@ -33,14 +33,22 @@ class PageController extends Controller
             'section_id' => 'required|exists:sections,id',
             'is_active' => 'boolean',
             'is_unique_id' => 'boolean',
+            'show_in_sidebar' => 'boolean',
+            'operations' => 'nullable|array',
+            'operations.*' => 'string',
+            'position_type' => 'nullable|in:at_end,before,after',
+            'relative_page_id' => 'nullable|exists:dynamic_pages,id',
             'fields' => 'required|array|min:1',
             'fields.*.label' => 'required|string|max:255',
             'fields.*.type' => 'required|string|in:text,number,textarea,select,date,datetime,checkbox,link,table,file,image',
             'fields.*.options' => 'nullable|string',
             'fields.*.metadata' => 'nullable|array',
+            'icon' => 'nullable|string|max:255',
         ]);
 
-        $pageData = $request->only(['name', 'section_id', 'is_active', 'is_unique_id']);
+        $pageData = $request->only(['name', 'section_id', 'is_active', 'is_unique_id', 'show_in_sidebar', 'operations', 'icon']);
+        $pageData['show_in_sidebar'] = $request->has('show_in_sidebar'); // Ensure checkbox sets true/false
+        $pageData['operations'] = $request->operations ?? []; // Default to empty array if none checked
         $pageData['slug'] = $this->generateEnglishSlug($request->name);
 
         // Ensure slug is unique
@@ -50,6 +58,25 @@ class PageController extends Controller
             $pageData['slug'] = $originalSlug.'-'.$count++;
         }
 
+        // Handle Positioning (relative to other pages in the same section)
+        $orderColumn = Page::where('section_id', $pageData['section_id'])->max('order_column') + 1;
+        $positionType = $request->input('position_type', 'at_end');
+        $relativePageId = $request->input('relative_page_id');
+
+        if (($positionType === 'before' || $positionType === 'after') && $relativePageId) {
+            $relativePage = Page::find($relativePageId);
+            if ($relativePage && $relativePage->section_id == $pageData['section_id']) {
+                if ($positionType === 'before') {
+                    $orderColumn = $relativePage->order_column;
+                    Page::where('section_id', $pageData['section_id'])->where('order_column', '>=', $orderColumn)->increment('order_column');
+                } else {
+                    $orderColumn = $relativePage->order_column + 1;
+                    Page::where('section_id', $pageData['section_id'])->where('order_column', '>=', $orderColumn)->increment('order_column');
+                }
+            }
+        }
+        
+        $pageData['order_column'] = $orderColumn;
         $page = Page::create($pageData);
 
         foreach ($request->fields as $index => $fieldData) {
@@ -92,8 +119,9 @@ class PageController extends Controller
     {
         $page->load('fields');
         $sections = Section::where('is_active', true)->get();
+        $pages = Page::where('is_active', true)->where('id', '!=', $page->id)->orderBy('order_column')->get();
 
-        return view('system.pages.edit', compact('page', 'sections'));
+        return view('system.pages.edit', compact('page', 'sections', 'pages'));
     }
 
     public function update(Request $request, Page $page)
@@ -103,9 +131,17 @@ class PageController extends Controller
             'section_id' => 'required|exists:sections,id',
             'is_active' => 'boolean',
             'is_unique_id' => 'boolean',
+            'show_in_sidebar' => 'boolean',
+            'operations' => 'nullable|array',
+            'operations.*' => 'string',
+            'position_type' => 'nullable|in:no_change,at_end,before,after',
+            'relative_page_id' => 'nullable|exists:dynamic_pages,id',
+            'icon' => 'nullable|string|max:255',
         ]);
 
-        $data = $request->only(['name', 'section_id', 'is_active', 'is_unique_id']);
+        $data = $request->only(['name', 'section_id', 'is_active', 'is_unique_id', 'show_in_sidebar', 'operations', 'icon']);
+        $data['show_in_sidebar'] = $request->has('show_in_sidebar'); // Ensure checkbox sets true/false
+        $data['operations'] = $request->operations ?? []; // Default to empty array if none checked
         $data['slug'] = $this->generateEnglishSlug($request->name);
 
         // Ensure slug is unique if it changed
@@ -114,6 +150,28 @@ class PageController extends Controller
             $count = 1;
             while (Page::where('slug', $data['slug'])->where('id', '!=', $page->id)->exists()) {
                 $data['slug'] = $originalSlug.'-'.$count++;
+            }
+        }
+
+        // Handle Positioning
+        $positionType = $request->input('position_type', 'no_change');
+        $relativePageId = $request->input('relative_page_id');
+
+        if ($positionType !== 'no_change' || $data['section_id'] != $page->section_id) {
+            if ($positionType === 'at_end' || ($positionType === 'no_change' && $data['section_id'] != $page->section_id)) {
+                $data['order_column'] = Page::where('section_id', $data['section_id'])->max('order_column') + 1;
+            } elseif (($positionType === 'before' || $positionType === 'after') && $relativePageId) {
+                $relativePage = Page::find($relativePageId);
+                if ($relativePage && $relativePage->section_id == $data['section_id']) {
+                    if ($positionType === 'before') {
+                        $orderColumn = $relativePage->order_column;
+                        Page::where('section_id', $data['section_id'])->where('order_column', '>=', $orderColumn)->increment('order_column');
+                    } else {
+                        $orderColumn = $relativePage->order_column + 1;
+                        Page::where('section_id', $data['section_id'])->where('order_column', '>=', $orderColumn)->increment('order_column');
+                    }
+                    $data['order_column'] = $orderColumn;
+                }
             }
         }
 

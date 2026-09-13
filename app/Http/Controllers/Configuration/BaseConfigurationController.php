@@ -68,6 +68,9 @@ abstract class BaseConfigurationController extends Controller
     {
         $request->validate([
             $this->field => 'required|unique:'.(new $this->modelClass)->getTable().','.$this->field,
+        ], [
+            $this->field.'.unique' => 'هذا الاسم مسجل مسبقاً ولا يمكن تكراره.',
+            $this->field.'.required' => 'هذا الحقل مطلوب.',
         ]);
 
         $this->modelClass::create($request->only($this->field));
@@ -90,6 +93,9 @@ abstract class BaseConfigurationController extends Controller
 
         $request->validate([
             $this->field => 'required|unique:'.(new $this->modelClass)->getTable().','.$this->field.','.$id,
+        ], [
+            $this->field.'.unique' => 'هذا الاسم مسجل مسبقاً ولا يمكن تكراره.',
+            $this->field.'.required' => 'هذا الحقل مطلوب.',
         ]);
 
         $item->update($request->only($this->field));

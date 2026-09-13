@@ -6,7 +6,12 @@ use Illuminate\Database\Eloquent\Model;
 
 class Section extends Model
 {
-    protected $fillable = ['name', 'slug', 'icon', 'order_column', 'is_active'];
+    protected $fillable = ['name', 'slug', 'icon', 'order_column', 'is_active', 'show_in_sidebar'];
+    
+    protected $casts = [
+        'is_active' => 'boolean',
+        'show_in_sidebar' => 'boolean',
+    ];
 
     protected static function booted()
     {

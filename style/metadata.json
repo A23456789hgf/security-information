@@ -1,0 +1,7 @@
+{
+  "name": "مُنسّق استمارات الطباعة الرسمية",
+  "description": "منصة معاينة وتنسيق ملفات الطباعة الرسمية وتقارير البيانات الشخصية لـ Laravel Blade بأعلى المعايير المؤسسية",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+

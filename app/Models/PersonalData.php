@@ -46,7 +46,10 @@ class PersonalData extends Model
         'sub_area_id',
         'village_id',
         'internal_entity_id',
+        'main_profile_photo',
     ];
+
+    protected $appends = ['photo_url'];
 
     protected $casts = [
         'date_of_birth_gregorian' => 'date',
@@ -147,6 +150,11 @@ class PersonalData extends Model
         return $this->hasMany(PersonalDataPhoto::class);
     }
 
+    public function securityFiles()
+    {
+        return $this->hasMany(SecurityFile::class, 'personal_data_id');
+    }
+
     public function entity()
     {
         return $this->belongsTo(InternalEntity::class, 'internal_entity_id');
@@ -239,5 +247,22 @@ class PersonalData extends Model
     {
         // Try to find a user by name (exact match)
         return \App\Models\User::where('name', $this->name)->first();
+    }
+
+    /**
+     * Get profile photo URL
+     */
+    public function getPhotoUrlAttribute(): ?string
+    {
+        if ($this->main_profile_photo) {
+            return asset('storage/' . $this->main_profile_photo);
+        }
+
+        $photo = $this->relationLoaded('photos') ? $this->photos->first() : $this->photos()->first();
+        if ($photo && $photo->photo_path) {
+            return asset('storage/' . $photo->photo_path);
+        }
+
+        return null;
     }
 }

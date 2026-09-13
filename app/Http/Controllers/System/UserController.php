@@ -58,14 +58,19 @@ class UserController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name' => 'required|string|max:255',
-            'username' => 'required|string|max:255|unique:users',
+            'name' => 'required|string|max:255|unique:users,name',
+            'username' => 'required|string|max:255|unique:users,username',
             'password' => 'required|string|min:1|confirmed',
             'role_id' => 'required|exists:roles,id',
             'internal_entity_id' => 'nullable|exists:internal_entities,id',
             'phone' => 'nullable|string|max:20',
             'work_status' => 'nullable|string|max:255',
             'is_active' => 'boolean',
+        ], [
+            'name.required' => 'اسم المستخدم الكامل مطلوب.',
+            'name.unique' => 'يوجد مستخدم آخر مسجل بنفس هذا الاسم الكامل (يمنع التكرار).',
+            'username.required' => 'اسم الدخول (اسم المستخدم) مطلوب.',
+            'username.unique' => 'اسم الدخول هذا مستخدم مسبقاً من قِبل حساب آخر (يمنع التكرار).',
         ]);
 
         $user = User::create([
@@ -102,7 +107,7 @@ class UserController extends Controller
     public function update(Request $request, User $user)
     {
         $request->validate([
-            'name' => 'required|string|max:255',
+            'name' => ['required', 'string', 'max:255', Rule::unique('users')->ignore($user->id)],
             'username' => ['required', 'string', 'max:255', Rule::unique('users')->ignore($user->id)],
             'password' => 'nullable|string|min:1|confirmed',
             'role_id' => 'required|exists:roles,id',
@@ -110,6 +115,11 @@ class UserController extends Controller
             'phone' => 'nullable|string|max:20',
             'work_status' => 'nullable|string|max:255',
             'is_active' => 'boolean',
+        ], [
+            'name.required' => 'اسم المستخدم الكامل مطلوب.',
+            'name.unique' => 'يوجد مستخدم آخر مسجل بنفس هذا الاسم الكامل (يمنع التكرار).',
+            'username.required' => 'اسم الدخول (اسم المستخدم) مطلوب.',
+            'username.unique' => 'اسم الدخول هذا مستخدم مسبقاً من قِبل حساب آخر (يمنع التكرار).',
         ]);
 
         $data = [

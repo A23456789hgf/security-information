@@ -4,11 +4,11 @@
         <h4 class="mb-4"><i class="fas fa-columns me-2 text-primary"></i>إضافة عمود جديد للمرجعية</h4>
         <div class="mb-3">
             <label class="form-label">اسم العمود</label>
-            <input type="text" class="form-control" id="newColumnName" placeholder="مثلاً: ملاحظات">
+            <input type="text" class="w-full pr-10 pl-4 py-4 bg-slate-50 border-0 rounded-2xl focus:ring-2 focus:ring-brand-500/20 transition-all" id="newColumnName" placeholder="مثلاً: ملاحظات">
         </div>
         <div class="d-flex gap-2 justify-content-end">
-            <button class="btn btn-secondary" onclick="closeModal('addColumnModal')">إلغاء</button>
-            <button class="btn btn-primary" onclick="addColumn()">إضافة</button>
+            <button class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold rounded-xl transition-colors text-sm" onclick="closeModal('addColumnModal')">إلغاء</button>
+            <button class="px-10 py-4 bg-brand-600 text-white rounded-[2rem] font-bold hover:bg-brand-700 transition-all shadow-xl shadow-brand-100 flex items-center gap-2" onclick="addColumn()">إضافة</button>
         </div>
     </div>
 </div>
@@ -52,3 +52,5 @@
         </div>
     </div>
 </div>
+
+

@@ -65,6 +65,9 @@ class SubAreaController extends Controller
             'governorate_id' => 'required|exists:governorates,id',
             'directorate_id' => 'required|exists:directorates,id',
             'name' => 'required|string|max:255|unique:sub_areas,name,NULL,id,directorate_id,'.$request->directorate_id,
+        ], [
+            'name.unique' => 'اسم العزلة/المنطقة مسجل مسبقاً في هذه المديرية ولا يمكن تكراره.',
+            'name.required' => 'اسم العزلة مطلوب.',
         ]);
 
         SubArea::create($request->all());
@@ -86,6 +89,9 @@ class SubAreaController extends Controller
             'governorate_id' => 'required|exists:governorates,id',
             'directorate_id' => 'required|exists:directorates,id',
             'name' => 'required|string|max:255|unique:sub_areas,name,'.$subArea->id.',id,directorate_id,'.$request->directorate_id,
+        ], [
+            'name.unique' => 'اسم العزلة/المنطقة مسجل مسبقاً في هذه المديرية ولا يمكن تكراره.',
+            'name.required' => 'اسم العزلة مطلوب.',
         ]);
 
         $subArea->update($request->all());

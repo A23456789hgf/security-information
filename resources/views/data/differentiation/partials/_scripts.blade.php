@@ -231,7 +231,7 @@ function displayDetail(data, label) {
     if (secondaryIndices.length > 0) {
         html += `
             <div class="action-bar">
-                <button class="btn-action primary" onclick="integrateSelected([${secondaryIndices.join(',')}])">
+                <button class="-action primary" onclick="integrateSelected([${secondaryIndices.join(',')}])">
                     <i class="fas fa-file-import"></i> دمج هذه الفئة (${secondaryIndices.length} سجل)
                 </button>
             </div>
@@ -269,7 +269,7 @@ function displayDetail(data, label) {
         
         // Row operations
         html += `<td>
-            <button class="row-btn-action" onclick="exportIndividualResult(${i})">
+            <button class="flex flex-wrap gap-4--action" onclick="exportIndividualResult(${i})">
                 <i class="fas fa-file-csv"></i> تصدير
             </button>
         </td>`;
@@ -347,20 +347,20 @@ function exportActiveGroup() {
     let csv = headers.map(h => `"${h.replace(/"/g, '""')}"`).join(",") + "\r\n";
     
     data.details.forEach((detail, idx) => {
-        const row = [idx + 1];
+        const flex flex-wrap gap-4 = [idx + 1];
         
         if (detail.primary) {
-            detail.primary.forEach(cell => row.push(cell || '-'));
+            detail.primary.forEach(cell => flex flex-wrap gap-4.push(cell || '-'));
         } else if (data.primary_columns.length) {
-            data.primary_columns.forEach(() => row.push('-'));
+            data.primary_columns.forEach(() => flex flex-wrap gap-4.push('-'));
         }
         
         if (detail.secondary && data.type !== 'net') {
-            row.push("ثانوي");
-            detail.secondary.forEach(cell => row.push(cell || '-'));
+            flex flex-wrap gap-4.push("ثانوي");
+            detail.secondary.forEach(cell => flex flex-wrap gap-4.push(cell || '-'));
         }
         
-        csv += row.map(cell => `"${cell.toString().replace(/"/g, '""')}"`).join(",") + "\r\n";
+        csv += flex flex-wrap gap-4.map(cell => `"${cell.toString().replace(/"/g, '""')}"`).join(",") + "\r\n";
     });
     
     const sanitizedFilename = `مطابقة_بيانات_${window.activeGroupName.replace(/\s+/g, '_')}.csv`;
@@ -368,7 +368,7 @@ function exportActiveGroup() {
 }
 
 /**
- * Export a single individual matched row record
+ * Export a single individual matched flex flex-wrap gap-4 record
  */
 function exportIndividualResult(index) {
     if (!window.activeGroupData || !window.activeGroupData.details[index]) return;
@@ -376,19 +376,19 @@ function exportIndividualResult(index) {
     const data = window.activeGroupData;
     const detail = data.details[index];
     const headers = [];
-    const row = [];
+    const flex flex-wrap gap-4 = [];
     
     if (detail.primary) {
         data.primary_columns.forEach(col => headers.push(`رئيسي: ${col}`));
-        detail.primary.forEach(cell => row.push(cell || '-'));
+        detail.primary.forEach(cell => flex flex-wrap gap-4.push(cell || '-'));
     }
     if (detail.secondary && data.type !== 'net') {
         data.secondary_columns.forEach(col => headers.push(`ثانوي: ${col}`));
-        detail.secondary.forEach(cell => row.push(cell || '-'));
+        detail.secondary.forEach(cell => flex flex-wrap gap-4.push(cell || '-'));
     }
     
     let csv = headers.map(h => `"${h.replace(/"/g, '""')}"`).join(",") + "\r\n";
-    csv += row.map(cell => `"${cell.toString().replace(/"/g, '""')}"`).join(",") + "\r\n";
+    csv += flex flex-wrap gap-4.map(cell => `"${cell.toString().replace(/"/g, '""')}"`).join(",") + "\r\n";
     
     downloadCSV(`سجل_مطابقة_فردي_${index + 1}.csv`, csv);
 }
@@ -524,3 +524,5 @@ function printActiveGroup() {
     printWindow.document.close();
 }
 </script>
+
+

@@ -1,17 +1,17 @@
 <div class="main-panel">
     <div class="tabs-container">
-        <button class="tab-btn active" id="primaryTab" onclick="switchMainTab('primary')">البيانات الرئيسية</button>
-        <button class="tab-btn" id="referenceTab" onclick="switchMainTab('reference')">البيانات المرجعية</button>
+        <button class="tab- active" id="primaryTab" onclick="switchMainTab('primary')">البيانات الرئيسية</button>
+        <button class="tab-" id="referenceTab" onclick="switchMainTab('reference')">البيانات المرجعية</button>
     </div>
 
     <div id="primaryContent">
         <div class="primary-info">
-            <div class="row">
-                <div class="col-md-6">
+            <div class="flex flex-wrap gap-4">
+                <div class="w-full md:w-1/2">
                     <div class="info-label">البيانات الرئيسية</div>
                     <div class="info-value">{{ count($primaryData) }} سجل</div>
                 </div>
-                <div class="col-md-6">
+                <div class="w-full md:w-1/2">
                     <div class="info-label">الأعمدة</div>
                     <div class="info-value">{{ count($primaryColumns) }} عمود</div>
                 </div>
@@ -55,12 +55,12 @@
         </div>
     </div>
 
-    <div id="referenceContent" style="display:none">
+    <div id="referenceContent" class="hidden">
         <div class="action-bar">
-            <button class="btn-action" onclick="showAddColumnModal()">
+            <button class="-action" onclick="showAddColumnModal()">
                 <i class="fas fa-columns"></i> إضافة عمود
             </button>
-            <button class="btn-action primary" onclick="integrateAll()">
+            <button class="-action primary" onclick="integrateAll()">
                 <i class="fas fa-file-import"></i> دمج الكل في الرئيسية
             </button>
         </div>
@@ -103,13 +103,13 @@
         <div class="detail-header">
             <h5 id="detailTitle"></h5>
             <div class="d-flex gap-2 align-items-center">
-                <button class="btn-action" onclick="printActiveGroup()">
+                <button class="-action" onclick="printActiveGroup()">
                     <i class="fas fa-print text-primary"></i> طباعة الفئة
                 </button>
-                <button class="btn-action" onclick="exportActiveGroup()">
+                <button class="-action" onclick="exportActiveGroup()">
                     <i class="fas fa-file-csv text-success"></i> تصدير الفئة (CSV)
                 </button>
-                <button class="back-btn" onclick="showOverview()" style="margin-right: 15px;">
+                <button class="back-" onclick="showOverview()" style="margin-right: 15px;">
                     <i class="fas fa-arrow-right me-1"></i> رجوع
                 </button>
             </div>
@@ -117,3 +117,5 @@
         <div class="data-preview" id="detailContent"></div>
     </div>
 </div>
+
+

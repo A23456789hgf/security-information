@@ -1,29 +1,33 @@
 /* --- تعريف المتغيرات المحسنة --- */
 :root {
-    /* ألوان الوضع النهاري */
-    --day-primary: #2563EB;
+    /* ألوان الوضع النهاري (مطابقة لنظام tem) */
+    --day-primary: #4F46E5;
+    --day-primary-hover: #4338CA;
+    --day-primary-soft: #EEF2FF;
     --day-secondary: #10B981;
     --day-accent: #EF4444;
-    --day-bg: #FFFFFF;
+    --day-bg: #F8FAFC;
     --day-bg-secondary: #F1F5F9;
     --day-text: #0F172A;
     --day-text-secondary: #475569;
-    --day-border: #CBD5E1;
+    --day-border: #E2E8F0;
     --day-input-bg: #F8FAFC;
     --day-input-text: #0F172A;
     --day-label: #0F172A;
 
-    /* ألوان الوضع الليلي */
-    --night-primary: #3B82F6;
+    /* ألوان الوضع الليلي (مطابقة لنظام tem) */
+    --night-primary: #6366F1;
+    --night-primary-hover: #818CF8;
+    --night-primary-soft: rgba(99, 102, 241, 0.15);
     --night-secondary: #34D399;
     --night-accent: #F87171;
-    --night-bg: #0F172A;
-    --night-bg-secondary: #1E293B;
-    --night-text: #F1F5F9;
+    --night-bg: #020617;
+    --night-bg-secondary: #0F172A;
+    --night-text: #F8FAFC;
     --night-text-secondary: #94A3B8;
-    --night-border: #334155;
-    --night-input-bg: #1E293B;
-    --night-input-text: #F1F5F9;
+    --night-border: #1E293B;
+    --night-input-bg: #0F172A;
+    --night-input-text: #F8FAFC;
     --night-label: #E2E8F0;
 
     /* قيم افتراضية (وضع نهاري) تُطبَّق دائماً */

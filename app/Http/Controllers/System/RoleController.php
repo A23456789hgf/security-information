@@ -31,6 +31,10 @@ class RoleController extends Controller
             'permissions' => 'required|array|min:1',
             'scopes' => 'nullable|array',
             'scopes.*' => 'in:all,own,none',
+        ], [
+            'name.required' => 'اسم الدور مطلوب ولا يمكن تركه فارغاً.',
+            'name.unique' => 'اسم هذا الدور (المسمى الوظيفي) موجود مسبقاً في النظام (يمنع التكرار).',
+            'permissions.required' => 'يرجى تحديد صلاحية واحدة على الأقل للدور.',
         ]);
 
         DB::transaction(function () use ($request) {
@@ -61,6 +65,10 @@ class RoleController extends Controller
             'permissions' => 'required|array|min:1',
             'scopes' => 'nullable|array',
             'scopes.*' => 'in:all,own,none',
+        ], [
+            'name.required' => 'اسم الدور مطلوب ولا يمكن تركه فارغاً.',
+            'name.unique' => 'اسم هذا الدور (المسمى الوظيفي) موجود مسبقاً في النظام (يمنع التكرار).',
+            'permissions.required' => 'يرجى تحديد صلاحية واحدة على الأقل للدور.',
         ]);
 
         DB::transaction(function () use ($request, $role) {

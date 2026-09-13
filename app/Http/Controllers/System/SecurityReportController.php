@@ -161,7 +161,8 @@ class SecurityReportController extends Controller
         $file = $request->file('excel_file');
 
         try {
-            $data = \Maatwebsite\Excel\Facades\Excel::toArray(new class {}, $file);
+            // Use a plain array import to extract data without requiring a custom import class
+            $data = \Maatwebsite\Excel\Facades\Excel::toArray([], $file);
             $rows = $data[0] ?? [];
 
             if (empty($rows)) {
@@ -177,7 +178,7 @@ class SecurityReportController extends Controller
                 });
 
                 if (! empty($validColumns)) {
-                    $headers = $potentialHeaders;
+                    $headers = $potentialHeaders; // First non-empty row assumed as headers
                     break;
                 }
             }
@@ -255,6 +256,26 @@ class SecurityReportController extends Controller
             'success' => true,
             'message' => "تم استيراد $count سجل بنجاح إلى قاعدة بيانات البلاغات",
             'redirect' => route('system.security-reports.index'),
+        ]);
+    }
+
+    /**
+     * Print single security report.
+     */
+    public function print(SecurityReport $security_report)
+    {
+        return view('system.reports.print', ['report' => $security_report]);
+    }
+
+    /**
+     * Print all security reports listing.
+     */
+    public function printAll(Request $request)
+    {
+        $reports = SecurityReport::all();
+        return view('system.reports.print', [
+            'reports' => $reports,
+            'isList' => true,
         ]);
     }
 }

@@ -1,303 +1,554 @@
 @extends('layouts.app')
 
 @section('title', 'تعديل بيانات الزوجة')
-@section('page_title', 'النظام')
+@section('page_title', 'السجلات الأساسية')
 
 @section('content')
-    <div class="container-fluid mx-auto px-4 py-8" dir="rtl">
-        {{-- رأس الصفحة --}}
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
-            <div class="flex items-center gap-4">
-                <div class="w-16 h-16 bg-amber-500 rounded-3xl shadow-xl shadow-amber-100 flex items-center justify-center text-white">
-                    <i class="fas fa-user-edit text-2xl"></i>
+<div class="max-w-5xl mx-auto space-y-6" dir="rtl">
+    {{-- Header --}}
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+            <h1 class="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-3">
+                <div class="p-2.5 bg-amber-500/10 text-amber-600 dark:text-amber-400 rounded-xl">
+                    <i class="fas fa-edit text-xl"></i>
                 </div>
-                <div>
-                    <h2 class="text-3xl font-extrabold text-slate-800 header-font mb-1">تعديل بيانات الزوجة</h2>
-                    <p class="text-slate-500 text-sm">تحديث معلومات الزوجة: <span class="text-amber-600 font-bold">{{ $wife->name }}</span></p>
-                </div>
-            </div>
+                تعديل بيانات الزوجة
+            </h1>
+            <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                تحديث معلومات الزوجة: <span class="text-brand-600 dark:text-brand-400 font-bold">{{ $wife->name }}</span>
+            </p>
+        </div>
+        <div class="flex items-center gap-3">
             <a href="{{ route('system.wives.show', $wife->id) }}"
-                class="px-6 py-3 bg-white border border-slate-200 text-slate-600 rounded-2xl font-bold hover:bg-slate-50 transition-all shadow-sm flex items-center gap-2">
-                <i class="fas fa-arrow-right"></i> عودة للعرض
+                class="inline-flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 text-sm font-semibold rounded-xl transition-all shadow-sm">
+                <i class="fas fa-eye"></i>
+                عرض الملف
+            </a>
+            <a href="{{ route('system.wives.index') }}"
+                class="inline-flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 text-sm font-semibold rounded-xl transition-all shadow-sm">
+                <i class="fas fa-arrow-right"></i>
+                عودة للقائمة
             </a>
         </div>
+    </div>
 
-        <form action="{{ route('system.wives.update', $wife->id) }}" method="POST">
-            @csrf
-            @method('PUT')
+    @if ($errors->any())
+        <div class="p-4 bg-rose-500/10 border border-rose-500/20 rounded-xl text-rose-600 dark:text-rose-400">
+            <div class="flex items-start gap-3">
+                <i class="fas fa-exclamation-triangle text-lg mt-0.5"></i>
+                <div>
+                    <span class="font-bold block mb-1">يرجى تصحيح الأخطاء التالية:</span>
+                    <ul class="list-disc list-inside text-sm space-y-0.5">
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            </div>
+        </div>
+    @endif
 
-            {{-- البيانات الأساسية --}}
-            <div class="max-w-4xl mx-auto mb-8">
-                <div class="bg-white rounded-[2.5rem] soft-shadow border border-slate-100 overflow-hidden">
-                    <div class="px-8 py-6 border-b border-slate-50 bg-slate-50/50">
-                        <h5 class="text-lg font-bold text-slate-800 header-font flex items-center gap-3">
-                            <span class="w-2 h-6 bg-amber-500 rounded-full"></span>
-                            البيانات الأساسية
-                        </h5>
-                    </div>
-                    <div class="p-8">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            
-                            {{-- اختيار الزوج --}}
-                            <div class="md:col-span-2">
-                                <label class="text-xs font-bold text-slate-400 mb-2 block px-2">الزوج *</label>
-                                <div class="relative">
-                                    <select id="personal_data_id" name="personal_data_id" required 
-                                        class="w-full px-6 py-4 bg-slate-50 border-0 rounded-2xl focus:ring-2 focus:ring-amber-100 transition-all font-bold text-slate-700 appearance-none cursor-pointer @error('personal_data_id') ring-2 ring-rose-100 @enderror">
-                                        <option value="">-- اختر الزوج --</option>
-                                        @foreach($personalDataList as $id => $name)
-                                            <option value="{{ $id }}" {{ (old('personal_data_id') ?? $wife->personal_data_id) == $id ? 'selected' : '' }}>
-                                                {{ $name }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                                @error('personal_data_id')
-                                    <p class="text-rose-500 text-xs mt-2 px-2 font-bold">{{ $message }}</p>
-                                @enderror
+    <form action="{{ route('system.wives.update', $wife->id) }}" method="POST" class="space-y-6">
+        @csrf
+        @method('PUT')
+
+        {{-- Basic Information --}}
+        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm">
+            <h2 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2 mb-6 pb-4 border-b border-slate-100 dark:border-slate-800">
+                <span class="w-2 h-5 bg-amber-500 rounded-full"></span>
+                البيانات الأساسية
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                {{-- Husband Selection --}}
+                <div class="md:col-span-2">
+                    <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-2">الفرد / الزوج <span class="text-rose-500">*</span></label>
+                    <select id="personal_data_id" name="personal_data_id" required
+                        class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-sm font-semibold text-slate-900 dark:text-white focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-all cursor-pointer @error('personal_data_id') border-rose-500 @enderror">
+                        <option value="">-- اختر الزوج --</option>
+                        @foreach($personalDataList as $id => $name)
+                            <option value="{{ $id }}" {{ (old('personal_data_id') ?? $wife->personal_data_id) == $id ? 'selected' : '' }}>
+                                {{ $name }}
+                            </option>
+                        @endforeach
+                    </select>
+                    @error('personal_data_id')
+                        <p class="text-rose-500 text-xs mt-1.5 font-medium">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                {{-- Person Preview --}}
+                <div id="husband_details_container" class="md:col-span-2 hidden">
+                    <div class="bg-slate-50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800 rounded-xl p-5 space-y-4">
+                        {{-- Photo & Main Info Header --}}
+                        <div class="flex items-center gap-3.5 p-2.5 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800">
+                            <div class="w-16 h-16 rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shrink-0 flex items-center justify-center shadow-xs">
+                                <img id="h_photo" src="" alt="الصورة الشخصية" class="w-full h-full object-cover hidden">
+                                <i id="h_photo_placeholder" class="fas fa-user text-slate-400 dark:text-slate-500 text-2xl"></i>
                             </div>
-
-                            {{-- تفاصيل الزوج (تظهر عند الاختيار) --}}
-                            <div id="husband_details_container" class="md:col-span-2 hidden mb-4">
-                                <div class="bg-blue-50 border border-blue-100 rounded-[2rem] p-6 text-sm">
-                                    <h6 class="font-bold text-blue-700 mb-4 flex items-center gap-2">
-                                        <i class="fas fa-info-circle"></i> بيانات الزوج المختار:
-                                    </h6>
-                                    <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                                        <div><span class="text-slate-400">الاسم الجهادي:</span> <span id="h_jihadi_name" class="font-bold text-slate-700 block">-</span></div>
-                                        <div><span class="text-slate-400">الرقم العسكري:</span> <span id="h_military_number" class="font-bold text-slate-700 block">-</span></div>
-                                        <div><span class="text-slate-400">رقم الهوية:</span> <span id="h_national_id" class="font-bold text-slate-700 block">-</span></div>
-                                        <div><span class="text-slate-400">فصيلة الدم:</span> <span id="h_blood_type" class="font-bold text-slate-700 block">-</span></div>
-                                        <div><span class="text-slate-400">تاريخ الميلاد:</span> <span id="h_dob" class="font-bold text-slate-700 block">-</span></div>
-                                        <div><span class="text-slate-400">الحالة الاجتماعية:</span> <span id="h_marital" class="font-bold text-slate-700 block">-</span></div>
-                                        <div class="lg:col-span-2"><span class="text-slate-400">مكان الميلاد:</span> <span id="h_birth_place" class="font-bold text-slate-700 block">-</span></div>
-                                        <div class="lg:col-span-2"><span class="text-slate-400">رقم الهاتف 1:</span> <span id="h_phone1" class="font-bold text-slate-700 block">-</span></div>
-                                        <div class="lg:col-span-2"><span class="text-slate-400">رقم الهاتف 2:</span> <span id="h_phone2" class="font-bold text-slate-700 block">-</span></div>
-                                        <div class="md:col-span-3 lg:col-span-4"><span class="text-slate-400">العنوان:</span> <span id="h_address" class="font-bold text-slate-700 block">-</span></div>
-                                    </div>
-                                </div>
+                            <div class="min-w-0 flex-1">
+                                <h3 class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1 flex items-center gap-1.5">
+                                    <i class="fas fa-info-circle text-brand-600 dark:text-brand-400"></i>
+                                    تفاصيل الفرد المختار (الزوج)
+                                </h3>
+                                <div id="h_person_name" class="font-bold text-slate-800 dark:text-slate-200 text-sm truncate"></div>
+                                <div id="h_person_sub" class="text-xs text-slate-400 dark:text-slate-500 truncate"></div>
                             </div>
+                        </div>
 
-                            {{-- اسم الزوجة --}}
-                            <div class="md:col-span-1">
-                                <label class="text-xs font-bold text-slate-400 mb-2 block px-2">اسم الزوجة *</label>
-                                <input type="text" name="name" required 
-                                    class="w-full px-6 py-4 bg-slate-50 border-0 rounded-2xl focus:ring-2 focus:ring-amber-100 transition-all font-bold text-slate-700 @error('name') ring-2 ring-rose-100 @enderror" 
-                                    placeholder="الاسم الكامل للزوجة..." value="{{ old('name') ?? $wife->name }}">
-                                @error('name')
-                                    <p class="text-rose-500 text-xs mt-2 px-2 font-bold">{{ $message }}</p>
-                                @enderror
+                        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 text-xs">
+                            <div class="bg-white dark:bg-slate-900 p-3 rounded-2xl border border-slate-200 dark:border-slate-800">
+                                <span class="text-slate-400 block mb-0.5">الاسم الجهادي:</span>
+                                <span id="h_jihadi_name" class="font-bold text-slate-800 dark:text-slate-200">-</span>
                             </div>
-
-                            {{-- حالة الزوجة --}}
-                            <div class="md:col-span-1">
-                                <label class="text-xs font-bold text-slate-400 mb-2 block px-2">الحالة *</label>
-                                <select name="status" required 
-                                    class="w-full px-6 py-4 bg-slate-50 border-0 rounded-2xl focus:ring-2 focus:ring-amber-100 transition-all font-bold text-slate-700 appearance-none cursor-pointer">
-                                    <option value="مستمرة" {{ (old('status') ?? $wife->status) == 'مستمرة' ? 'selected' : '' }}>مستمرة</option>
-                                    <option value="متوفية" {{ (old('status') ?? $wife->status) == 'متوفية' ? 'selected' : '' }}>متوفية</option>
-                                    <option value="مطلقة" {{ (old('status') ?? $wife->status) == 'مطلقة' ? 'selected' : '' }}>مطلقة</option>
-                                    <option value="أخرى" {{ (old('status') ?? $wife->status) == 'أخرى' ? 'selected' : '' }}>أخرى</option>
-                                </select>
-                                @error('status')
-                                    <p class="text-rose-500 text-xs mt-2 px-2 font-bold">{{ $message }}</p>
-                                @enderror
+                            <div class="bg-white dark:bg-slate-900 p-3 rounded-2xl border border-slate-200 dark:border-slate-800">
+                                <span class="text-slate-400 block mb-0.5">الرقم العسكري:</span>
+                                <span id="h_military_number" class="font-bold text-slate-800 dark:text-slate-200">-</span>
                             </div>
-
-                            {{-- رقم الهوية --}}
-                            <div class="md:col-span-1">
-                                <label class="text-xs font-bold text-slate-400 mb-2 block px-2">رقم الهوية</label>
-                                <input type="text" name="wife_id_number" 
-                                    class="w-full px-6 py-4 bg-slate-50 border-0 rounded-2xl focus:ring-2 focus:ring-amber-100 transition-all font-bold text-slate-700 font-mono @error('wife_id_number') ring-2 ring-rose-100 @enderror" 
-                                    placeholder="أدخل رقم الهوية" value="{{ old('wife_id_number') ?? $wife->wife_id_number }}">
-                                @error('wife_id_number')
-                                    <p class="text-rose-500 text-xs mt-2 px-2 font-bold">{{ $message }}</p>
-                                @enderror
+                            <div class="bg-white dark:bg-slate-900 p-3 rounded-2xl border border-slate-200 dark:border-slate-800">
+                                <span class="text-slate-400 block mb-0.5">فصيلة الدم:</span>
+                                <span id="h_blood_type" class="font-bold text-rose-600 dark:text-rose-400">-</span>
                             </div>
-
-                            {{-- تاريخ الميلاد --}}
-                            <div class="md:col-span-1">
-                                <label class="text-xs font-bold text-slate-400 mb-2 block px-2">تاريخ الميلاد</label>
-                                <input type="date" name="wife_birth_date" 
-                                    class="w-full px-6 py-4 bg-slate-50 border-0 rounded-2xl focus:ring-2 focus:ring-amber-100 transition-all font-bold text-slate-700 @error('wife_birth_date') ring-2 ring-rose-100 @enderror" 
-                                    value="{{ old('wife_birth_date') ?? $wife->wife_birth_date }}">
-                                @error('wife_birth_date')
-                                    <p class="text-rose-500 text-xs mt-2 px-2 font-bold">{{ $message }}</p>
-                                @enderror
+                            <div class="bg-white dark:bg-slate-900 p-3 rounded-2xl border border-slate-200 dark:border-slate-800">
+                                <span class="text-slate-400 block mb-0.5">تاريخ الميلاد:</span>
+                                <span id="h_dob" class="font-bold text-slate-800 dark:text-slate-200">-</span>
                             </div>
-
-                            {{-- رقم الهاتف --}}
-                            <div class="md:col-span-2">
-                                <label class="text-xs font-bold text-slate-400 mb-2 block px-2">رقم الهاتف</label>
-                                <input type="text" name="wife_phone" 
-                                    class="w-full px-6 py-4 bg-slate-50 border-0 rounded-2xl focus:ring-2 focus:ring-amber-100 transition-all font-bold text-slate-700 font-mono @error('wife_phone') ring-2 ring-rose-100 @enderror" 
-                                    placeholder="أدخل رقم الهاتف" value="{{ old('wife_phone') ?? $wife->wife_phone }}">
-                                @error('wife_phone')
-                                    <p class="text-rose-500 text-xs mt-2 px-2 font-bold">{{ $message }}</p>
-                                @enderror
+                            <div class="bg-white dark:bg-slate-900 p-3 rounded-2xl border border-slate-200 dark:border-slate-800">
+                                <span class="text-slate-400 block mb-0.5">الحالة الاجتماعية:</span>
+                                <span id="h_marital" class="font-bold text-slate-800 dark:text-slate-200">-</span>
+                            </div>
+                            <div class="bg-white dark:bg-slate-900 p-3 rounded-2xl border border-slate-200 dark:border-slate-800">
+                                <span class="text-slate-400 block mb-0.5">مكان الميلاد:</span>
+                                <span id="h_birth_place" class="font-bold text-slate-800 dark:text-slate-200">-</span>
+                            </div>
+                            <div class="bg-white dark:bg-slate-900 p-3 rounded-2xl border border-slate-200 dark:border-slate-800">
+                                <span class="text-slate-400 block mb-0.5">رقم الهوية:</span>
+                                <span id="h_national_id" class="font-bold text-slate-800 dark:text-slate-200">-</span>
+                            </div>
+                            <div class="bg-white dark:bg-slate-900 p-3 rounded-2xl border border-slate-200 dark:border-slate-800">
+                                <span class="text-slate-400 block mb-0.5">هاتف 1:</span>
+                                <span id="h_phone1" class="font-bold text-slate-800 dark:text-slate-200">-</span>
+                            </div>
+                            <div class="bg-white dark:bg-slate-900 p-3 rounded-2xl border border-slate-200 dark:border-slate-800">
+                                <span class="text-slate-400 block mb-0.5">هاتف 2:</span>
+                                <span id="h_phone2" class="font-bold text-slate-800 dark:text-slate-200">-</span>
+                            </div>
+                            <div class="bg-white dark:bg-slate-900 p-3 rounded-2xl border border-slate-200 dark:border-slate-800 sm:col-span-2 md:col-span-3">
+                                <span class="text-slate-400 block mb-0.5">العنوان:</span>
+                                <span id="h_address" class="font-bold text-slate-800 dark:text-slate-200">-</span>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            {{-- معلومات الموقع --}}
-            <div class="max-w-4xl mx-auto mb-8">
-                <div class="bg-white rounded-[2.5rem] soft-shadow border border-slate-100 overflow-hidden">
-                    <div class="px-8 py-6 border-b border-slate-50 bg-slate-50/50">
-                        <h5 class="text-lg font-bold text-slate-800 header-font flex items-center gap-3">
-                            <span class="w-2 h-6 bg-emerald-500 rounded-full"></span>
-                            معلومات الموقع
-                        </h5>
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-2">اسم الزوجة <span class="text-rose-500">*</span></label>
+                    <input type="text" name="name" required
+                        class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-sm font-semibold text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-all @error('name') border-rose-500 @enderror"
+                        placeholder="الاسم الكامل للزوجة..." value="{{ old('name') ?? $wife->name }}">
+                    @error('name')
+                        <p class="text-rose-500 text-xs mt-1.5 font-medium">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-2">الحالة <span class="text-rose-500">*</span></label>
+                    <select name="status" required
+                        class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-sm font-semibold text-slate-900 dark:text-white focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-all cursor-pointer">
+                        <option value="مستمرة" {{ (old('status') ?? $wife->status) == 'مستمرة' ? 'selected' : '' }}>مستمرة</option>
+                        <option value="متوفية" {{ (old('status') ?? $wife->status) == 'متوفية' ? 'selected' : '' }}>متوفية</option>
+                        <option value="مطلقة" {{ (old('status') ?? $wife->status) == 'مطلقة' ? 'selected' : '' }}>مطلقة</option>
+                        <option value="أخرى" {{ (old('status') ?? $wife->status) == 'أخرى' ? 'selected' : '' }}>أخرى</option>
+                    </select>
+                    @error('status')
+                        <p class="text-rose-500 text-xs mt-1.5 font-medium">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-2">رقم الهوية</label>
+                    <input type="text" name="wife_id_number"
+                        class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-sm font-mono font-medium text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-all @error('wife_id_number') border-rose-500 @enderror"
+                        placeholder="أدخل رقم الهوية" value="{{ old('wife_id_number') ?? $wife->wife_id_number }}">
+                    @error('wife_id_number')
+                        <p class="text-rose-500 text-xs mt-1.5 font-medium">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-2">تاريخ الميلاد</label>
+                    <input type="date" name="wife_birth_date"
+                        class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-sm font-medium text-slate-900 dark:text-white focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-all @error('wife_birth_date') border-rose-500 @enderror"
+                        value="{{ old('wife_birth_date') ?? $wife->wife_birth_date }}">
+                    @error('wife_birth_date')
+                        <p class="text-rose-500 text-xs mt-1.5 font-medium">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div class="md:col-span-2">
+                    <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-2">رقم الهاتف</label>
+                    <input type="text" name="wife_phone"
+                        class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-sm font-mono font-medium text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-all @error('wife_phone') border-rose-500 @enderror"
+                        placeholder="أدخل رقم الهاتف" value="{{ old('wife_phone') ?? $wife->wife_phone }}">
+                    @error('wife_phone')
+                        <p class="text-rose-500 text-xs mt-1.5 font-medium">{{ $message }}</p>
+                    @enderror
+                </div>
+            </div>
+        </div>
+
+        {{-- Geographic Information --}}
+        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm">
+            <h2 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2 mb-6 pb-4 border-b border-slate-100 dark:border-slate-800">
+                <span class="w-2 h-5 bg-emerald-500 rounded-full"></span>
+                معلومات الموقع الجغرافي
+            </h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-2">المحافظة</label>
+                    <select id="governorate_id" name="governorate_id"
+                        class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-sm font-semibold text-slate-900 dark:text-white focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-all cursor-pointer">
+                        <option value="">-- اختر المحافظة --</option>
+                        @foreach($governorates as $id => $name)
+                            <option value="{{ $id }}" {{ (old('governorate_id') ?? $wife->governorate_id) == $id ? 'selected' : '' }}>{{ $name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-2">المديرية</label>
+                    <select id="directorate_id" name="directorate_id" data-selected="{{ old('directorate_id') ?? $wife->directorate_id }}"
+                        class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-sm font-semibold text-slate-900 dark:text-white focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-all cursor-pointer">
+                        <option value="">-- اختر المديرية --</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-2">العزلة / المنطقة</label>
+                    <select id="sub_area_id" name="sub_area_id" data-selected="{{ old('sub_area_id') ?? $wife->sub_area_id }}"
+                        class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-sm font-semibold text-slate-900 dark:text-white focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-all cursor-pointer">
+                        <option value="">-- اختر المنطقة --</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-2">القرية / الحي</label>
+                    <select id="village_id" name="village_id" data-selected="{{ old('village_id') ?? $wife->village_id }}"
+                        class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-sm font-semibold text-slate-900 dark:text-white focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-all cursor-pointer">
+                        <option value="">-- اختر القرية / الحي --</option>
+                    </select>
+                </div>
+        </div>
+
+        {{-- Add New Wives (Optional) --}}
+        <div class="mt-8 pt-8 border-t border-slate-200 dark:border-slate-800">
+            <h2 class="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2 mb-6">
+                <span class="w-2 h-6 bg-emerald-500 rounded-full"></span>
+                إضافة زوجات أخرى (اختياري)
+            </h2>
+            <div id="new-wives-container" class="space-y-6">
+                {{-- Templates will be appended here --}}
+            </div>
+            
+            <div class="flex justify-center mt-6">
+                <button type="button" id="add-new-wife-btn"
+                    class="inline-flex items-center gap-2 px-6 py-3 bg-brand-50 hover:bg-brand-100 text-brand-700 dark:bg-brand-500/10 dark:hover:bg-brand-500/20 dark:text-brand-400 rounded-2xl text-sm font-bold border border-brand-200 dark:border-brand-500/20 transition-all border-dashed hover:border-solid">
+                    <i class="fas fa-plus"></i>
+                    إضافة زوجة جديدة
+                </button>
+            </div>
+        </div>
+        
+        {{-- Template for New Wife --}}
+        <template id="new-wife-template">
+            <div class="wife-entry bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm relative transition-all">
+                <div class="p-6">
+                    <div class="flex justify-between items-center mb-6 pb-4 border-b border-slate-100 dark:border-slate-800">
+                        <h2 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                            <span class="w-2 h-5 bg-brand-500 rounded-full"></span>
+                            بيانات الزوجة <span class="wife-counter text-brand-600 dark:text-brand-400">#</span>
+                        </h2>
+                        <button type="button" class="remove-wife-btn text-rose-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950 p-2 rounded-xl text-sm transition-colors flex items-center gap-2">
+                            <i class="fas fa-trash-alt"></i> إزالة
+                        </button>
                     </div>
-                    <div class="p-8">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            {{-- المحافظة --}}
-                            <div class="md:col-span-1">
-                                <label class="text-xs font-bold text-slate-400 mb-2 block px-2">المحافظة</label>
-                                <select id="governorate_id" name="governorate_id" 
-                                    class="w-full px-6 py-4 bg-slate-50 border-0 rounded-2xl focus:ring-2 focus:ring-emerald-100 transition-all font-bold text-slate-700 appearance-none cursor-pointer">
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-2">اسم الزوجة <span class="text-rose-500">*</span></label>
+                            <input type="text" name="new_wives[INDEX][name]" required
+                                class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-sm font-semibold text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-all"
+                                placeholder="الاسم الكامل للزوجة...">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-2">الحالة <span class="text-rose-500">*</span></label>
+                            <select name="new_wives[INDEX][status]" required
+                                class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-sm font-semibold text-slate-900 dark:text-white focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-all cursor-pointer">
+                                <option value="مستمرة">مستمرة</option>
+                                <option value="متوفية">متوفية</option>
+                                <option value="مطلقة">مطلقة</option>
+                                <option value="أخرى">أخرى</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-2">رقم الهوية</label>
+                            <input type="text" name="new_wives[INDEX][wife_id_number]"
+                                class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-sm font-mono font-medium text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-all"
+                                placeholder="أدخل رقم الهوية">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-2">تاريخ الميلاد</label>
+                            <input type="date" name="new_wives[INDEX][wife_birth_date]"
+                                class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-sm font-medium text-slate-900 dark:text-white focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-all">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-2">رقم الهاتف</label>
+                            <input type="text" name="new_wives[INDEX][wife_phone]"
+                                class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-sm font-mono font-medium text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-all"
+                                placeholder="أدخل رقم الهاتف">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-2">العنوان التفصيلي</label>
+                            <input type="text" name="new_wives[INDEX][wife_address]"
+                                class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-all"
+                                placeholder="العنوان...">
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-50/50 dark:bg-slate-950/30 rounded-xl p-4 border border-slate-100 dark:border-slate-800">
+                        <h3 class="text-sm font-bold text-slate-700 dark:text-slate-300 mb-4 flex items-center gap-2"><i class="fas fa-map-marker-alt text-emerald-500"></i> معلومات الموقع الجغرافي</h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+                            <div>
+                                <label class="block text-[10px] uppercase tracking-wider font-bold text-slate-500 mb-1.5">المحافظة</label>
+                                <select name="new_wives[INDEX][governorate_id]" class="gov-select w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-semibold focus:ring-1 focus:ring-emerald-500 transition-all cursor-pointer">
                                     <option value="">-- اختر المحافظة --</option>
                                     @foreach($governorates as $id => $name)
-                                        <option value="{{ $id }}" {{ (old('governorate_id') ?? $wife->governorate_id) == $id ? 'selected' : '' }}>{{ $name }}</option>
+                                        <option value="{{ $id }}">{{ $name }}</option>
                                     @endforeach
                                 </select>
                             </div>
-
-                            {{-- المديرية --}}
-                            <div class="md:col-span-1">
-                                <label class="text-xs font-bold text-slate-400 mb-2 block px-2">المديرية</label>
-                                <select id="directorate_id" name="directorate_id" data-selected="{{ old('directorate_id') ?? $wife->directorate_id }}"
-                                    class="w-full px-6 py-4 bg-slate-50 border-0 rounded-2xl focus:ring-2 focus:ring-emerald-100 transition-all font-bold text-slate-700 appearance-none cursor-pointer">
+                            <div>
+                                <label class="block text-[10px] uppercase tracking-wider font-bold text-slate-500 mb-1.5">المديرية</label>
+                                <select name="new_wives[INDEX][directorate_id]" class="dir-select w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-semibold focus:ring-1 focus:ring-emerald-500 transition-all cursor-pointer">
                                     <option value="">-- اختر المديرية --</option>
                                 </select>
                             </div>
-
-                            {{-- المنطقة الفرعية --}}
-                            <div class="md:col-span-1">
-                                <label class="text-xs font-bold text-slate-400 mb-2 block px-2">العزلة / المنطقة</label>
-                                <select id="sub_area_id" name="sub_area_id" data-selected="{{ old('sub_area_id') ?? $wife->sub_area_id }}"
-                                    class="w-full px-6 py-4 bg-slate-50 border-0 rounded-2xl focus:ring-2 focus:ring-emerald-100 transition-all font-bold text-slate-700 appearance-none cursor-pointer">
+                            <div>
+                                <label class="block text-[10px] uppercase tracking-wider font-bold text-slate-500 mb-1.5">المنطقة</label>
+                                <select name="new_wives[INDEX][sub_area_id]" class="sub-select w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-semibold focus:ring-1 focus:ring-emerald-500 transition-all cursor-pointer">
                                     <option value="">-- اختر المنطقة --</option>
                                 </select>
                             </div>
-
-                            {{-- القرية --}}
-                            <div class="md:col-span-1">
-                                <label class="text-xs font-bold text-slate-400 mb-2 block px-2">القرية / الحي</label>
-                                <select id="village_id" name="village_id" data-selected="{{ old('village_id') ?? $wife->village_id }}"
-                                    class="w-full px-6 py-4 bg-slate-50 border-0 rounded-2xl focus:ring-2 focus:ring-emerald-100 transition-all font-bold text-slate-700 appearance-none cursor-pointer">
-                                    <option value="">-- اختر القرية / الحي --</option>
+                            <div>
+                                <label class="block text-[10px] uppercase tracking-wider font-bold text-slate-500 mb-1.5">القرية</label>
+                                <select name="new_wives[INDEX][village_id]" class="vil-select w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-semibold focus:ring-1 focus:ring-emerald-500 transition-all cursor-pointer">
+                                    <option value="">-- اختر القرية --</option>
                                 </select>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
+        </template>
 
-            {{-- أزرار الإجراءات --}}
-            <div class="max-w-4xl mx-auto mb-10 flex items-center justify-end gap-4">
-                <a href="{{ route('system.wives.show', $wife->id) }}" class="px-8 py-3 text-slate-400 font-bold hover:text-slate-600 transition-colors">إلغاء</a>
-                <button type="submit" class="px-10 py-4 bg-amber-500 text-white rounded-[2rem] font-bold hover:bg-amber-600 transition-all shadow-xl shadow-amber-100 flex items-center gap-2">
-                    <i class="fas fa-check-circle"></i> حفظ التعديلات
-                </button>
-            </div>
-        </form>
-    </div>
+        {{-- Form Actions --}}
+        <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-200 dark:border-slate-800">
+            <a href="{{ route('system.wives.show', $wife->id) }}"
+                class="px-5 py-2.5 text-sm font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:text-slate-200 dark:hover:text-slate-200 transition-colors">
+                إلغاء
+            </a>
+            <button type="submit"
+                class="inline-flex items-center gap-2 px-6 py-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-sm font-semibold shadow-sm hover:shadow transition-all">
+                <i class="fas fa-check"></i>
+                حفظ التعديلات
+            </button>
+        </div>
+    </form>
+</div>
 
-    <script src="{{ asset('vendor/jquery/jquery.min.js') }}"></script>
-    <script>
-        $(document).ready(function () {
-            const husbandSelect = $('#personal_data_id');
-            const husbandContainer = $('#husband_details_container');
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const husbandSelect = document.getElementById('personal_data_id');
+        const husbandContainer = document.getElementById('husband_details_container');
 
-            // Husband details retrieval
-            husbandSelect.on('change', function () {
-                const husbandId = $(this).val();
+        if (husbandSelect) {
+            husbandSelect.addEventListener('change', function () {
+                const husbandId = this.value;
                 if (!husbandId) {
-                    husbandContainer.addClass('hidden');
+                    husbandContainer.classList.add('hidden');
                     return;
                 }
 
                 fetch(`/system/wives/person-details/${husbandId}`)
                     .then(res => res.json())
                     .then(data => {
-                        $('#h_jihadi_name').text(data.jihadi_name || 'غير متوفر');
-                        $('#h_military_number').text(data.military_number || 'غير متوفر');
-                        $('#h_national_id').text(data.national_id_number || 'غير متوفر');
-                        $('#h_blood_type').text(data.blood_type || 'غير متوفر');
-                        $('#h_dob').text(data.date_of_birth || 'غير متوفر');
-                        $('#h_marital').text(data.marital_status || 'غير متوفر');
-                        $('#h_birth_place').text(data.place_of_birth || 'غير متوفر');
-                        $('#h_phone1').text(data.phone_1 || 'غير متوفر');
-                        $('#h_phone2').text(data.phone_2 || 'غير متوفر');
-                        $('#h_address').text(data.address || 'غير متوفر');
+                        const photoEl = document.getElementById('h_photo');
+                        const placeholderEl = document.getElementById('h_photo_placeholder');
+                        if (data.photo_url) {
+                            photoEl.src = data.photo_url;
+                            photoEl.classList.remove('hidden');
+                            placeholderEl.classList.add('hidden');
+                        } else {
+                            photoEl.src = '';
+                            photoEl.classList.add('hidden');
+                            placeholderEl.classList.remove('hidden');
+                        }
+
+                        document.getElementById('h_person_name').textContent = data.name || '-';
+                        document.getElementById('h_person_sub').textContent = (data.military_number && data.military_number !== '-' ? 'الرقم العسكري: ' + data.military_number : '') + (data.jihadi_name && data.jihadi_name !== '-' ? ' | ' + data.jihadi_name : '');
+                        document.getElementById('h_jihadi_name').textContent = data.jihadi_name || '-';
+                        document.getElementById('h_military_number').textContent = data.military_number || '-';
+                        document.getElementById('h_national_id').textContent = data.national_id_number || '-';
+                        document.getElementById('h_blood_type').textContent = data.blood_type || '-';
+                        document.getElementById('h_dob').textContent = data.date_of_birth || '-';
+                        document.getElementById('h_marital').textContent = data.marital_status || '-';
+                        document.getElementById('h_birth_place').textContent = data.place_of_birth || '-';
+                        document.getElementById('h_phone1').textContent = data.phone_1 || '-';
+                        document.getElementById('h_phone2').textContent = data.phone_2 || '-';
+                        document.getElementById('h_address').textContent = data.address || '-';
                         
-                        husbandContainer.removeClass('hidden');
+                        husbandContainer.classList.remove('hidden');
                     })
                     .catch(err => {
                         console.error('Error fetching husband details:', err);
-                        husbandContainer.addClass('hidden');
+                        husbandContainer.classList.add('hidden');
                     });
             });
 
-            // Trigger husband details if pre-selected
-            if (husbandSelect.val()) {
-                husbandSelect.trigger('change');
+            if (husbandSelect.value) {
+                husbandSelect.dispatchEvent(new Event('change'));
             }
+        }
 
-            // Robust Cascading
-            function robustCascading(govId, dirId, subId, vilId) {
-                const $gov = $(`#${govId}`);
-                const $dir = $(`#${dirId}`);
-                const $sub = $(`#${subId}`);
-                const $vil = $(`#${vilId}`);
+        // Robust Cascading
+        const govEl = document.getElementById('governorate_id');
+        const dirEl = document.getElementById('directorate_id');
+        const subEl = document.getElementById('sub_area_id');
+        const vilEl = document.getElementById('village_id');
 
-                const load = (url, $el, placeholder, nextSelected) => {
+        const load = (url, targetEl, placeholder, nextSelected) => {
+            return fetch(url).then(r => r.json()).then(data => {
+                targetEl.innerHTML = `<option value="">${placeholder}</option>`;
+                Object.keys(data).forEach(id => {
+                    const opt = document.createElement('option');
+                    opt.value = id;
+                    opt.textContent = data[id];
+                    if (id == nextSelected) opt.selected = true;
+                    targetEl.appendChild(opt);
+                });
+            });
+        };
+
+        if (govEl) {
+            govEl.addEventListener('change', function() {
+                const id = this.value;
+                if (!id) return;
+                dirEl.innerHTML = '<option>جاري التحميل...</option>';
+                load(`/api/geo/directorates/${id}`, dirEl, '-- اختر المديرية --').then(() => dirEl.dispatchEvent(new Event('change')));
+            });
+
+            dirEl.addEventListener('change', function() {
+                const id = this.value;
+                if (!id) { subEl.innerHTML = '<option value="">-- اختر المنطقة --</option>'; return; }
+                subEl.innerHTML = '<option>جاري التحميل...</option>';
+                load(`/api/geo/sub-areas/${id}`, subEl, '-- اختر المنطقة --').then(() => subEl.dispatchEvent(new Event('change')));
+            });
+
+            subEl.addEventListener('change', function() {
+                const id = this.value;
+                if (!id) { vilEl.innerHTML = '<option value="">-- اختر القرية --</option>'; return; }
+                vilEl.innerHTML = '<option>جاري التحميل...</option>';
+                load(`/api/geo/villages/${id}`, vilEl, '-- اختر القرية --');
+            });
+
+            if (govEl.value) {
+                const dSel = dirEl.getAttribute('data-selected');
+                const sSel = subEl.getAttribute('data-selected');
+                const vSel = vilEl.getAttribute('data-selected');
+                
+                load(`/api/geo/directorates/${govEl.value}`, dirEl, '-- اختر المديرية --', dSel).then(() => {
+                    if (dSel) return load(`/api/geo/sub-areas/${dSel}`, subEl, '-- اختر المنطقة --', sSel);
+                }).then(() => {
+                    if (sSel) return load(`/api/geo/villages/${sSel}`, vilEl, '-- اختر القرية --', vSel);
+                });
+            }
+        }
+
+        // --- Dynamic New Wives Form ---
+        const newWivesContainer = document.getElementById('new-wives-container');
+        const addNewWifeBtn = document.getElementById('add-new-wife-btn');
+        const template = document.getElementById('new-wife-template');
+        let newWifeIndex = 0;
+
+        if (addNewWifeBtn && template) {
+            addNewWifeBtn.addEventListener('click', function() {
+                const clone = template.content.cloneNode(true);
+                const entry = clone.querySelector('.wife-entry');
+                
+                // Replace INDEX placeholder
+                entry.innerHTML = entry.innerHTML.replace(/INDEX/g, newWifeIndex);
+                entry.querySelector('.wife-counter').textContent = `#${newWifeIndex + 1}`;
+                
+                newWivesContainer.appendChild(clone);
+                newWifeIndex++;
+            });
+
+            newWivesContainer.addEventListener('click', function(e) {
+                const removeBtn = e.target.closest('.remove-wife-btn');
+                if (removeBtn) {
+                    const entry = removeBtn.closest('.wife-entry');
+                    entry.remove();
+                    
+                    // Re-index counters (display only, hidden names stay as they are to avoid re-rendering)
+                    newWivesContainer.querySelectorAll('.wife-entry').forEach((el, index) => {
+                        el.querySelector('.wife-counter').textContent = `#${index + 1}`;
+                    });
+                }
+            });
+
+            // Event Delegation for Cascading Geography in Dynamic Entries
+            newWivesContainer.addEventListener('change', function(e) {
+                const target = e.target;
+                const entry = target.closest('.wife-entry');
+                if (!entry) return;
+
+                const dirEl = entry.querySelector('.dir-select');
+                const subEl = entry.querySelector('.sub-select');
+                const vilEl = entry.querySelector('.vil-select');
+
+                const loadOptions = (url, tgt, placeholder) => {
+                    tgt.disabled = true;
+                    tgt.innerHTML = '<option>جاري التحميل...</option>';
                     return fetch(url).then(r => r.json()).then(data => {
-                        $el.html(`<option value="">${placeholder}</option>`);
+                        tgt.innerHTML = `<option value="">${placeholder}</option>`;
                         Object.keys(data).forEach(id => {
-                            $el.append(`<option value="${id}" ${id == nextSelected ? 'selected' : ''}>${data[id]}</option>`);
+                            const opt = document.createElement('option');
+                            opt.value = id;
+                            opt.textContent = data[id];
+                            tgt.appendChild(opt);
                         });
+                        tgt.disabled = false;
                     });
                 };
 
-                $gov.on('change', function() {
-                    const id = $(this).val();
-                    if (!id) return;
-                    $dir.html('<option>جاري التحميل...</option>');
-                    load(`/api/geo/directorates/${id}`, $dir, '-- اختر المديرية --').then(() => $dir.trigger('change'));
-                });
-
-                $dir.on('change', function() {
-                    const id = $(this).val();
-                    if (!id) { $sub.html('<option value="">-- اختر المنطقة --</option>'); return; }
-                    $sub.html('<option>جاري التحميل...</option>');
-                    load(`/api/geo/sub-areas/${id}`, $sub, '-- اختر المنطقة --').then(() => $sub.trigger('change'));
-                });
-
-                $sub.on('change', function() {
-                    const id = $(this).val();
-                    if (!id) { $vil.html('<option value="">-- اختر القرية --</option>'); return; }
-                    $vil.html('<option>جاري التحميل...</option>');
-                    load(`/api/geo/villages/${id}`, $vil, '-- اختر القرية --');
-                });
-
-                // Initial load for edit
-                if ($gov.val()) {
-                    const dSel = $dir.data('selected');
-                    const sSel = $sub.data('selected');
-                    const vSel = $vil.data('selected');
-                    
-                    load(`/api/geo/directorates/${$gov.val()}`, $dir, '-- اختر المديرية --', dSel).then(() => {
-                        if (dSel) return load(`/api/geo/sub-areas/${dSel}`, $sub, '-- اختر المنطقة --', sSel);
-                    }).then(() => {
-                        if (sSel) return load(`/api/geo/villages/${sSel}`, $vil, '-- اختر القرية --', vSel);
-                    });
+                if (target.classList.contains('gov-select')) {
+                    const id = target.value;
+                    if(dirEl) dirEl.innerHTML = '<option value="">-- اختر المديرية --</option>';
+                    if(subEl) subEl.innerHTML = '<option value="">-- اختر المنطقة --</option>';
+                    if(vilEl) vilEl.innerHTML = '<option value="">-- اختر القرية --</option>';
+                    if (id) loadOptions(`/api/geo/directorates/${id}`, dirEl, '-- اختر المديرية --');
+                } else if (target.classList.contains('dir-select')) {
+                    const id = target.value;
+                    if(subEl) subEl.innerHTML = '<option value="">-- اختر المنطقة --</option>';
+                    if(vilEl) vilEl.innerHTML = '<option value="">-- اختر القرية --</option>';
+                    if (id) loadOptions(`/api/geo/sub-areas/${id}`, subEl, '-- اختر المنطقة --');
+                } else if (target.classList.contains('sub-select')) {
+                    const id = target.value;
+                    if(vilEl) vilEl.innerHTML = '<option value="">-- اختر القرية --</option>';
+                    if (id) loadOptions(`/api/geo/villages/${id}`, vilEl, '-- اختر القرية --');
                 }
-            }
-            
-            robustCascading('governorate_id', 'directorate_id', 'sub_area_id', 'village_id');
-        });
-    </script>
+            });
+        }
+    });
+</script>
 @endsection
+

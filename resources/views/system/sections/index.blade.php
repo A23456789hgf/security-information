@@ -4,15 +4,15 @@
 @section('page_title', 'إدارة النظام')
 
 @section('content')
-<div class="container-fluid mx-auto px-4 py-8" dir="rtl">
+<div class="space-y-6" dir="rtl">
     {{-- رأس الصفحة مع الإحصائيات --}}
-    <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
+    <div class="flex flex-col md:flex-flex flex-wrap gap-4 md:items-center justify-between gap-6 mb-10">
         <div class="flex items-center gap-4">
-            <div class="w-16 h-16 bg-blue-600 rounded-3xl shadow-xl shadow-blue-100 flex items-center justify-center text-white">
+            <div class="w-16 h-16 bg-brand-600 rounded-3xl shadow-xl shadow-blue-100 flex items-center justify-center text-white">
                 <i class="fas fa-layer-group text-2xl"></i>
             </div>
             <div>
-                <h2 class="text-3xl font-extrabold text-slate-800 header-font mb-1">الأقسام الإدارية</h2>
+                <h2 class="font-display font-bold text-2xl text-slate-900 dark:text-white m-0">الأقسام الإدارية</h2>
                 <p class="text-slate-500 text-sm flex items-center gap-2">
                     <i class="fas fa-database text-slate-400"></i> إجمالي الأقسام:
                     <span class="text-slate-700 font-bold">{{ $sections->count() }}</span>
@@ -20,8 +20,9 @@
             </div>
         </div>
         <div class="flex flex-wrap gap-3">
+            <x-print-button :url="route('system.sections.print')" text="طباعة الكشف" />
             <a href="{{ route('system.sections.create') }}"
-                class="px-6 py-3 bg-blue-600 text-white rounded-2xl font-bold hover:bg-blue-700 transition-all shadow-xl shadow-blue-100 flex items-center gap-2 text-sm">
+                class="px-4 py-2.5 bg-brand-600 text-white rounded-xl font-bold hover:bg-brand-700 transition-all shadow-sm shadow-brand-500/30 text-xs sm:text-sm flex items-center gap-2 text-sm">
                 <i class="fas fa-plus-circle"></i> إضافة قسم جديد
             </a>
         </div>
@@ -41,48 +42,48 @@
     @endif
 
     {{-- جدول البيانات --}}
-    <div class="bg-white rounded-[2.5rem] soft-shadow border border-slate-100 overflow-hidden">
+    <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden transition-colors">
         <div class="overflow-x-auto">
             <table class="w-full text-right border-collapse">
                 <thead>
-                    <tr class="bg-slate-50/50 border-b border-slate-100">
-                        <th class="px-8 py-6 text-slate-400 font-bold uppercase tracking-widest text-[10px]" style="width: 80px;">الترتيب</th>
-                        <th class="px-6 py-6 text-slate-400 font-bold uppercase tracking-widest text-[10px]">القسم</th>
-                        <th class="px-6 py-6 text-slate-400 font-bold uppercase tracking-widest text-[10px]">الأيقونة</th>
-                        <th class="px-6 py-6 text-slate-400 font-bold uppercase tracking-widest text-[10px] text-center">الصفحات التابعة</th>
-                        <th class="px-6 py-6 text-slate-400 font-bold uppercase tracking-widest text-[10px] text-center">الحالة</th>
-                        <th class="px-8 py-6 text-slate-400 font-bold uppercase tracking-widest text-[10px] text-left">الإجراءات</th>
+                    <tr class="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800">
+                        <th class="px-8 py-6 text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider text-xs" style="width: 80px;">الترتيب</th>
+                        <th class="px-6 py-6 text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider text-xs">القسم</th>
+                        <th class="px-6 py-6 text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider text-xs">الأيقونة</th>
+                        <th class="px-6 py-6 text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider text-xs text-center">الصفحات التابعة</th>
+                        <th class="px-6 py-6 text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider text-xs text-center">الحالة</th>
+                        <th class="px-8 py-6 text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider text-xs text-left">الإجراءات</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-50">
+                <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
                     @forelse($sections as $section)
-                        <tr class="group hover:bg-slate-50/30 transition-colors">
+                        <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/25 transition-colors">
                             <td class="px-8 py-5">
-                                <span class="w-8 h-8 rounded-lg bg-slate-100 border border-slate-200 text-slate-700 font-bold text-xs flex items-center justify-center">
+                                <span class="w-8 h-8 rounded-2xl bg-slate-100 border border-slate-200 text-slate-700 font-bold text-xs flex items-center justify-center">
                                     {{ $section->order_column }}
                                 </span>
                             </td>
                             <td class="px-6 py-5">
-                                <span class="font-bold text-slate-800 block">{{ $section->name }}</span>
+                                <span class="font-bold text-slate-800 dark:text-slate-200 block">{{ $section->name }}</span>
                                 <span class="text-[10px] text-slate-400 font-mono">{{ $section->slug }}</span>
                             </td>
                             <td class="px-6 py-5">
-                                <div class="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center border border-blue-100">
+                                <div class="w-10 h-10 bg-soft-primary rounded-xl flex items-center justify-center border border-brand-100">
                                     <i class="fas {{ $section->icon }} text-base"></i>
                                 </div>
                             </td>
                             <td class="px-6 py-5 text-center">
-                                <span class="px-3 py-1 bg-blue-50 text-blue-700 rounded-lg text-xs font-bold border border-blue-100">
+                                <span class="px-3 py-1 bg-soft-primary rounded-2xl text-xs font-bold border border-brand-100">
                                     {{ $section->pages_count }} صفحة
                                 </span>
                             </td>
                             <td class="px-6 py-5 text-center">
                                 @if($section->is_active)
-                                    <span class="px-3 py-1 bg-emerald-50 text-emerald-700 rounded-lg text-[10px] font-bold border border-emerald-100 inline-flex items-center gap-1">
+                                    <span class="px-3 py-1 bg-emerald-50 text-emerald-700 rounded-2xl text-[10px] font-bold border border-emerald-100 inline-flex items-center gap-1">
                                         <i class="fas fa-check-circle text-[8px]"></i> نشط
                                     </span>
                                 @else
-                                    <span class="px-3 py-1 bg-rose-50 text-rose-700 rounded-lg text-[10px] font-bold border border-rose-100 inline-flex items-center gap-1">
+                                    <span class="px-3 py-1 bg-rose-50 text-rose-700 rounded-2xl text-[10px] font-bold border border-rose-100 inline-flex items-center gap-1">
                                         <i class="fas fa-times-circle text-[8px]"></i> متوقف
                                     </span>
                                 @endif
@@ -116,3 +117,5 @@
     </div>
 </div>
 @endsection
+
+

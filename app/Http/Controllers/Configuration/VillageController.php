@@ -61,6 +61,9 @@ class VillageController extends BaseConfigurationController
             'directorate_id' => 'required|exists:directorates,id',
             'sub_area_id' => 'required|exists:sub_areas,id',
             'name' => 'required|string|max:255|unique:villages,name,NULL,id,sub_area_id,'.$request->sub_area_id,
+        ], [
+            'name.unique' => 'اسم القرية/القرية الفرعية مسجل مسبقاً في هذه العزلة ولا يمكن تكراره.',
+            'name.required' => 'اسم القرية مطلوب.',
         ]);
 
         Village::create($request->all());
@@ -86,6 +89,9 @@ class VillageController extends BaseConfigurationController
             'directorate_id' => 'required|exists:directorates,id',
             'sub_area_id' => 'required|exists:sub_areas,id',
             'name' => 'required|string|max:255|unique:villages,name,'.$id.',id,sub_area_id,'.$request->sub_area_id,
+        ], [
+            'name.unique' => 'اسم القرية/القرية الفرعية مسجل مسبقاً في هذه العزلة ولا يمكن تكراره.',
+            'name.required' => 'اسم القرية مطلوب.',
         ]);
 
         $village->update($request->all());

@@ -6,408 +6,474 @@
 <style>
     @font-face { font-family: 'Cairo'; font-display: swap; src: local('Cairo'), local('Segoe UI'); }
     @font-face { font-family: 'Tajawal'; font-display: swap; src: local('Tajawal'), local('Segoe UI'); }
-
+    
+    @page { size: A4 portrait; margin: 0; }
+    
     body {
-        font-family: 'Tajawal', 'Cairo', 'Tahoma', sans-serif;
-        direction: rtl;
-        background: white;
-        padding: 0;
         margin: 0;
-        line-height: 1.6;
-        font-size: 14px;
-        color: #333;
+        padding: 0;
+        background-color: #f1f5f9;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
     }
-    
-    .print-page {
-        padding: 1cm 1.5cm;
+
+    .printable-area {
+        width: 210mm;
+        min-height: 297mm;
+        padding: 14mm 15mm;
+        margin: 0 auto;
         background: white;
-        min-height: 29.7cm; /* A4 height */
+        box-sizing: border-box;
+        font-family: 'Cairo', 'Tajawal', sans-serif;
+        direction: rtl;
+        position: relative;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
     }
     
-    .official-header {
-        border-bottom: 2px solid #1a2a3a;
-        padding-bottom: 15px;
-        margin-bottom: 25px;
+    @media print {
+        body { background-color: white; }
+        .printable-area {
+            box-shadow: none;
+            width: 100%;
+            height: auto;
+            min-height: auto;
+            padding: 0;
+            margin: 0;
+        }
+        .no-print { display: none !important; }
+        .page-break { page-break-before: always; }
+    }
+
+    /* Custom Table Styles matching React prototype */
+    .card-section {
+        border: 1.5px solid #cbd5e1;
+        border-radius: 0.5rem;
+        overflow: hidden;
+        margin-bottom: 10px;
+        background: white;
+        page-break-inside: avoid;
+    }
+    .card-header {
+        background-color: #f0f4f8;
+        border-bottom: 1.5px solid #cbd5e1;
+        padding: 6px 12px;
         display: flex;
         justify-content: space-between;
         align-items: center;
     }
-    
-    .header-logo {
-        text-align: center;
-        width: 180px;
-    }
-    
-    .header-title {
-        text-align: center;
-        flex: 1;
-    }
-    
-    .header-info {
-        text-align: right;
-        width: 180px;
-        font-size: 11px;
-    }
-    
-    .report-main-title {
-        font-family: 'Cairo', sans-serif;
-        font-size: 26px;
-        font-weight: 900;
-        margin: 5px 0;
-        color: #1a2a3a;
-    }
-    
-    .section-card {
-        border: 1px solid #d1d5db;
-        border-radius: 8px;
-        margin-bottom: 20px;
-        overflow: hidden;
-        page-break-inside: avoid;
-    }
-    
-    .section-header {
-        background-color: #f3f4f6;
-        padding: 8px 15px;
-        border-bottom: 1px solid #d1d5db;
-        font-weight: 800;
-        font-size: 15px;
-        color: #111827;
+    .card-header-title {
         display: flex;
         align-items: center;
-        gap: 10px;
-    }
-    
-    .section-header i {
-        color: #2563eb;
-        width: 20px;
-        text-align: center;
-    }
-    
-    .section-body {
-        padding: 15px;
-    }
-    
-    .info-table {
-        width: 100%;
-        border-collapse: collapse;
-    }
-    
-    .info-table th, .info-table td {
-        padding: 8px 12px;
-        border: 1px solid #e5e7eb;
-        text-align: right;
-    }
-    
-    .info-table th {
-        background-color: #f9fafb;
-        color: #4b5563;
-        font-weight: 700;
-        width: 20%;
-    }
-    
-    .info-table td {
-        background-color: #fff;
-    }
-
-    .data-table {
-        width: 100%;
-        border-collapse: collapse;
+        gap: 6px;
         font-size: 12px;
-    }
-    
-    .data-table th, .data-table td {
-        border: 1px solid #d1d5db;
-        padding: 6px 8px;
-        text-align: center;
-    }
-    
-    .data-table th {
-        background-color: #f3f4f6;
         font-weight: 800;
-        color: #374151;
+        color: #0f2942;
     }
-
-    /* صوره شخصية */
-    .profile-photo-container {
-        float: left;
-        width: 130px;
-        height: 160px;
-        border: 1px solid #1a2a3a;
-        padding: 2px;
-        margin-right: 15px;
-        background: #fff;
+    .card-header-title i {
+        color: #dc2626;
+        font-size: 12px;
+        width: 16px;
+        text-align: center;
     }
-
-    .profile-photo {
+    .card-badge {
+        font-size: 9px;
+        font-weight: 700;
+        color: #475569;
+        background-color: #ffffff;
+        padding: 2px 6px;
+        border-radius: 4px;
+        border: 1px solid #cbd5e1;
+    }
+    
+    .card-table {
         width: 100%;
-        height: 100%;
-        object-fit: cover;
+        border-collapse: collapse;
+        font-size: 10.5px;
     }
-
-    .watermark {
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%) rotate(-45deg);
-        font-size: 100px;
-        color: rgba(0,0,0,0.02);
-        z-index: -1;
-        pointer-events: none;
-        white-space: nowrap;
-        font-weight: 900;
+    .card-table th {
+        background-color: #f8fafc;
+        color: #475569;
+        font-weight: 700;
+        padding: 6px 8px;
+        text-align: right;
+        border-left: 1px solid #e2e8f0;
+        border-bottom: 1px solid #e2e8f0;
     }
-
-    .attachment-grid {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 10px;
+    .card-table td {
+        padding: 6px 8px;
+        color: #1e293b;
+        font-weight: 600;
+        border-bottom: 1px solid #e2e8f0;
+        border-left: 1px solid #e2e8f0;
     }
-
-    .attachment-item {
-        border: 1px solid #ddd;
-        border-radius: 5px;
-        padding: 5px;
+    .card-table th:last-child, .card-table td:last-child { border-left: none; }
+    .card-table tr:last-child th, .card-table tr:last-child td { border-bottom: none; }
+    
+    .card-table.table-striped tbody tr:nth-child(even) td {
+        background-color: #f8fafc;
+    }
+    .card-table.table-center th, .card-table.table-center td {
         text-align: center;
     }
 
-    .attachment-img {
-        max-width: 100%;
-        height: 100px;
-        object-fit: cover;
+    /* Watermark */
+    .watermark-element {
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0.045;
+        z-index: 0;
+        pointer-events: none;
+        overflow: hidden;
     }
-
-    .badge {
-        display: inline-block;
-        padding: 2px 8px;
-        border-radius: 4px;
-        font-size: 10px;
-        font-weight: 700;
-        background: #eee;
-    }
-
-    @media print {
-        .no-print { display: none !important; }
-        .print-page { padding: 0.2cm; }
-        .section-card { border-color: #000; }
-        .info-table th, .info-table td, .data-table th, .data-table td { border-color: #000; }
-        .section-header { background-color: #eee !important; -webkit-print-color-adjust: exact; }
+    .watermark-text {
+        font-weight: 900;
+        color: #0f172a;
+        font-size: 62pt;
+        transform: rotate(-32deg);
+        letter-spacing: 4px;
+        white-space: nowrap;
     }
 </style>
 @endsection
 
 @section('content')
-<div class="watermark">سري للغاية - للجهات المختصة</div>
 
-<div class="print-page">
-    {{-- رأس التقرير --}}
-    <div class="official-header">
-        <div class="header-logo">
-            <h6 style="margin:0; font-size: 14px;">الجمهورية اليمنية</h6>
-            <h6 style="margin:0; font-size: 14px;">وزارة الدفاع - التعبئة العامة</h6>
-            <div style="margin-top:5px; height: 60px; border: 1px solid #ddd; border-radius: 50%; width: 60px; margin: 5px auto; display: flex; align-items: center; justify-content: center; font-size: 8px; color: #999;">شعار الوزارة</div>
-        </div>
-        
-        <div class="header-title">
-            <h2 class="report-main-title">الملف المعلوماتي الشامل</h2>
-            <div style="border-top: 1px solid #1a2a3a; width: 60%; margin: 5px auto;"></div>
-            <p style="margin:0; font-weight: 900; color: #dc2626;">( سري للغاية )</p>
-        </div>
-        
-        <div class="header-info">
-            <p style="margin:0;">تاريخ التقرير: {{ now()->format('Y/m/d') }}</p>
-            <p style="margin:0;">رقم القيد: PD-{{ str_pad($personalData->id, 6, '0', STR_PAD_LEFT) }}</p>
-            <p style="margin:0;">بواسطة: {{ auth()->user()->name ?? 'System' }}</p>
-        </div>
+<div class="printable-area">
+    <div class="watermark-element">
+        <span class="watermark-text">وثيقة رسمية معتمدة</span>
     </div>
 
-    {{-- 1. البيانات الشخصية الأساسية --}}
-    <div class="section-card">
-        <div class="section-header">
-            <i class="fas fa-user-tie"></i> أولاً: البيانات التعريفية والأساسية
-        </div>
-        <div class="section-body">
-            @if($personalData->main_profile_photo)
-                <div class="profile-photo-container">
-                    <img src="{{ public_path('storage/' . $personalData->main_profile_photo) }}" class="profile-photo">
+    <div class="relative z-10 flex flex-col justify-between" style="min-height: 273mm;">
+        <div>
+            {{-- 1. Official Header --}}
+            <header class="grid items-center pb-2.5 mb-3 relative" style="grid-template-columns: 1.2fr 1.6fr 1.2fr; border-bottom: 2.5px solid #0f2942;">
+                <div class="absolute -bottom-[2.5px] right-0 h-[2.5px]" style="width: 38%; background-color: #dc2626;"></div>
+
+                <div class="text-right pl-2 border-l border-dashed border-slate-300">
+                    <h1 class="text-[14px] font-extrabold m-0 leading-tight" style="color: #0f2942;">الجمهورية اليمنية</h1>
+                    <h2 class="text-[12.5px] font-bold text-slate-700 m-0 my-0.5">وزارة الدفاع - التعبئة العامة</h2>
+                    <p class="text-[10.5px] font-semibold text-slate-500 m-0">نظام إدارة السجلات والقوى البشرية</p>
                 </div>
-            @endif
-            
-            <div style="overflow: hidden;">
-                <table class="info-table">
-                    <tr>
-                        <th style="width: 15%;">الاسم الكامل</th>
-                        <td colspan="3" style="font-size: 18px; font-weight: 900; color: #1e3a8a;">{{ $personalData->name }}</td>
-                    </tr>
-                    <tr>
-                        <th>الاسم الجهادي</th>
-                        <td style="width: 35%;">{{ $personalData->jihadi_name ?? '-' }}</td>
-                        <th>الرقم الوطني</th>
-                        <td>{{ $personalData->national_id_number ?? '-' }}</td>
-                    </tr>
-                    <tr>
-                        <th>تاريخ الميلاد</th>
-                        <td>{{ $personalData->date_of_birth_gregorian ? $personalData->date_of_birth_gregorian->format('Y/m/d') : '-' }}</td>
-                        <th>الرقم العسكري</th>
-                        <td>{{ $personalData->military_number ?? '-' }}</td>
-                    </tr>
-                    <tr>
-                        <th>الرتبة الحالية</th>
-                        <td>{{ $personalData->rank->rank ?? '-' }}</td>
-                        <th>فصيلة الدم</th>
-                        <td>{{ $personalData->bloodType->type ?? '-' }}</td>
-                    </tr>
-                    <tr>
-                        <th>الحالة الاجتماعية</th>
-                        <td>{{ $personalData->maritalStatus->status ?? '-' }}</td>
-                        <th>المؤهل العلمي</th>
-                        <td>{{ $personalData->qualification->name ?? '-' }}</td>
-                    </tr>
-                    <tr>
-                        <th>جهة العمل</th>
-                        <td>{{ $personalData->workplace ?? '-' }}</td>
-                        <th>المسمى الوظيفي</th>
-                        <td>{{ $personalData->job ?? '-' }}</td>
-                    </tr>
-                </table>
+
+                <div class="text-center px-2">
+                    <div class="flex flex-col items-center justify-center mb-0.5">
+                        <svg viewBox="0 0 100 100" class="w-10 h-10 transition-colors" style="fill: #0f2942;">
+                            <path d="M50 12 C52 14 55 18 56 22 C64 24 74 27 86 33 C78 44 68 53 50 82 C32 53 22 44 14 33 C26 27 36 24 44 22 C45 18 48 14 50 12 Z" fill="#0f2942" opacity="0.12"/>
+                            <path d="M50 16 L53 24 L61 24 L55 29 L57 37 L50 32 L43 37 L45 29 L39 24 L47 24 Z" fill="#0f2942"/>
+                            <path d="M20 34 C30 31 40 28 50 28 C60 28 70 31 80 34 C72 45 62 55 50 78 C38 55 28 45 20 34 Z" fill="none" stroke="#0f2942" stroke-width="2.2"/>
+                            <circle cx="50" cy="46" r="10" fill="none" stroke="#dc2626" stroke-width="1.8"/>
+                            <path d="M46 44 L50 49 L54 44" fill="none" stroke="#0f2942" stroke-width="1.8"/>
+                        </svg>
+                    </div>
+                    <h2 class="text-[17px] font-black tracking-tight m-0 leading-tight" style="color: #0f2942;">الملف المعلوماتي الشامل</h2>
+                    <div class="inline-block mt-0.5">
+                        <span class="text-[9.5px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
+                            وثيقة قيد وسجل بيانات شخصية • سري للغاية
+                        </span>
+                    </div>
+                </div>
+
+                <div class="text-left pr-2 border-r border-dashed border-slate-300 flex justify-end">
+                    <div class="bg-slate-50 rounded p-1.5 text-right text-[10px] w-full max-w-[170px]" style="border: 1.5px solid #cbd5e1;">
+                        <div class="flex justify-between items-center mb-0.5 text-slate-600">
+                            <span>الرقم المرجعي:</span>
+                            <strong class="font-mono text-slate-900 font-bold">#{{ str_pad($personalData->id, 6, '0', STR_PAD_LEFT) }}</strong>
+                        </div>
+                        <div class="flex justify-between items-center mb-0.5 text-slate-600">
+                            <span>تاريخ الإصدار:</span>
+                            <span class="font-mono">{{ now()->format('Y/m/d') }}</span>
+                        </div>
+                        <div class="flex justify-between items-center mb-0.5 text-slate-600">
+                            <span>وقت التصدير:</span>
+                            <span class="font-mono">{{ now()->format('H:i') }}</span>
+                        </div>
+                        <div class="mt-1 pt-1 border-t border-dashed border-slate-300 flex flex-col items-center">
+                            <span class="font-mono text-[9px] text-slate-500 tracking-wider">
+                                {{ str_pad($personalData->military_number ?? $personalData->id, 10, '0', STR_PAD_LEFT) }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            {{-- 2. Top Grid: Identity Info + Photo Card --}}
+            <div class="grid gap-2.5 mb-2.5 items-stretch" style="grid-template-columns: 1fr 175px;">
+                <div class="card-section m-0 flex flex-col justify-between">
+                    <div class="card-header">
+                        <div class="card-header-title">
+                            <i class="fas fa-id-card"></i>
+                            <span>البيانات التعريفية الأساسية</span>
+                        </div>
+                        <span class="card-badge">السجل المدني والعسكري</span>
+                    </div>
+                    <table class="card-table">
+                        <tr>
+                            <th style="width: 22%;">الاسم الرباعي واللقب</th>
+                            <td colspan="3" class="font-bold text-[12.5px]">{{ $personalData->name ?? '-' }}</td>
+                        </tr>
+                        <tr>
+                            <th style="width: 22%;">الرقم الوطني / الهوية</th>
+                            <td class="font-mono font-bold w-[28%]">{{ $personalData->national_id_number ?? '-' }}</td>
+                            <th style="width: 22%;">الرقم العسكري</th>
+                            <td class="font-mono font-bold text-[12px] w-[28%]" style="color: #dc2626;">{{ $personalData->military_number ?? '-' }}</td>
+                        </tr>
+                        <tr>
+                            <th>تاريخ الميلاد (ميلادي)</th>
+                            <td class="font-mono">{{ $personalData->date_of_birth_gregorian ? $personalData->date_of_birth_gregorian->format('Y/m/d') : '-' }}</td>
+                            <th>تاريخ الميلاد (هجري)</th>
+                            <td>{{ $personalData->date_of_birth_hijri ?? '-' }}</td>
+                        </tr>
+                        <tr>
+                            <th>الجنسية</th>
+                            <td>{{ $personalData->placeOfBirthCountry->name ?? 'يمني' }}</td>
+                            <th>الديانة</th>
+                            <td>مسلم</td>
+                        </tr>
+                        <tr>
+                            <th>الاسم الجهادي</th>
+                            <td>{{ $personalData->jihadi_name ?? '-' }}</td>
+                            <th>الرتبة</th>
+                            <td style="color: #dc2626; font-weight: 800;">{{ $personalData->rank->rank ?? '-' }}</td>
+                        </tr>
+                    </table>
+                </div>
+
+                <div class="bg-slate-50 rounded-lg p-2.5 text-center flex flex-col items-center justify-center" style="border: 1.5px solid #cbd5e1;">
+                    <div class="w-24 h-28 mb-1.5 rounded overflow-hidden bg-slate-200 flex items-center justify-center" style="border: 2px solid #0f2942; box-shadow: 0 1px 2px rgba(0,0,0,0.08);">
+                        @if($personalData->main_profile_photo)
+                            <img src="{{ public_path('storage/' . $personalData->main_profile_photo) }}" alt="{{ $personalData->name }}" class="w-full h-full object-cover">
+                        @else
+                            <i class="fas fa-user-shield text-slate-400 text-4xl"></i>
+                        @endif
+                    </div>
+                    <h3 class="text-[13px] font-extrabold text-slate-900 m-0 leading-tight">{{ $personalData->name ?? 'بدون اسم' }}</h3>
+                    <div class="mt-1 inline-block text-[11px] font-bold px-2 py-0.5 rounded-full" style="color: #dc2626; background-color: #fee2e2; border: 1px solid #fecaca;">
+                        {{ $personalData->rank->rank ?? 'بدون رتبة' }}
+                    </div>
+                    @if($personalData->jihadi_name)
+                    <div class="mt-1 bg-slate-200/90 text-slate-700 text-[10px] font-semibold px-2 py-0.5 rounded flex items-center gap-1">
+                        <i class="fas fa-tag text-[9px]"></i>
+                        <span>{{ $personalData->jihadi_name }}</span>
+                    </div>
+                    @endif
+                </div>
             </div>
-        </div>
-    </div>
 
-    {{-- 2. الموقع الجغرافي والسكن --}}
-    <div class="section-card">
-        <div class="section-header">
-            <i class="fas fa-map-marker-alt"></i> ثانياً: بيانات الإقامة والتوزيع الإداري
-        </div>
-        <div class="section-body">
-            <table class="info-table">
-                <tr>
-                    <th>محافظة السكن</th>
-                    <td>{{ $personalData->governorate->name ?? '-' }}</td>
-                    <th>المديرية</th>
-                    <td>{{ $personalData->directorate->name ?? '-' }}</td>
-                </tr>
-                <tr>
-                    <th>العزلة / المنطقة</th>
-                    <td>{{ $personalData->subArea->name ?? '-' }}</td>
-                    <th>القرية / المحل</th>
-                    <td>{{ $personalData->village->name ?? '-' }}</td>
-                </tr>
-                <tr>
-                    <th>المنطقة العسكرية</th>
-                    <td>{{ $personalData->militaryDistrict->name ?? '-' }}</td>
-                    <th>الشعبة / الوحدة</th>
-                    <td>{{ $personalData->division->name ?? '' }} / {{ $personalData->unit ?? '-' }}</td>
-                </tr>
-            </table>
-        </div>
-    </div>
+            {{-- 3. Second Row: Job/Military + Medical/Social --}}
+            <div class="grid grid-cols-2 gap-2.5 mb-2.5">
+                <div class="card-section m-0">
+                    <div class="card-header">
+                        <div class="card-header-title"><i class="fas fa-award"></i><span>البيانات الوظيفية والعسكرية</span></div>
+                        <span class="card-badge">الوضع الإداري</span>
+                    </div>
+                    <table class="card-table">
+                        <tr>
+                            <th style="width: 38%;">الدائرة / المنطقة</th>
+                            <td>{{ $personalData->militaryDistrict->name ?? '-' }}</td>
+                        </tr>
+                        <tr>
+                            <th>الشعبة / الوحدة</th>
+                            <td>{{ $personalData->division->name ?? '-' }} {{ $personalData->unit ? ' - '.$personalData->unit : '' }}</td>
+                        </tr>
+                        <tr>
+                            <th>جهة العمل</th>
+                            <td>{{ $personalData->workplace ?? '-' }}</td>
+                        </tr>
+                        <tr>
+                            <th>حالة الوظيفة</th>
+                            <td>{{ $personalData->jobStatus->job_status ?? '-' }}</td>
+                        </tr>
+                        <tr>
+                            <th>المسمى الوظيفي</th>
+                            <td>{{ $personalData->job ?? '-' }}</td>
+                        </tr>
+                        <tr>
+                            <th>تاريخ التعيين</th>
+                            <td class="font-mono">{{ $personalData->appointment_date ?? '-' }}</td>
+                        </tr>
+                    </table>
+                </div>
 
-    {{-- 3. البيانات الثانوية والجهادية --}}
-    @if($personalData->secondaryData)
-    <div class="section-card">
-        <div class="section-header">
-            <i class="fas fa-history"></i> ثالثاً: السجل الجهادي والبيانات الثانوية
-        </div>
-        <div class="section-body">
-            <table class="info-table" style="margin-bottom: 15px;">
-                <tr>
-                    <th style="width: 20%;">الحالة الصحية</th>
-                    <td style="width: 30%;">{{ $personalData->secondaryData->healthStatus->name ?? '-' }}</td>
-                    <th style="width: 20%;">عدد الأولاد (ذكور / إناث / إجمالي)</th>
-                    <td style="width: 30%;">
-                        ذكور: {{ $personalData->secondaryData->male_children_count ?? 0 }} | 
-                        إناث: {{ $personalData->secondaryData->female_children_count ?? 0 }} | 
-                        الإجمالي: <strong>{{ $personalData->secondaryData->total_children_count ?? (($personalData->secondaryData->male_children_count ?? 0) + ($personalData->secondaryData->female_children_count ?? 0)) }}</strong>
-                    </td>
-                </tr>
-                <tr>
-                    <th>تاريخ البدء / الانطلاقة</th>
-                    <td>{{ $personalData->secondaryData->start_date ? $personalData->secondaryData->start_date->format('Y/m/d') : '-' }}</td>
-                    <th>المسؤول المباشر</th>
-                    <td>{{ $personalData->secondaryData->direct_supervisor ?? '-' }}</td>
-                </tr>
-                <tr>
-                    <th>النشاط الجهادي الحالي</th>
-                    <td colspan="3">{{ $personalData->secondaryData->current_jihadist_activity ?? '-' }}</td>
-                </tr>
-                @if($personalData->secondaryData->previous_jihadist_activity)
-                <tr>
-                    <th>ملاحظات النشاط السابق</th>
-                    <td colspan="3">{{ $personalData->secondaryData->previous_jihadist_activity }}</td>
-                </tr>
-                @endif
-            </table>
+                <div class="card-section m-0">
+                    <div class="card-header">
+                        <div class="card-header-title"><i class="fas fa-heartbeat"></i><span>البيانات الطبية والاجتماعية</span></div>
+                        <span class="card-badge">الحالة والمؤهل</span>
+                    </div>
+                    <table class="card-table">
+                        <tr>
+                            <th style="width: 38%;">فصيلة الدم</th>
+                            <td>
+                                <span class="inline-block bg-red-100 text-red-700 font-mono font-extrabold text-[12px] px-2 py-[1px] rounded border border-red-300">
+                                    {{ $personalData->bloodType->type ?? '-' }}
+                                </span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>الحالة الاجتماعية</th>
+                            <td>{{ $personalData->maritalStatus->status ?? '-' }}</td>
+                        </tr>
+                        <tr>
+                            <th>عدد الأبناء</th>
+                            <td class="font-bold font-mono">
+                                @if(isset($personalData->secondaryData))
+                                    {{ $personalData->secondaryData->total_children_count ?? (($personalData->secondaryData->male_children_count ?? 0) + ($personalData->secondaryData->female_children_count ?? 0)) }}
+                                @else
+                                    {{ $personalData->number_of_children ?? '0' }}
+                                @endif
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>المؤهل العلمي</th>
+                            <td>{{ $personalData->qualification->name ?? '-' }}</td>
+                        </tr>
+                        <tr>
+                            <th>التخصص</th>
+                            <td>{{ $personalData->specialization ?? '-' }}</td>
+                        </tr>
+                        <tr>
+                            <th>الحالة الصحية</th>
+                            <td>{{ $personalData->secondaryData->healthStatus->name ?? '-' }}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
 
-            {{-- جدول الانتماء السياسي والعقائدي --}}
-            @if($personalData->secondaryData->affiliations && $personalData->secondaryData->affiliations->count() > 0)
-                <h6 style="margin: 12px 0 6px 0; font-weight: bold;">سجل الانتماء السياسي والعقائدي:</h6>
-                <table class="data-table" style="margin-bottom: 15px;">
+            {{-- 4. Third Row: Address & Place of Birth --}}
+            <div class="grid grid-cols-2 gap-2.5 mb-2.5">
+                <div class="card-section m-0">
+                    <div class="card-header">
+                        <div class="card-header-title"><i class="fas fa-home"></i><span>بيانات السكن والإقامة الحالية</span></div>
+                    </div>
+                    <table class="card-table">
+                        <tr>
+                            <th style="width: 38%;">المحافظة</th>
+                            <td>{{ $personalData->governorate->name ?? '-' }}</td>
+                        </tr>
+                        <tr>
+                            <th>المديرية</th>
+                            <td>{{ $personalData->directorate->name ?? '-' }}</td>
+                        </tr>
+                        <tr>
+                            <th>العزلة / المنطقة</th>
+                            <td>{{ $personalData->subArea->name ?? '-' }}</td>
+                        </tr>
+                        <tr>
+                            <th>القرية / الشارع</th>
+                            <td>{{ $personalData->village->name ?? '-' }}</td>
+                        </tr>
+                    </table>
+                </div>
+
+                <div class="card-section m-0">
+                    <div class="card-header">
+                        <div class="card-header-title"><i class="fas fa-map-marker-alt"></i><span>مكان الميلاد والنشأة</span></div>
+                    </div>
+                    <table class="card-table">
+                        <tr>
+                            <th style="width: 38%;">الدولة</th>
+                            <td>{{ $personalData->placeOfBirthCountry->name ?? 'اليمن' }}</td>
+                        </tr>
+                        <tr>
+                            <th>المحافظة</th>
+                            <td>{{ $personalData->placeOfBirthGovernorate->name ?? '-' }}</td>
+                        </tr>
+                        <tr>
+                            <th>المديرية</th>
+                            <td>{{ $personalData->placeOfBirthDirectorate->name ?? '-' }}</td>
+                        </tr>
+                        <tr>
+                            <th>القرية / الحي</th>
+                            <td>{{ $personalData->placeOfBirthVillage->name ?? '-' }}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            {{-- 5. Secondary Data & Jihadist Record --}}
+            @if($personalData->secondaryData)
+            <div class="card-section">
+                <div class="card-header">
+                    <div class="card-header-title"><i class="fas fa-history"></i><span>السجل الجهادي والبيانات الثانوية</span></div>
+                </div>
+                <table class="card-table" style="border-bottom: 1.5px solid #cbd5e1;">
+                    <tr>
+                        <th style="width: 25%;">تاريخ البدء / الانطلاقة</th>
+                        <td style="width: 25%;">{{ $personalData->secondaryData->start_date ? $personalData->secondaryData->start_date->format('Y/m/d') : '-' }}</td>
+                        <th style="width: 25%;">المسؤول المباشر</th>
+                        <td style="width: 25%;">{{ $personalData->secondaryData->direct_supervisor ?? '-' }}</td>
+                    </tr>
+                    <tr>
+                        <th>النشاط الجهادي الحالي</th>
+                        <td colspan="3">{{ $personalData->secondaryData->current_jihadist_activity ?? '-' }}</td>
+                    </tr>
+                    @if($personalData->secondaryData->previous_jihadist_activity)
+                    <tr>
+                        <th>ملاحظات النشاط السابق</th>
+                        <td colspan="3">{{ $personalData->secondaryData->previous_jihadist_activity }}</td>
+                    </tr>
+                    @endif
+                </table>
+
+                @if($personalData->secondaryData->affiliations && $personalData->secondaryData->affiliations->count() > 0)
+                <div class="p-2 bg-slate-50 font-bold text-[11px] text-slate-700 border-b border-slate-200">سجل الانتماء السياسي والعقائدي</div>
+                <table class="card-table table-center table-striped" style="border-bottom: 1.5px solid #cbd5e1;">
                     <thead>
                         <tr>
                             <th>الجهة</th>
-                            <th>الانتماء العقائدي</th>
-                            <th>الانتماء السياسي</th>
-                            <th>تاريخ الارتباط</th>
-                            <th>المدة</th>
-                            <th>مكان العمل</th>
-                            <th>نوع العمل</th>
-                            <th>المسؤول المباشر</th>
-                            <th>تاريخ الترك</th>
-                            <th>سبب الترك</th>
+                            <th>العقائدي</th>
+                            <th>السياسي</th>
+                            <th>الارتباط</th>
+                            <th>المسؤول</th>
+                            <th>الترك</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach($personalData->secondaryData->affiliations as $aff)
-                            <tr>
-                                <td>{{ $aff->party ?? '-' }}</td>
-                                <td>{{ $aff->ideologicalAffiliation->name ?? '-' }}</td>
-                                <td>{{ $aff->politicalAffiliation->name ?? '-' }}</td>
-                                <td>{{ $aff->affiliation_date ? $aff->affiliation_date->format('Y/m/d') : '-' }}</td>
-                                <td>{{ $aff->duration ?? '-' }}</td>
-                                <td>{{ $aff->workplace ?? '-' }}</td>
-                                <td>{{ $aff->job_type ?? '-' }}</td>
-                                <td>{{ $aff->direct_supervisor ?? '-' }}</td>
-                                <td>{{ $aff->leaving_date ? $aff->leaving_date->format('Y/m/d') : '-' }}</td>
-                                <td>{{ $aff->leaving_reason ?? '-' }}</td>
-                            </tr>
+                        <tr>
+                            <td>{{ $aff->party ?? '-' }}</td>
+                            <td>{{ $aff->ideologicalAffiliation->name ?? '-' }}</td>
+                            <td>{{ $aff->politicalAffiliation->name ?? '-' }}</td>
+                            <td>{{ $aff->affiliation_date ? $aff->affiliation_date->format('Y/m/d') : '-' }}</td>
+                            <td>{{ $aff->direct_supervisor ?? '-' }}</td>
+                            <td>{{ $aff->leaving_date ? $aff->leaving_date->format('Y/m/d') : '-' }}</td>
+                        </tr>
                         @endforeach
                     </tbody>
                 </table>
-            @endif
+                @endif
 
-            {{-- جدول الأعمال الجهادية السابقة --}}
-            @if($personalData->secondaryData->previousJihadistActions && $personalData->secondaryData->previousJihadistActions->count() > 0)
-                <h6 style="margin: 12px 0 6px 0; font-weight: bold;">سجل الأعمال الجهادية السابقة:</h6>
-                <table class="data-table" style="margin-bottom: 15px;">
+                @if($personalData->secondaryData->previousJihadistActions && $personalData->secondaryData->previousJihadistActions->count() > 0)
+                <div class="p-2 bg-slate-50 font-bold text-[11px] text-slate-700 border-b border-slate-200">الأعمال الجهادية السابقة</div>
+                <table class="card-table table-center table-striped" style="border-bottom: 1.5px solid #cbd5e1;">
                     <thead>
                         <tr>
                             <th>النشاط</th>
                             <th>التاريخ</th>
-                            <th>المدة الزمنية</th>
+                            <th>المدة</th>
                             <th>المكان</th>
                             <th>المسؤول المباشر</th>
-                            <th>سبب الترك</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach($personalData->secondaryData->previousJihadistActions as $act)
-                            <tr>
-                                <td>{{ $act->activity ?? '-' }}</td>
-                                <td>{{ $act->activity_date ? $act->activity_date->format('Y/m/d') : '-' }}</td>
-                                <td>{{ $act->duration ?? '-' }}</td>
-                                <td>{{ $act->location ?? '-' }}</td>
-                                <td>{{ $act->direct_supervisor ?? '-' }}</td>
-                                <td>{{ $act->leaving_reason ?? '-' }}</td>
-                            </tr>
+                        <tr>
+                            <td>{{ $act->activity ?? '-' }}</td>
+                            <td>{{ $act->activity_date ? $act->activity_date->format('Y/m/d') : '-' }}</td>
+                            <td>{{ $act->duration ?? '-' }}</td>
+                            <td>{{ $act->location ?? '-' }}</td>
+                            <td>{{ $act->direct_supervisor ?? '-' }}</td>
+                        </tr>
                         @endforeach
                     </tbody>
                 </table>
-            @endif
-
-            {{-- جدول الأسلحة والعهدة --}}
-            @if($personalData->secondaryData->weapons && $personalData->secondaryData->weapons->count() > 0)
-                <h6 style="margin: 12px 0 6px 0; font-weight: bold;">سجل العهد (الأسلحة):</h6>
-                <table class="data-table">
+                @endif
+                
+                @if($personalData->secondaryData->weapons && $personalData->secondaryData->weapons->count() > 0)
+                <div class="p-2 bg-slate-50 font-bold text-[11px] text-slate-700 border-b border-slate-200">سجل العهد (الأسلحة)</div>
+                <table class="card-table table-center table-striped">
                     <thead>
                         <tr>
                             <th>نوع السلاح</th>
@@ -418,196 +484,201 @@
                     </thead>
                     <tbody>
                         @foreach($personalData->secondaryData->weapons as $weapon)
-                            <tr>
-                                <td>{{ $weapon->weapon_type ?? '-' }}</td>
-                                <td>{{ $weapon->number ?? '-' }}</td>
-                                <td>{{ $weapon->ownership ?? '-' }}</td>
-                                <td>{{ $weapon->tracking ?? '-' }}</td>
-                            </tr>
+                        <tr>
+                            <td>{{ $weapon->weapon_type ?? '-' }}</td>
+                            <td>{{ $weapon->number ?? '-' }}</td>
+                            <td>{{ $weapon->ownership ?? '-' }}</td>
+                            <td>{{ $weapon->tracking ?? '-' }}</td>
+                        </tr>
                         @endforeach
                     </tbody>
                 </table>
+                @endif
+            </div>
             @endif
-        </div>
-    </div>
-    @endif
 
-    {{-- 4. سجل الزوجات --}}
-    @if($personalData->wives && $personalData->wives->count() > 0)
-    <div class="section-card">
-        <div class="section-header">
-            <i class="fas fa-heart"></i> رابعاً: الحالة الاجتماعية (الزوجات)
-        </div>
-        <div class="section-body">
-            <table class="data-table">
-                <thead>
-                    <tr>
-                        <th style="width: 5%;">#</th>
-                        <th>اسم الزوجة</th>
-                        <th>رقم الهوية</th>
-                        <th>تاريخ الميلاد</th>
-                        <th>رقم الهاتف</th>
-                        <th>العنوان</th>
-                        <th>الحالة</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($personalData->wives as $index => $wife)
+            {{-- 6. Security Files --}}
+            @if($personalData->securityFiles && $personalData->securityFiles->count() > 0)
+            <div class="card-section">
+                <div class="card-header">
+                    <div class="card-header-title"><i class="fas fa-shield-alt"></i><span>سجل الملف الأمني السري</span></div>
+                </div>
+                <div class="p-2">
+                    @foreach($personalData->securityFiles as $file)
+                        <div class="bg-slate-50 border border-slate-200 rounded p-2 mb-2 last:mb-0">
+                            <table class="card-table mb-2 bg-white rounded border border-slate-200">
+                                <tr>
+                                    <th style="width: 15%;">رقم الملف</th>
+                                    <td style="width: 35%;" class="font-bold text-red-700">#{{ $file->file_number ?? str_pad($file->id, 5, '0', STR_PAD_LEFT) }}</td>
+                                    <th style="width: 15%;">تاريخ الملف</th>
+                                    <td>{{ $file->file_date_gregorian ? $file->file_date_gregorian->format('Y/m/d') : '-' }}</td>
+                                </tr>
+                                <tr>
+                                    <th>الجهة المعدة</th>
+                                    <td>{{ $file->preparingEntity->name ?? '-' }}</td>
+                                    <th>المعد</th>
+                                    <td>{{ $file->file_preparer ?? '-' }}</td>
+                                </tr>
+                            </table>
+                            @if($file->highlight_summary)
+                                <div class="text-[11px] font-bold text-slate-800 mb-1">أبرز البيانات الملخصة:</div>
+                                <div class="bg-white border border-slate-200 p-2 rounded text-[10.5px] leading-relaxed whitespace-pre-line mb-2">{{ $file->highlight_summary }}</div>
+                            @endif
+                            @if($file->jihadist_status)
+                                <div class="text-[11px] font-bold text-slate-800 mb-1">بيانات الوضع الجهادي:</div>
+                                <div class="bg-white border border-slate-200 p-2 rounded text-[10.5px] leading-relaxed whitespace-pre-line">{{ $file->jihadist_status }}</div>
+                            @endif
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+            @endif
+
+            {{-- 7. Wives --}}
+            @if($personalData->wives && $personalData->wives->count() > 0)
+            <div class="card-section">
+                <div class="card-header">
+                    <div class="card-header-title"><i class="fas fa-heart"></i><span>الحالة الاجتماعية (الزوجات)</span></div>
+                </div>
+                <table class="card-table table-center table-striped">
+                    <thead>
+                        <tr>
+                            <th style="width: 5%;">#</th>
+                            <th>الاسم</th>
+                            <th>رقم الهوية</th>
+                            <th>تاريخ الميلاد</th>
+                            <th>العنوان</th>
+                            <th>الحالة</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($personalData->wives as $index => $wife)
                         <tr>
                             <td>{{ $index + 1 }}</td>
                             <td>{{ $wife->wife_name ?? $wife->name }}</td>
                             <td>{{ $wife->wife_id_number ?? '-' }}</td>
                             <td>{{ $wife->wife_birth_date ?? '-' }}</td>
-                            <td>{{ $wife->wife_phone ?? '-' }}</td>
                             <td>{{ $wife->governorate->name ?? '' }} - {{ $wife->directorate->name ?? '' }}</td>
                             <td>{{ $wife->status ?? '-' }}</td>
                         </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        </div>
-    </div>
-    @endif
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+            @endif
 
-    {{-- سجل الأهل والأقارب --}}
-    @if(($personalData->relatives && $personalData->relatives->count() > 0) || ($personalData->enemyAreaRelatives && $personalData->enemyAreaRelatives->count() > 0) || ($personalData->travelingRelatives && $personalData->travelingRelatives->count() > 0))
-    <div class="section-card">
-        <div class="section-header">
-            <i class="fas fa-users"></i> بيانات الأهل والأقارب
-        </div>
-        <div class="section-body">
-            {{-- 1. الأهل والأقارب (الأساسيون) --}}
-            @if($personalData->relatives && $personalData->relatives->count() > 0)
-                <h6 style="margin: 5px 0 8px 0; font-weight: bold;">أولاً: بيانات الأهل والأقارب (العامة):</h6>
-                <table class="data-table" style="margin-bottom: 15px;">
+            {{-- 8. Relatives --}}
+            @if(($personalData->relatives && $personalData->relatives->count() > 0) || ($personalData->enemyAreaRelatives && $personalData->enemyAreaRelatives->count() > 0) || ($personalData->travelingRelatives && $personalData->travelingRelatives->count() > 0))
+            <div class="card-section">
+                <div class="card-header">
+                    <div class="card-header-title"><i class="fas fa-users"></i><span>بيانات الأهل والأقارب</span></div>
+                </div>
+                
+                @if($personalData->relatives && $personalData->relatives->count() > 0)
+                <div class="p-2 bg-slate-50 font-bold text-[11px] text-slate-700 border-b border-slate-200">الأقارب (العامة)</div>
+                <table class="card-table table-center table-striped" style="border-bottom: 1.5px solid #cbd5e1;">
                     <thead>
                         <tr>
-                            <th style="width: 5%;">#</th>
                             <th>الاسم الكامل</th>
+                            <th>القرابة</th>
                             <th>العمر</th>
-                            <th>صلة القرابة</th>
                             <th>العمل الحالي</th>
-                            <th>الانتماء العقائدي</th>
-                            <th>الانتماء السياسي</th>
-                            <th>ملاحظات</th>
+                            <th>السياسي</th>
+                            <th>العقائدي</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach($personalData->relatives as $index => $relative)
-                            <tr>
-                                <td>{{ $index + 1 }}</td>
-                                <td style="font-weight: bold;">{{ $relative->full_name }}</td>
-                                <td>{{ $relative->age ? $relative->age . ' سنة' : '-' }}</td>
-                                <td>{{ $relative->kinship->name ?? '-' }}</td>
-                                <td>{{ $relative->current_job ?? '-' }}</td>
-                                <td>{{ $relative->ideologicalAffiliation->name ?? '-' }}</td>
-                                <td>{{ $relative->politicalAffiliation->name ?? '-' }}</td>
-                                <td>{{ $relative->notes ?? '-' }}</td>
-                            </tr>
+                        @foreach($personalData->relatives as $relative)
+                        <tr>
+                            <td class="font-bold">{{ $relative->full_name }}</td>
+                            <td>{{ $relative->kinship->name ?? '-' }}</td>
+                            <td>{{ $relative->age ? $relative->age . ' سنة' : '-' }}</td>
+                            <td>{{ $relative->current_job ?? '-' }}</td>
+                            <td>{{ $relative->politicalAffiliation->name ?? '-' }}</td>
+                            <td>{{ $relative->ideologicalAffiliation->name ?? '-' }}</td>
+                        </tr>
                         @endforeach
                     </tbody>
                 </table>
-            @endif
+                @endif
 
-            {{-- 2. الأهل والأقارب في مناطق العدو --}}
-            @if($personalData->enemyAreaRelatives && $personalData->enemyAreaRelatives->count() > 0)
-                <h6 style="margin: 12px 0 8px 0; font-weight: bold;">ثانياً: الأهل والأقارب الذين في مناطق العدو:</h6>
-                <table class="data-table" style="margin-bottom: 15px;">
+                @if($personalData->enemyAreaRelatives && $personalData->enemyAreaRelatives->count() > 0)
+                <div class="p-2 bg-slate-50 font-bold text-[11px] text-slate-700 border-b border-slate-200">الأقارب في مناطق العدو</div>
+                <table class="card-table table-center table-striped" style="border-bottom: 1.5px solid #cbd5e1;">
                     <thead>
                         <tr>
-                            <th style="width: 5%;">#</th>
                             <th>الاسم الكامل</th>
-                            <th>صلة القرابة</th>
-                            <th>مكان السكن</th>
+                            <th>القرابة</th>
+                            <th>السكن</th>
                             <th>العمل</th>
-                            <th>الانتماء السياسي</th>
-                            <th>الانتماء العقائدي</th>
-                            <th>طريقة التواصل</th>
-                            <th>العلاقة</th>
-                            <th>الحالة المادية</th>
+                            <th>السياسي</th>
+                            <th>التواصل</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach($personalData->enemyAreaRelatives as $index => $er)
-                            <tr>
-                                <td>{{ $index + 1 }}</td>
-                                <td style="font-weight: bold;">{{ $er->full_name }}</td>
-                                <td>{{ $er->kinship->name ?? '-' }}</td>
-                                <td>{{ $er->residence_place ?? '-' }}</td>
-                                <td>{{ $er->job ?? '-' }}</td>
-                                <td>{{ $er->politicalAffiliation->name ?? '-' }}</td>
-                                <td>{{ $er->ideologicalAffiliation->name ?? '-' }}</td>
-                                <td>{{ $er->communication_method ?? '-' }}</td>
-                                <td>{{ $er->relationship ?? '-' }}</td>
-                                <td>{{ $er->financialStatus->name ?? '-' }}</td>
-                            </tr>
+                        @foreach($personalData->enemyAreaRelatives as $er)
+                        <tr>
+                            <td class="font-bold">{{ $er->full_name }}</td>
+                            <td>{{ $er->kinship->name ?? '-' }}</td>
+                            <td>{{ $er->residence_place ?? '-' }}</td>
+                            <td>{{ $er->job ?? '-' }}</td>
+                            <td>{{ $er->politicalAffiliation->name ?? '-' }}</td>
+                            <td>{{ $er->communication_method ?? '-' }}</td>
+                        </tr>
                         @endforeach
                     </tbody>
                 </table>
-            @endif
+                @endif
 
-            {{-- 3. الأهل والأقارب المسافرين خارج البلد --}}
-            @if($personalData->travelingRelatives && $personalData->travelingRelatives->count() > 0)
-                <h6 style="margin: 12px 0 8px 0; font-weight: bold;">ثالثاً: الأهل والأقارب المسافرين خارج البلد:</h6>
-                <table class="data-table" style="margin-bottom: 10px;">
+                @if($personalData->travelingRelatives && $personalData->travelingRelatives->count() > 0)
+                <div class="p-2 bg-slate-50 font-bold text-[11px] text-slate-700 border-b border-slate-200">الأقارب المسافرين</div>
+                <table class="card-table table-center table-striped">
                     <thead>
                         <tr>
-                            <th style="width: 5%;">#</th>
                             <th>الاسم الكامل</th>
-                            <th>العمر</th>
-                            <th>صلة القرابة</th>
+                            <th>القرابة</th>
                             <th>الدولة</th>
                             <th>سبب السفر</th>
-                            <th>العمل الحالي ومكانه</th>
-                            <th>الجهة التابع لها</th>
-                            <th>الانتماء السياسي</th>
-                            <th>الانتماء العقائدي</th>
-                            <th>انطباعه عن المسيرة</th>
+                            <th>العمل</th>
+                            <th>السياسي</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach($personalData->travelingRelatives as $index => $tr)
-                            <tr>
-                                <td>{{ $index + 1 }}</td>
-                                <td style="font-weight: bold;">{{ $tr->full_name }}</td>
-                                <td>{{ $tr->age ? $tr->age . ' سنة' : '-' }}</td>
-                                <td>{{ $tr->kinship->name ?? '-' }}</td>
-                                <td>{{ $tr->country->name ?? '-' }}</td>
-                                <td>{{ $tr->travel_reason ?? '-' }}</td>
-                                <td>{{ $tr->current_job ?? '-' }} {{ $tr->workplace ? '('.$tr->workplace.')' : '' }}</td>
-                                <td>{{ $tr->affiliated_entity ?? '-' }}</td>
-                                <td>{{ $tr->politicalAffiliation->name ?? '-' }}</td>
-                                <td>{{ $tr->ideologicalAffiliation->name ?? '-' }}</td>
-                                <td>{{ $tr->march_impression ?? '-' }}</td>
-                            </tr>
+                        @foreach($personalData->travelingRelatives as $tr)
+                        <tr>
+                            <td class="font-bold">{{ $tr->full_name }}</td>
+                            <td>{{ $tr->kinship->name ?? '-' }}</td>
+                            <td>{{ $tr->country->name ?? '-' }}</td>
+                            <td>{{ $tr->travel_reason ?? '-' }}</td>
+                            <td>{{ $tr->current_job ?? '-' }}</td>
+                            <td>{{ $tr->politicalAffiliation->name ?? '-' }}</td>
+                        </tr>
                         @endforeach
                     </tbody>
                 </table>
+                @endif
+            </div>
             @endif
-        </div>
-    </div>
-    @endif
 
-    {{-- 5. سجل الدورات --}}
-    @if($personalData->courses && $personalData->courses->count() > 0)
-    <div class="section-card">
-        <div class="section-header">
-            <i class="fas fa-graduation-cap"></i> خامساً: سجل التأهيل والدورات
-        </div>
-        <div class="section-body">
-            <table class="data-table">
-                <thead>
-                    <tr>
-                        <th style="width: 5%;">#</th>
-                        <th>نوع الدورة</th>
-                        <th>تاريخ الانعقاد</th>
-                        <th>المدة</th>
-                        <th>جهة الإرسال</th>
-                        <th>المسؤول</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($personalData->courses as $index => $course)
+            {{-- 9. Courses --}}
+            @if($personalData->courses && $personalData->courses->count() > 0)
+            <div class="card-section">
+                <div class="card-header">
+                    <div class="card-header-title"><i class="fas fa-graduation-cap"></i><span>سجل التأهيل والدورات</span></div>
+                </div>
+                <table class="card-table table-center table-striped">
+                    <thead>
+                        <tr>
+                            <th style="width: 5%;">#</th>
+                            <th>نوع الدورة</th>
+                            <th>تاريخ الانعقاد</th>
+                            <th>المدة</th>
+                            <th>جهة الإرسال</th>
+                            <th>المسؤول</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($personalData->courses as $index => $course)
                         <tr>
                             <td>{{ $index + 1 }}</td>
                             <td>{{ $course->courseType->name ?? '-' }}</td>
@@ -616,32 +687,30 @@
                             <td>{{ $course->sendingEntity->name ?? '-' }}</td>
                             <td>{{ $course->course_administrator ?? '-' }}</td>
                         </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        </div>
-    </div>
-    @endif
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+            @endif
 
-    {{-- 6. سجل التوقيفات والقضايا --}}
-    @if($personalData->arrests && $personalData->arrests->count() > 0)
-    <div class="section-card">
-        <div class="section-header">
-            <i class="fas fa-gavel"></i> سادساً: سجل القضايا والتوقيفات
-        </div>
-        <div class="section-body">
-            <table class="data-table">
-                <thead>
-                    <tr>
-                        <th>تاريخ التوقيف</th>
-                        <th>الجهة</th>
-                        <th>القضية</th>
-                        <th>الحالة</th>
-                        <th>تاريخ الإطلاق</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($personalData->arrests as $arrest)
+            {{-- 10. Arrests --}}
+            @if($personalData->arrests && $personalData->arrests->count() > 0)
+            <div class="card-section">
+                <div class="card-header">
+                    <div class="card-header-title"><i class="fas fa-gavel"></i><span>سجل القضايا والتوقيفات</span></div>
+                </div>
+                <table class="card-table table-center table-striped">
+                    <thead>
+                        <tr>
+                            <th>التاريخ</th>
+                            <th>الجهة</th>
+                            <th>القضية</th>
+                            <th>الحالة</th>
+                            <th>الإطلاق</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($personalData->arrests as $arrest)
                         <tr>
                             <td>{{ $arrest->arrest_date ? $arrest->arrest_date->format('Y/m/d') : '-' }}</td>
                             <td>{{ $arrest->arrestingAuthority->name ?? '-' }}</td>
@@ -649,32 +718,33 @@
                             <td>{{ $arrest->status == 'released' ? 'مطلق سراحه' : 'محتجز' }}</td>
                             <td>{{ $arrest->release_date ? $arrest->release_date->format('Y/m/d') : '-' }}</td>
                         </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        </div>
-    </div>
-    @endif
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+            @endif
 
-    {{-- 7. البلاغات الأمنية --}}
-    @if($securityReports && $securityReports->count() > 0)
-    <div class="section-card">
-        <div class="section-header">
-            <i class="fas fa-exclamation-triangle"></i> سابعاً: البلاغات الأمنية المرتبطة
-        </div>
-        <div class="section-body">
-            <table class="data-table">
-                <thead>
-                    <tr>
-                        <th>التاريخ</th>
-                        <th>النوع</th>
-                        <th>الموضوع</th>
-                        <th>الجهة</th>
-                        <th>الوضعية</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($securityReports as $report)
+            {{-- 11. Security Reports & Suspects --}}
+            @if(($securityReports && $securityReports->count() > 0) || ($personalData->suspects && $personalData->suspects->count() > 0))
+            <div class="card-section">
+                <div class="card-header">
+                    <div class="card-header-title"><i class="fas fa-exclamation-triangle"></i><span>البلاغات الأمنية وسجل الاشتباه</span></div>
+                </div>
+                
+                @if($securityReports && $securityReports->count() > 0)
+                <div class="p-2 bg-slate-50 font-bold text-[11px] text-slate-700 border-b border-slate-200">البلاغات الأمنية</div>
+                <table class="card-table table-center table-striped" style="border-bottom: 1.5px solid #cbd5e1;">
+                    <thead>
+                        <tr>
+                            <th>التاريخ</th>
+                            <th>النوع</th>
+                            <th>الموضوع</th>
+                            <th>الجهة</th>
+                            <th>الوضعية</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($securityReports as $report)
                         <tr>
                             <td>{{ $report->report_date ? $report->report_date->format('Y/m/d') : '-' }}</td>
                             <td>{{ $report->report_type ?? '-' }}</td>
@@ -682,32 +752,25 @@
                             <td>{{ $report->entity->name ?? '-' }}</td>
                             <td>{{ $report->status ?? '-' }}</td>
                         </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        </div>
-    </div>
-    @endif
+                        @endforeach
+                    </tbody>
+                </table>
+                @endif
 
-    {{-- 8. سجل الاشتباه --}}
-    @if($personalData->suspects && $personalData->suspects->count() > 0)
-    <div class="section-card">
-        <div class="section-header">
-            <i class="fas fa-search-minus"></i> ثامناً: سجل الاشتباه والمراقبة
-        </div>
-        <div class="section-body">
-            <table class="data-table">
-                <thead>
-                    <tr>
-                        <th>التاريخ</th>
-                        <th>نوع الاشتباه</th>
-                        <th>المستوى</th>
-                        <th>المصدر</th>
-                        <th>الحالة</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($personalData->suspects as $suspect)
+                @if($personalData->suspects && $personalData->suspects->count() > 0)
+                <div class="p-2 bg-slate-50 font-bold text-[11px] text-slate-700 border-b border-slate-200">سجل الاشتباه</div>
+                <table class="card-table table-center table-striped">
+                    <thead>
+                        <tr>
+                            <th>التاريخ</th>
+                            <th>نوع الاشتباه</th>
+                            <th>المستوى</th>
+                            <th>المصدر</th>
+                            <th>الحالة</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($personalData->suspects as $suspect)
                         <tr>
                             <td>{{ $suspect->suspicion_date ? $suspect->suspicion_date->format('Y/m/d') : '-' }}</td>
                             <td>{{ $suspect->suspicion_type ?? '-' }}</td>
@@ -715,107 +778,100 @@
                             <td>{{ $suspect->information_source ?? '-' }}</td>
                             <td>{{ $suspect->is_arrested ? 'موقوف' : 'قيد المتابعة' }}</td>
                         </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        </div>
-    </div>
-    @endif
-
-    {{-- 9. البيانات الديناميكية المضافة --}}
-    @if($dynamicRecords && $dynamicRecords->count() > 0)
-    <div class="section-card">
-        <div class="section-header">
-            <i class="fas fa-database"></i> تاسعاً: البيانات والسجلات الإضافية (النظام الديناميكي)
-        </div>
-        <div class="section-body">
-            @foreach($dynamicRecords as $record)
-                <div style="margin-bottom: 10px; border-bottom: 1px dashed #ddd; padding-bottom: 5px;">
-                    <strong style="color: #2563eb;">سجل من صفحة: {{ $record->page->name }}</strong>
-                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 5px;">
-                        @foreach($record->values as $val)
-                            <div style="font-size: 11px;">
-                                <span style="font-weight: bold; color: #666;">{{ $val->field->label }}:</span>
-                                <span>{{ $val->value }}</span>
-                            </div>
                         @endforeach
-                    </div>
+                    </tbody>
+                </table>
+                @endif
+            </div>
+            @endif
+
+            {{-- 12. Dynamic Records --}}
+            @if($dynamicRecords && $dynamicRecords->count() > 0)
+            <div class="card-section">
+                <div class="card-header">
+                    <div class="card-header-title"><i class="fas fa-database"></i><span>البيانات والسجلات الإضافية</span></div>
                 </div>
-            @endforeach
-        </div>
-    </div>
-    @endif
+                <div class="p-2">
+                    @foreach($dynamicRecords as $record)
+                        <div class="mb-2 pb-2 border-b border-dashed border-slate-300 last:border-0 last:mb-0 last:pb-0">
+                            <strong class="text-[#0f2942] text-[11px]">سجل من صفحة: {{ $record->page->name }}</strong>
+                            <div class="grid grid-cols-3 gap-2 mt-1">
+                                @foreach($record->values as $val)
+                                    <div class="text-[10.5px]">
+                                        <span class="font-bold text-slate-600">{{ $val->field->label }}:</span>
+                                        <span class="text-slate-900">{{ $val->value }}</span>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+            @endif
 
-    {{-- 10. حساب النظام المرتبط --}}
-    @if($relatedUser)
-    <div class="section-card">
-        <div class="section-header">
-            <i class="fas fa-user-shield"></i> عاشراً: بيانات حساب النظام (المستخدم)
-        </div>
-        <div class="section-body">
-            <table class="info-table">
-                <tr>
-                    <th>اسم المستخدم</th>
-                    <td>{{ $relatedUser->username }}</td>
-                    <th>الحالة</th>
-                    <td>{{ $relatedUser->is_active ? 'نشط' : 'معطل' }}</td>
-                </tr>
-                <tr>
-                    <th>الأدوار / الصلاحيات</th>
-                    <td>
-                        @foreach($relatedUser->roles as $role)
-                            <span class="badge">{{ $role->name }}</span>
-                        @endforeach
-                    </td>
-                    <th>الجهة المرتبط بها</th>
-                    <td>{{ $relatedUser->internal_entity->name ?? '-' }}</td>
-                </tr>
-            </table>
-        </div>
-    </div>
-    @endif
+            {{-- Notes --}}
+            @if($personalData->notes)
+            <div class="card-section">
+                <div class="card-header">
+                    <div class="card-header-title"><i class="fas fa-sticky-note"></i><span>ملاحظات إدارية وتدقيق القيد</span></div>
+                </div>
+                <div class="p-2 text-[10.5px] text-slate-700 leading-relaxed bg-white whitespace-pre-line">
+                    {{ $personalData->notes }}
+                </div>
+            </div>
+            @endif
 
-    {{-- 11. المرفقات والوثائق --}}
-    @if($personalData->photos && $personalData->photos->count() > 0)
-    <div class="section-card">
-        <div class="section-header">
-            <i class="fas fa-images"></i> حادي عشر: الوثائق والمرفقات المصورة
-        </div>
-        <div class="section-body">
-            <div class="attachment-grid">
-                @foreach($personalData->photos as $photo)
-                    <div class="attachment-item">
-                        <img src="{{ public_path('storage/' . $photo->photo_path) }}" class="attachment-img">
+            {{-- Signatures --}}
+            <div class="grid grid-cols-3 gap-2.5 my-2 break-inside-avoid">
+                <div class="border border-slate-300 rounded p-2 text-center bg-white min-h-[75px] flex flex-col justify-between">
+                    <div class="text-[10.5px] font-extrabold pb-1 border-b border-dashed border-slate-300" style="color: #0f2942;">إعداد وتجهيز المختص</div>
+                    <div class="text-[9.5px] text-slate-500">الاسم: {{ auth()->user()->name ?? '.............................' }}</div>
+                    <div class="text-[9.5px] text-slate-500">التوقيع: ...........................</div>
+                </div>
+                <div class="border border-slate-300 rounded p-2 text-center bg-white min-h-[75px] flex flex-col justify-between">
+                    <div class="text-[10.5px] font-extrabold pb-1 border-b border-dashed border-slate-300" style="color: #0f2942;">تدقيق شؤون القوى البشرية</div>
+                    <div class="text-[9.5px] text-slate-500">الاسم: .............................</div>
+                    <div class="text-[9.5px] text-slate-500">التوقيع: ...........................</div>
+                </div>
+                <div class="border border-slate-300 rounded p-2 text-center bg-white min-h-[75px] flex flex-col justify-between relative">
+                    <div class="text-[10.5px] font-extrabold pb-1 border-b border-dashed border-slate-300" style="color: #0f2942;">اعتماد مدير الدائرة / الختم</div>
+                    <div class="absolute left-2 bottom-1 w-14 h-14 rounded-full border-2 border-dashed flex flex-col items-center justify-center pointer-events-none" style="border-color: #dc2626; color: #dc2626; transform: rotate(-10deg); opacity: 0.85;">
+                        <span class="text-[6.5px] font-black">الختم المعتمد</span>
+                        <i class="fas fa-certificate text-[11px] my-0.5"></i>
+                        <span class="text-[5.5px] font-bold">وحدة المعلومات</span>
                     </div>
-                @endforeach
+                    <div class="text-[9.5px] text-slate-500">التوقيع والختم: .................</div>
+                </div>
             </div>
         </div>
-    </div>
-    @endif
 
-    {{-- التوقيعات --}}
-    <div style="margin-top: 40px; display: flex; justify-content: space-between; text-align: center;">
-        <div style="width: 200px;">
-            <p><strong>توقيع مختص الأرشيف</strong></p>
-            <div style="margin-top:40px; border-bottom: 1px solid #000;"></div>
-        </div>
-        <div style="width: 150px; height: 150px; border: 2px dashed #ccc; border-radius: 50%; display: flex; items-center justify-center; color: #ccc; font-size: 10px;">
-            ختم المركز الرسمي
-        </div>
-        <div style="width: 200px;">
-            <p><strong>المصادقة (مدير الإدارة)</strong></p>
-            <div style="margin-top:40px; border-bottom: 1px solid #000;"></div>
-        </div>
+        {{-- Footer --}}
+        <footer class="pt-2 mt-2 flex items-center justify-between text-[9px] text-slate-500 border-t" style="border-color: #cbd5e1;">
+            <div class="flex items-center gap-2">
+                <span>طُبع بواسطة المشغل: <strong class="text-slate-800">{{ auth()->user()->name ?? 'النظام الآلي الموحد' }}</strong></span>
+                <span>|</span>
+                <span>تاريخ الطباعة: {{ now()->format('Y-m-d H:i') }}</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <span>نظام إدارة السجلات والقوى البشرية</span>
+                <span>•</span>
+                <span class="font-bold text-slate-700">سري للغاية</span>
+                <div class="inline-flex items-center gap-1 bg-slate-100 p-0.5 px-1 rounded border border-slate-200">
+                    <i class="fas fa-qrcode text-[10px] text-slate-700"></i>
+                    <span class="text-[7.5px] font-mono">VRF-{{ str_pad($personalData->id, 6, '0', STR_PAD_LEFT) }}</span>
+                </div>
+            </div>
+        </footer>
     </div>
 </div>
 
-{{-- أزرار التحكم - لا تظهر في الطباعة --}}
-<div class="no-print" style="position: fixed; bottom: 30px; left: 30px; display: flex; gap: 10px;">
-    <button onclick="window.print()" style="padding: 12px 25px; background: #1e3a8a; color: #fff; border: none; border-radius: 50px; cursor: pointer; display: flex; align-items: center; box-shadow: 0 4px 15px rgba(0,0,0,0.2); font-weight: bold;">
-        <i class="fas fa-print" style="margin-left: 10px;"></i> تنفيذ الطباعة
+{{-- Control Buttons (No Print) --}}
+<div class="no-print" style="position: fixed; bottom: 30px; left: 30px; display: flex; gap: 10px; z-index: 100;">
+    <button onclick="window.print()" class="hover:bg-blue-800 transition-colors" style="padding: 12px 25px; background: #1e3a8a; color: #fff; border: none; border-radius: 50px; cursor: pointer; display: flex; align-items: center; box-shadow: 0 4px 15px rgba(0,0,0,0.2); font-weight: bold;">
+        <i class="fas fa-print ml-2"></i> تنفيذ الطباعة
     </button>
-    <button onclick="window.close()" style="padding: 12px 25px; background: #ef4444; color: #fff; border: none; border-radius: 50px; cursor: pointer; display: flex; align-items: center; box-shadow: 0 4px 15px rgba(0,0,0,0.2); font-weight: bold;">
-        <i class="fas fa-times" style="margin-left: 10px;"></i> إغلاق
+    <button onclick="window.close()" class="hover:bg-red-600 transition-colors" style="padding: 12px 25px; background: #ef4444; color: #fff; border: none; border-radius: 50px; cursor: pointer; display: flex; align-items: center; box-shadow: 0 4px 15px rgba(0,0,0,0.2); font-weight: bold;">
+        <i class="fas fa-times ml-2"></i> إغلاق
     </button>
 </div>
 @endsection

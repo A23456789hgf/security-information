@@ -1,276 +1,300 @@
 @extends('layouts.app')
 
-@section('title', 'عرض البيانات الشخصية')
+@section('title', 'تفاصيل السجل الشخصي')
 @section('page_title', 'السجلات الأساسية')
 
 @section('content')
-    <div class="container-fluid mx-auto px-4 py-8" dir="rtl">
-        {{-- الرأس مع أزرار الإجراءات --}}
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10 no-print">
-            <div class="flex items-center gap-4">
-                <div
-                    class="w-16 h-16 bg-blue-600 rounded-3xl shadow-xl shadow-blue-100 flex items-center justify-center text-white">
-                    <!-- أيقونة مستخدم -->
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
+<div class="space-y-6" dir="rtl">
+    {{-- Breadcrumbs --}}
+    <nav class="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400 mb-2 print:hidden">
+        <a href="{{ route('dashboard') }}" class="hover:text-brand-600 dark:hover:text-brand-400 transition-colors">الرئيسية</a>
+        <span>/</span>
+        <a href="{{ route('system.personal-data.index') }}" class="hover:text-brand-600 dark:hover:text-brand-400 transition-colors">إدارة البيانات الشخصية</a>
+        <span>/</span>
+        <span class="text-slate-900 dark:text-white font-semibold">تفاصيل السجل</span>
+    </nav>
+
+    {{-- Action Toolbar --}}
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4 print:hidden">
+        <div>
+            <h1 class="font-display font-bold text-2xl text-slate-900 dark:text-white m-0">{{ $personalData->name }}</h1>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">ملف رقم #{{ str_pad($personalData->id, 5, '0', STR_PAD_LEFT) }}</p>
+        </div>
+        
+        <div class="flex flex-wrap items-center gap-2.5">
+            <button onclick="window.print()"
+                class="inline-flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-sm font-bold shadow-sm">
+                <i class="fas fa-print text-slate-400"></i>
+                <span>طباعة التقرير</span>
+            </button>
+            <a href="{{ route('system.personal-data.edit', $personalData) }}"
+                class="inline-flex items-center gap-2 px-4 py-2.5 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 text-amber-700 dark:text-amber-400 rounded-xl hover:bg-amber-100 dark:hover:bg-amber-500/20 transition-colors text-sm font-bold shadow-sm">
+                <i class="fas fa-edit"></i>
+                <span>تعديل السجل</span>
+            </a>
+            <a href="{{ route('system.personal-data.index') }}"
+                class="inline-flex items-center gap-2 px-4 py-2.5 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors text-sm font-bold">
+                <i class="fas fa-arrow-right"></i>
+                <span>عودة للقائمة</span>
+            </a>
+        </div>
+    </div>
+
+    {{-- Main Grid Layout --}}
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        {{-- Right Column: Profile Summary (Sticky) --}}
+        <div class="lg:col-span-1">
+            <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-6 lg:sticky lg:top-24 transition-colors print:shadow-none print:border-slate-300">
+                <div class="text-center mb-6">
+                    <div class="w-32 h-32 rounded-2xl bg-slate-50 dark:bg-slate-800 border-2 border-dashed border-slate-200 dark:border-slate-700 mx-auto mb-4 overflow-hidden flex items-center justify-center shadow-inner">
+                        @if($personalData->main_profile_photo)
+                            <img src="{{ asset('storage/' . $personalData->main_profile_photo) }}" alt="{{ $personalData->name }}" class="w-full h-full object-cover">
+                        @else
+                            <div class="text-slate-300 dark:text-slate-600 flex flex-col items-center justify-center">
+                                <i class="fas fa-user text-4xl mb-1"></i>
+                                <span class="text-[10px] font-bold">بدون صورة</span>
+                            </div>
+                        @endif
                     </div>
-                    <div>
-                        <h2 class="text-3xl font-extrabold text-slate-800 header-font mb-1">{{ $personalData->name }}</h2>
-                        <div class="flex items-center gap-3">
-                            <span class="px-3 py-1 bg-blue-50 text-blue-600 rounded-full text-xs font-bold border border-blue-100">
-                                {{ $personalData->jihadi_name ?? 'لا يوجد اسم جهادي' }}
+                    
+                    <h3 class="font-display font-bold text-xl text-slate-900 dark:text-white mb-2">{{ $personalData->name }}</h3>
+                    
+                    <div class="flex items-center justify-center gap-2 mb-3">
+                        @if($personalData->jihadi_name)
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-brand-50 dark:bg-brand-500/10 text-brand-700 dark:text-brand-300 border border-brand-200/50 dark:border-brand-500/20">
+                                {{ $personalData->jihadi_name }}
                             </span>
-                            <span class="text-slate-400 text-xs flex items-center gap-1">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-3 h-3">
-                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4.13-5.68z" clip-rule="evenodd" />
-                                </svg>
-                                ملف رقم: {{ $personalData->id }}
-                            </span>
+                        @endif
+                        <x-security-badge level="resolved" label="سجل نشط" />
+                    </div>
+                </div>
+
+                <hr class="border-slate-100 dark:border-slate-800 my-6" />
+
+                <div class="space-y-4">
+                    <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800">
+                        <span class="block text-xs font-bold text-slate-400 dark:text-slate-500 mb-1">الرقم القومي (الهوية)</span>
+                        <div class="font-mono font-bold text-slate-800 dark:text-slate-200 dark:text-slate-200 flex items-center gap-2 text-sm">
+                            <i class="fas fa-id-card text-slate-400 text-xs"></i>
+                            {{ $personalData->national_id_number ?? 'غير مسجل' }}
                         </div>
                     </div>
-                </div>
-                <div class="flex flex-wrap gap-2">
-                    <button onclick="window.print()" class="px-5 py-2.5 bg-white border border-slate-200 text-slate-600 rounded-2xl font-bold hover:bg-slate-50 transition-all shadow-sm flex items-center gap-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
-                            <path d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" stroke-linecap="round" stroke-linejoin="round" />
-                        </svg>
-                        طباعة الوثيقة
-                    </button>
-                    <a href="{{ route('system.personal-data.edit', $personalData) }}" class="px-5 py-2.5 bg-amber-500 text-white rounded-2xl font-bold hover:bg-amber-600 transition-all shadow-lg shadow-amber-100 flex items-center gap-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
-                        </svg>
-                        تعديل البيانات
-                    </a>
-                    <a href="{{ route('system.personal-data.index') }}" class="px-5 py-2.5 bg-slate-800 text-white rounded-2xl font-bold hover:bg-slate-900 transition-all shadow-lg shadow-slate-200 flex items-center gap-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
-                        </svg>
-                        عودة للقائمة
-                    </a>
-                </div>
-            </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                {{-- الجانب الأيمن: البطاقة الشخصية --}}
-                <div class="lg:col-span-4 space-y-8">
-                    <div class="bg-white rounded-[2.5rem] soft-shadow border border-slate-100 p-8 text-center relative overflow-hidden">
-                        <div class="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-full -mr-16 -mt-16 opacity-50"></div>
+                    <div class="p-3.5 rounded-xl bg-brand-50/50 dark:bg-brand-500/5 border border-brand-100 dark:border-brand-500/20">
+                        <span class="block text-xs font-bold text-brand-600 dark:text-brand-400 mb-1">الرقم العسكري</span>
+                        <div class="font-mono font-bold text-brand-700 dark:text-brand-300 flex items-center gap-2 text-sm">
+                            <i class="fas fa-shield-alt text-brand-500 text-xs"></i>
+                            {{ $personalData->military_number ?? 'غير مسجل' }}
+                        </div>
+                    </div>
 
-                        <div class="relative z-10">
-                            <div class="w-48 h-48 mx-auto mb-6 relative">
-                                @if($personalData->main_profile_photo)
-                                    <img src="{{ asset('storage/' . $personalData->main_profile_photo) }}" 
-                                         class="w-full h-full object-cover rounded-[2rem] border-4 border-white shadow-2xl">
-                                @else
-                                    <div class="w-full h-full bg-slate-50 rounded-[2rem] border-2 border-dashed border-slate-200 flex flex-col items-center justify-center text-slate-300">
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor" class="w-20 h-20">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M17.982 18.725A7.488 7.488 0 0012 15.75a7.488 7.488 0 00-5.982 2.975m11.963 0a9 9 0 10-11.963 0m11.963 0A8.966 8.966 0 0112 21a8.966 8.966 0 01-5.982-2.275M15 9.75a3 3 0 11-6 0 3 3 0 016 0z" />
-                                        </svg>
-                                        <span class="text-[10px] font-bold uppercase">لا توجد صورة</span>
+                    @if($personalData->phone_1 || $personalData->phone_2)
+                        <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800">
+                            <span class="block text-xs font-bold text-slate-400 dark:text-slate-500 mb-1">أرقام الاتصال</span>
+                            <div class="space-y-1.5 text-xs font-bold text-slate-800 dark:text-slate-200 dark:text-slate-200">
+                                @if($personalData->phone_1)
+                                    <div class="flex items-center gap-2 font-mono">
+                                        <i class="fas fa-phone-alt text-slate-400 text-[10px]"></i>
+                                        <span>{{ $personalData->phone_1 }}</span>
                                     </div>
                                 @endif
-                                <div class="absolute -bottom-2 -right-2 w-10 h-10 bg-emerald-500 text-white rounded-2xl border-4 border-white flex items-center justify-center shadow-lg">
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor" class="w-4 h-4">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                                    </svg>
-                                </div>
-                            </div>
-
-                            <h3 class="text-xl font-extrabold text-slate-800 header-font mb-6 px-4">{{ $personalData->name }}</h3>
-
-                            <div class="space-y-4 text-right px-2">
-                                <div class="flex items-center justify-between p-3 bg-slate-50 rounded-2xl border border-slate-100">
-                                    <span class="text-xs text-slate-400 font-bold">الرقم القومي</span>
-                                    <span class="text-sm font-extrabold text-slate-700">{{ $personalData->national_id_number ?? '-' }}</span>
-                                </div>
-                                <div class="flex items-center justify-between p-3 bg-blue-50/50 rounded-2xl border border-blue-100">
-                                    <span class="text-xs text-blue-400 font-bold">الرقم العسكري</span>
-                                    <span class="text-sm font-extrabold text-blue-700">{{ $personalData->military_number ?? '-' }}</span>
-                                </div>
+                                @if($personalData->phone_2)
+                                    <div class="flex items-center gap-2 font-mono text-slate-500">
+                                        <i class="fas fa-phone text-slate-400 text-[10px]"></i>
+                                        <span>{{ $personalData->phone_2 }}</span>
+                                    </div>
+                                @endif
                             </div>
                         </div>
-                    </div>
-
-                    {{-- بيانات الاتصال --}}
-                    <div class="bg-slate-800 rounded-[2.5rem] p-8 text-white shadow-xl">
-                        <h5 class="text-lg font-bold mb-6 flex items-center gap-2">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 text-blue-400">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 1.5H8.25A2.25 2.25 0 006 3.75v16.5a2.25 2.25 0 002.25 2.25h7.5A2.25 2.25 0 0018 20.25V3.75a2.25 2.25 0 00-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3" />
-                            </svg>
-                            بيانات الاتصال
-                        </h5>
-                        <div class="space-y-4">
-                            <div class="flex items-center gap-4">
-                                <div class="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center">
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 1.5H8.25A2.25 2.25 0 006 3.75v16.5a2.25 2.25 0 002.25 2.25h7.5A2.25 2.25 0 0018 20.25V3.75a2.25 2.25 0 00-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3" />
-                                    </svg>
-                                </div>
-                                <div>
-                                    <p class="text-[10px] text-slate-400">رقم الهاتف الأساسي</p>
-                                    <p class="text-sm font-bold">{{ $personalData->phone_1 ?? '-' }}</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    @endif
                 </div>
+            </div>
+        </div>
 
-                {{-- الجانب الأيسر: التفاصيل --}}
-                <div class="lg:col-span-8 space-y-8">
-                    <div class="bg-white rounded-[2.5rem] soft-shadow border border-slate-100 overflow-hidden">
-                        <div class="px-8 py-6 border-b border-slate-50 flex items-center bg-slate-50/50">
-                            <h5 class="text-lg font-bold text-slate-800 header-font flex items-center gap-3">
-                                <span class="w-2 h-6 bg-blue-600 rounded-full"></span>
-                                المعلومات المدنية والشخصية
-                            </h5>
-                        </div>
-                        <div class="p-8 grid grid-cols-1 md:grid-cols-2 gap-8">
-                            <div class="flex items-center gap-4">
-                                <div class="w-12 h-12 bg-rose-50 text-rose-600 rounded-2xl flex items-center justify-center">
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
-                                    </svg>
-                                </div>
-                                <div>
-                                    <p class="text-[10px] text-slate-400 font-bold">فصيلة الدم</p>
-                                    <p class="text-base font-extrabold text-slate-700">{{ $personalData->bloodType->type ?? '-' }}</p>
-                                </div>
-                            </div>
-                            <div class="flex items-center gap-4">
-                                <div class="w-12 h-12 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center">
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z" />
-                                    </svg>
-                                </div>
-                                <div>
-                                    <p class="text-[10px] text-slate-400 font-bold">المؤهل العلمي</p>
-                                    <p class="text-base font-extrabold text-slate-700">{{ $personalData->qualification->name ?? '-' }}</p>
-                                </div>
-                            </div>
+        {{-- Left Column: Details Cards --}}
+        <div class="lg:col-span-2 space-y-6">
+            
+            {{-- Section 1: Civilian and Personal Data --}}
+            <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden transition-colors print:shadow-none print:border-slate-300">
+                <div class="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800 px-5 py-4 flex items-center gap-3">
+                    <div class="w-2 h-5 bg-brand-600 rounded-full"></div>
+                    <h2 class="font-display font-bold text-base text-slate-900 dark:text-white m-0">المعلومات المدنية والشخصية</h2>
+                </div>
+                
+                <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <span class="block text-xs font-bold text-slate-400 dark:text-slate-500 mb-1">فصيلة الدم</span>
+                        <div class="text-sm font-bold text-slate-800 dark:text-slate-200 dark:text-slate-200">
+                            {{ $personalData->bloodType->type ?? '-' }}
                         </div>
                     </div>
 
-                    {{-- السجل العسكري --}}
-                    <div class="bg-white rounded-[2.5rem] soft-shadow border border-slate-100 overflow-hidden">
-                        <div class="px-8 py-6 border-b border-slate-50 flex items-center bg-slate-50/50">
-                            <h5 class="text-lg font-bold text-slate-800 header-font flex items-center gap-3">
-                                <span class="w-2 h-6 bg-emerald-600 rounded-full"></span>
-                                السجل العسكري والمهني
-                            </h5>
-                        </div>
-                        <div class="p-8 grid grid-cols-1 md:grid-cols-2 gap-8">
-                            <div>
-                                <p class="text-[10px] text-slate-400 font-bold mb-1 uppercase">الرتبة العسكرية</p>
-                                <div class="flex items-center gap-2">
-                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5 text-amber-500">
-                                        <path fill-rule="evenodd" d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.007 5.404.433c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.433 2.082-5.006z" clip-rule="evenodd" />
-                                    </svg>
-                                    <span class="text-base font-extrabold text-slate-700">{{ $personalData->rank->rank ?? '-' }}</span>
-                                </div>
-                            </div>
-                            <div>
-                                <p class="text-[10px] text-slate-400 font-bold mb-1 uppercase">الجهة / الوحدة</p>
-                                <p class="text-base font-extrabold text-slate-700">{{ $personalData->unit ?? '-' }}</p>
-                            </div>
+                    <div>
+                        <span class="block text-xs font-bold text-slate-400 dark:text-slate-500 mb-1">المؤهل الدراسي</span>
+                        <div class="text-sm font-bold text-slate-800 dark:text-slate-200 dark:text-slate-200">
+                            {{ $personalData->qualification->name ?? '-' }}
                         </div>
                     </div>
 
-                    {{-- الأهل والأقارب --}}
-                    @if($personalData->relatives && $personalData->relatives->count() > 0)
-                        <div class="bg-white rounded-[2.5rem] soft-shadow border border-slate-100 overflow-hidden">
-                            <div class="px-8 py-6 border-b border-slate-50 flex items-center justify-between bg-slate-50/50">
-                                <h5 class="text-lg font-bold text-slate-800 header-font flex items-center gap-3">
-                                    <span class="w-2 h-6 bg-indigo-600 rounded-full"></span>
-                                    الأهل والأقارب ({{ $personalData->relatives->count() }})
-                                </h5>
-                                <a href="{{ route('system.relatives.create', ['personal_data_id' => $personalData->id]) }}"
-                                    class="text-xs text-indigo-600 hover:text-indigo-800 font-bold flex items-center gap-1">
-                                    <i class="fas fa-plus"></i> إضافة
-                                </a>
+                    <div>
+                        <span class="block text-xs font-bold text-slate-400 dark:text-slate-500 mb-1">الحالة الاجتماعية</span>
+                        <div class="text-sm font-bold text-slate-800 dark:text-slate-200 dark:text-slate-200">
+                            {{ $personalData->maritalStatus->name ?? '-' }}
+                        </div>
+                    </div>
+
+                    <div>
+                        <span class="block text-xs font-bold text-slate-400 dark:text-slate-500 mb-1">تاريخ الميلاد</span>
+                        <div class="text-sm font-bold text-slate-800 dark:text-slate-200 dark:text-slate-200">
+                            {{ $personalData->date_of_birth_gregorian ? $personalData->date_of_birth_gregorian->format('Y-m-d') : '-' }}
+                        </div>
+                    </div>
+
+                    @if($personalData->placeOfBirthGovernorate || $personalData->placeOfBirthDirectorate || $personalData->placeOfBirthSubArea || $personalData->placeOfBirthVillage)
+                        <div>
+                            <span class="block text-xs font-bold text-slate-400 dark:text-slate-500 mb-1">مكان الميلاد (محافظة / مديرية / عزلة / قرية)</span>
+                            <div class="text-sm font-bold text-slate-800 dark:text-slate-200">
+                                {{ implode(' / ', array_filter([
+                                    $personalData->placeOfBirthGovernorate->name ?? null,
+                                    $personalData->placeOfBirthDirectorate->name ?? null,
+                                    $personalData->placeOfBirthSubArea->name ?? null,
+                                    $personalData->placeOfBirthVillage->name ?? null,
+                                ])) ?: '-' }}
                             </div>
-                            <div class="p-6">
-                                <div class="overflow-x-auto">
-                                    <table class="w-full text-right text-xs">
-                                        <thead>
-                                            <tr class="border-b border-slate-100 text-slate-400 font-bold">
-                                                <th class="py-2.5 px-3">الاسم الكامل</th>
-                                                <th class="py-2.5 px-3">العمر</th>
-                                                <th class="py-2.5 px-3">صلة القرابة</th>
-                                                <th class="py-2.5 px-3">العمل الحالي</th>
-                                                <th class="py-2.5 px-3">العقائدي</th>
-                                                <th class="py-2.5 px-3">الانتماء السياسي</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody class="divide-y divide-slate-50">
-                                            @foreach($personalData->relatives as $rel)
-                                                <tr class="hover:bg-slate-50/50">
-                                                    <td class="py-3 px-3 font-bold text-slate-800">{{ $rel->full_name }}</td>
-                                                    <td class="py-3 px-3 text-slate-600">{{ $rel->age ? $rel->age . ' سنة' : '-' }}</td>
-                                                    <td class="py-3 px-3">
-                                                        <span class="px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 font-bold text-[11px]">
-                                                            {{ $rel->kinship->name ?? '-' }}
-                                                        </span>
-                                                    </td>
-                                                    <td class="py-3 px-3 text-slate-600">{{ $rel->current_job ?? '-' }}</td>
-                                                    <td class="py-3 px-3">
-                                                        <span class="px-2.5 py-1 rounded-full bg-purple-50 text-purple-700 font-bold text-[11px]">
-                                                            {{ $rel->ideologicalAffiliation->name ?? '-' }}
-                                                        </span>
-                                                    </td>
-                                                    <td class="py-3 px-3">
-                                                        <span class="px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 font-bold text-[11px]">
-                                                            {{ $rel->politicalAffiliation->name ?? '-' }}
-                                                        </span>
-                                                    </td>
-                                                </tr>
-                                            @endforeach
-                                        </tbody>
-                                    </table>
-                                </div>
+                        </div>
+                    @endif
+
+                    @if($personalData->governorate || $personalData->directorate || $personalData->subArea || $personalData->village)
+                        <div>
+                            <span class="block text-xs font-bold text-slate-400 dark:text-slate-500 mb-1">عنوان السكن (محافظة / مديرية / عزلة / قرية)</span>
+                            <div class="text-sm font-bold text-slate-800 dark:text-slate-200">
+                                {{ implode(' / ', array_filter([
+                                    $personalData->governorate->name ?? null,
+                                    $personalData->directorate->name ?? null,
+                                    $personalData->subArea->name ?? null,
+                                    $personalData->village->name ?? null,
+                                ])) ?: '-' }}
+                            </div>
+                        </div>
+                    @endif
+
+                    @if($personalData->current_address)
+                        <div>
+                            <span class="block text-xs font-bold text-slate-400 dark:text-slate-500 mb-1">تفاصيل إضافية للسكن</span>
+                            <div class="text-sm font-bold text-slate-800 dark:text-slate-200">
+                                {{ $personalData->current_address }}
                             </div>
                         </div>
                     @endif
                 </div>
             </div>
 
-            {{-- المرفقات --}}
-            @if($personalData->photos->count() > 0)
-                <div class="mt-8 bg-white rounded-[2.5rem] soft-shadow border border-slate-100 overflow-hidden">
-                    <div class="px-8 py-6 border-b border-slate-50">
-                        <h5 class="text-lg font-bold text-slate-800 header-font flex items-center gap-3">
-                            <span class="w-2 h-6 bg-purple-600 rounded-full"></span>
-                            الوثائق المرفقة
-                        </h5>
+            {{-- Section 2: Military & Professional Data --}}
+            <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden transition-colors print:shadow-none print:border-slate-300">
+                <div class="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800 px-5 py-4 flex items-center gap-3">
+                    <div class="w-2 h-5 bg-emerald-600 rounded-full"></div>
+                    <h2 class="font-display font-bold text-base text-slate-900 dark:text-white m-0">السجل العسكري والمهني</h2>
+                </div>
+                
+                <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <span class="block text-xs font-bold text-slate-400 dark:text-slate-500 mb-1">الرتبة العسكرية</span>
+                        <div class="text-sm font-bold text-slate-800 dark:text-slate-200 dark:text-slate-200">
+                            {{ $personalData->rank->rank ?? '-' }}
+                        </div>
                     </div>
-                    <div class="p-8 grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
+
+                    <div>
+                        <span class="block text-xs font-bold text-slate-400 dark:text-slate-500 mb-1">الجهة / الوحدة العسكرية</span>
+                        <div class="text-sm font-bold text-slate-800 dark:text-slate-200 dark:text-slate-200">
+                            {{ $personalData->unit ?? '-' }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Section 3: Relatives --}}
+            @if($personalData->relatives && $personalData->relatives->count() > 0)
+                <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden transition-colors print:shadow-none print:border-slate-300">
+                    <div class="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800 px-5 py-4 flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <div class="w-2 h-5 bg-indigo-600 rounded-full"></div>
+                            <h2 class="font-display font-bold text-base text-slate-900 dark:text-white m-0">الأهل والأقارب ({{ $personalData->relatives->count() }})</h2>
+                        </div>
+                        <a href="{{ route('system.relatives.create', ['personal_data_id' => $personalData->id]) }}"
+                            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs font-bold text-brand-600 dark:text-brand-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors print:hidden">
+                            <i class="fas fa-plus"></i> إضافة
+                        </a>
+                    </div>
+                    
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-right text-xs">
+                            <thead class="bg-slate-50/50 dark:bg-slate-800/30 border-b border-slate-100 dark:border-slate-800 text-slate-500 dark:text-slate-400 font-bold">
+                                <tr>
+                                    <th class="py-3 px-4">الاسم الكامل</th>
+                                    <th class="py-3 px-4">العمر</th>
+                                    <th class="py-3 px-4">صلة القرابة</th>
+                                    <th class="py-3 px-4">العمل الحالي</th>
+                                    <th class="py-3 px-4">العقائدي</th>
+                                    <th class="py-3 px-4">الانتماء السياسي</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+                                @foreach($personalData->relatives as $rel)
+                                    <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/20">
+                                        <td class="py-3 px-4 font-bold text-slate-800 dark:text-slate-200 dark:text-slate-200">{{ $rel->full_name }}</td>
+                                        <td class="py-3 px-4 text-slate-600 dark:text-slate-400">{{ $rel->age ? $rel->age . ' سنة' : '-' }}</td>
+                                        <td class="py-3 px-4">
+                                            <span class="inline-block px-2.5 py-1 rounded-full bg-brand-50 dark:bg-brand-500/10 text-brand-700 dark:text-brand-300 font-bold text-[11px]">
+                                                {{ $rel->kinship->name ?? '-' }}
+                                            </span>
+                                        </td>
+                                        <td class="py-3 px-4 text-slate-600 dark:text-slate-400">{{ $rel->current_job ?? '-' }}</td>
+                                        <td class="py-3 px-4">
+                                            <span class="inline-block px-2.5 py-1 rounded-full bg-purple-50 dark:bg-purple-500/10 text-purple-700 dark:text-purple-300 font-bold text-[11px]">
+                                                {{ $rel->ideologicalAffiliation->name ?? '-' }}
+                                            </span>
+                                        </td>
+                                        <td class="py-3 px-4">
+                                            <span class="inline-block px-2.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 font-bold text-[11px]">
+                                                {{ $rel->politicalAffiliation->name ?? '-' }}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            @endif
+
+            {{-- Section 4: Attached Photos/Documents --}}
+            @if($personalData->photos && $personalData->photos->count() > 0)
+                <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden transition-colors print:shadow-none print:border-slate-300">
+                    <div class="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800 px-5 py-4 flex items-center gap-3">
+                        <div class="w-2 h-5 bg-purple-600 rounded-full"></div>
+                        <h2 class="font-display font-bold text-base text-slate-900 dark:text-white m-0">الوثائق والصور المرفقة ({{ $personalData->photos->count() }})</h2>
+                    </div>
+                    
+                    <div class="p-6 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                         @foreach($personalData->photos as $photo)
-                            <div class="group relative aspect-square overflow-hidden rounded-[2rem] border-2 border-slate-50 shadow-sm hover:shadow-xl transition-all">
-                                <img src="{{ asset('storage/' . $photo->photo_path) }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
-                                <div class="absolute inset-0 bg-slate-900/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                                    <a href="{{ asset('storage/' . $photo->photo_path) }}" target="_blank" class="w-10 h-10 bg-white text-slate-800 rounded-xl flex items-center justify-center shadow-lg transition-transform hover:scale-110">
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
-                                        </svg>
-                                    </a>
-                                </div>
+                            <div class="group relative aspect-square overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 shadow-sm">
+                                <img src="{{ asset('storage/' . $photo->photo_path) }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                                <a href="{{ asset('storage/' . $photo->photo_path) }}" target="_blank"
+                                    class="absolute inset-0 bg-slate-900/40 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white transition-opacity">
+                                    <span class="p-2 bg-white/90 text-slate-900 rounded-2xl text-xs font-bold">
+                                        <i class="fas fa-search-plus"></i> تكبير
+                                    </span>
+                                </a>
                             </div>
                         @endforeach
                     </div>
                 </div>
             @endif
+
         </div>
+    </div>
+</div>
 @endsection
 
-@push('styles')
-    <style>
-        @media print {
-            body { background: white !important; }
-            .no-print { display: none !important; }
-            .container-fluid { width: 100% !important; max-width: 100% !important; padding: 0 !important; }
-            .soft-shadow { box-shadow: none !important; border: 1px solid #eee !important; }
-            .rounded-\[2\.5rem\] { border-radius: 1rem !important; }
-        }
-    </style>
-@endpush

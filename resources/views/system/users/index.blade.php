@@ -4,112 +4,131 @@
 @section('page_title', 'إدارة النظام')
 
 @section('content')
-<div class="container-fluid mx-auto px-4 py-8" dir="rtl">
-    {{-- رأس الصفحة مع الإحصائيات --}}
-    <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
-        <div class="flex items-center gap-4">
-            <div class="w-16 h-16 bg-blue-600 rounded-3xl shadow-xl shadow-blue-100 flex items-center justify-center text-white">
-                <i class="fas fa-user-shield text-2xl"></i>
-            </div>
-            <div>
-                <h2 class="text-3xl font-extrabold text-slate-800 header-font mb-1">إدارة المستخدمين</h2>
-                <p class="text-slate-500 text-sm flex items-center gap-2">
-                    <i class="fas fa-database text-slate-400"></i> إجمالي الحسابات:
-                    <span class="text-slate-700 font-bold">{{ $users->total() }}</span>
-                </p>
-            </div>
+<div class="space-y-6" dir="rtl">
+    {{-- Header --}}
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+            <h1 class="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-3">
+                <div class="p-2.5 bg-brand-500/10 text-brand-600 dark:text-brand-400 rounded-xl">
+                    <i class="fas fa-user-shield text-xl"></i>
+                </div>
+                إدارة المستخدمين
+            </h1>
+            <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                إدارة حسابات مستخدمي النظام والصلاحيات والجهات (إجمالي الحسابات: <span class="font-bold text-slate-700 dark:text-slate-200">{{ $users->total() }}</span>)
+            </p>
         </div>
-        <div class="flex flex-wrap gap-3">
+        <div class="flex flex-wrap items-center gap-3">
             <a href="{{ route('system.users.export', request()->all()) }}"
-                class="px-5 py-3 bg-emerald-600 text-white rounded-2xl font-bold hover:bg-emerald-700 transition-all shadow-xl shadow-emerald-100 flex items-center gap-2 text-sm">
-                <i class="fas fa-file-excel"></i> تصدير (Excel)
+                class="inline-flex items-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-xl shadow-sm hover:shadow transition-all">
+                <i class="fas fa-file-excel"></i>
+                تصدير (Excel)
             </a>
             <a href="{{ route('data.import.index', ['type' => 'users']) }}"
-                class="px-5 py-3 bg-indigo-600 text-white rounded-2xl font-bold hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-100 flex items-center gap-2 text-sm">
-                <i class="fas fa-file-import"></i> استيراد
+                class="inline-flex items-center gap-2 px-4 py-2.5 bg-slate-800 hover:bg-slate-900 text-white text-sm font-semibold rounded-xl shadow-sm hover:shadow transition-all">
+                <i class="fas fa-file-import"></i>
+                استيراد
             </a>
             <a href="{{ route('system.users.create') }}"
-                class="px-6 py-3 bg-blue-600 text-white rounded-2xl font-bold hover:bg-blue-700 transition-all shadow-xl shadow-blue-100 flex items-center gap-2 text-sm">
-                <i class="fas fa-plus-circle"></i> إضافة مستخدم جديد
+                class="inline-flex items-center gap-2 px-4 py-2.5 bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold rounded-xl shadow-sm hover:shadow transition-all">
+                <i class="fas fa-plus"></i>
+                إضافة مستخدم جديد
             </a>
         </div>
     </div>
 
-    {{-- رسائل النظام --}}
+    {{-- System Alerts --}}
     @if(session('success'))
-        <div class="bg-emerald-50 border border-emerald-100 text-emerald-700 px-6 py-4 rounded-2xl mb-8 flex items-center justify-between shadow-sm" role="alert">
-            <div class="flex items-center gap-3">
-                <i class="fas fa-check-circle text-xl"></i>
-                <span class="font-bold">{{ session('success') }}</span>
+        <div class="p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-emerald-600 dark:text-emerald-400 flex items-center justify-between" role="alert">
+            <div class="flex items-center gap-2">
+                <i class="fas fa-check-circle"></i>
+                <span class="text-sm font-medium">{{ session('success') }}</span>
             </div>
-            <button type="button" class="text-emerald-400 hover:text-emerald-600 transition-colors" onclick="this.parentElement.remove()">
+            <button type="button" class="text-emerald-500 hover:text-emerald-700" onclick="this.parentElement.remove()">
                 <i class="fas fa-times"></i>
             </button>
         </div>
     @endif
 
-    {{-- جدول البيانات --}}
-    <div class="bg-white rounded-[2.5rem] soft-shadow border border-slate-100 overflow-hidden">
+    {{-- Data table --}}
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm overflow-hidden">
         <div class="overflow-x-auto">
             <table class="w-full text-right border-collapse">
                 <thead>
-                    <tr class="bg-slate-50/50 border-b border-slate-100">
-                        <th class="px-8 py-6 text-slate-400 font-bold uppercase tracking-widest text-[10px]">#</th>
-                        <th class="px-6 py-6 text-slate-400 font-bold uppercase tracking-widest text-[10px]">المستخدم</th>
-                        <th class="px-6 py-6 text-slate-400 font-bold uppercase tracking-widest text-[10px]">اسم الدخول</th>
-                        <th class="px-6 py-6 text-slate-400 font-bold uppercase tracking-widest text-[10px]">الدور والصلاحيات</th>
-                        <th class="px-6 py-6 text-slate-400 font-bold uppercase tracking-widest text-[10px] text-center">الحالة</th>
-                        <th class="px-8 py-6 text-slate-400 font-bold uppercase tracking-widest text-[10px] text-left">الإجراءات</th>
+                    <tr class="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 font-bold text-xs uppercase tracking-wider">
+                        <th class="px-6 py-4">#</th>
+                        <th class="px-6 py-4">المستخدم</th>
+                        <th class="px-6 py-4">اسم الدخول</th>
+                        <th class="px-6 py-4">الدور والصلاحيات</th>
+                        <th class="px-6 py-4 text-center">الحالة</th>
+                        <th class="px-6 py-4 text-left">الإجراءات</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-50">
+                <tbody class="divide-y divide-slate-100 dark:divide-slate-800 text-sm">
                     @forelse($users as $user)
-                        <tr class="group hover:bg-slate-50/30 transition-colors">
-                            <td class="px-8 py-5">
-                                <span class="text-slate-400 font-mono text-xs">{{ str_pad($user->id, 3, '0', STR_PAD_LEFT) }}</span>
+                        <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/25 transition-colors">
+                            <td class="px-6 py-4">
+                                <span class="font-mono text-xs text-slate-400">#{{ str_pad($user->id, 3, '0', STR_PAD_LEFT) }}</span>
                             </td>
-                            <td class="px-6 py-5">
+                            <td class="px-6 py-4">
                                 <div class="flex items-center gap-3">
-                                    <div class="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center font-bold text-xs uppercase border border-blue-100">
+                                    <div class="w-9 h-9 rounded-xl bg-brand-500/10 border border-brand-500/20 text-brand-600 dark:text-brand-400 flex items-center justify-center font-bold text-xs uppercase">
                                         {{ mb_substr($user->name, 0, 2) }}
                                     </div>
                                     <div>
-                                        <span class="font-bold text-slate-700 block">{{ $user->name }}</span>
-                                        <span class="text-[10px] text-slate-400">{{ $user->internal_entity->name ?? 'مستخدم عام' }}</span>
+                                        <a href="{{ route('system.users.show', $user) }}" class="font-bold text-slate-900 dark:text-white hover:text-brand-600 dark:hover:text-brand-400 transition-colors block">
+                                            {{ $user->name }}
+                                        </a>
+                                        <span class="text-xs text-slate-400">{{ $user->internal_entity->name ?? 'مستخدم عام' }}</span>
                                     </div>
                                 </div>
                             </td>
-                            <td class="px-6 py-5 font-mono text-slate-600 font-bold text-xs">
+                            <td class="px-6 py-4 font-mono font-semibold text-xs text-slate-700 dark:text-slate-300">
                                 {{ $user->username }}
                             </td>
-                            <td class="px-6 py-5">
-                                <div class="flex flex-wrap gap-1">
+                            <td class="px-6 py-4">
+                                <div class="flex flex-wrap gap-1.5">
                                     @foreach($user->roles as $role)
-                                        <span class="px-2.5 py-0.5 bg-blue-50 text-blue-700 rounded-lg text-[10px] font-bold border border-blue-100">
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-2xl text-xs font-semibold bg-brand-500/10 text-brand-600 dark:text-brand-400 border border-brand-500/20">
                                             {{ $role->name }}
                                         </span>
                                     @endforeach
                                 </div>
                             </td>
-                            <td class="px-6 py-5 text-center">
+                            <td class="px-6 py-4 text-center">
                                 @if($user->is_active)
-                                    <span class="px-3 py-1 bg-emerald-50 text-emerald-700 rounded-lg text-[10px] font-bold border border-emerald-100 inline-flex items-center gap-1">
-                                        <i class="fas fa-check-circle text-[8px]"></i> نشط
+                                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                        نشط
                                     </span>
                                 @else
-                                    <span class="px-3 py-1 bg-rose-50 text-rose-700 rounded-lg text-[10px] font-bold border border-rose-100 inline-flex items-center gap-1">
-                                        <i class="fas fa-times-circle text-[8px]"></i> غير نشط
+                                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+                                        غير نشط
                                     </span>
                                 @endif
                             </td>
-                            <td class="px-8 py-5">
-                                <div class="flex justify-end items-center gap-2">
-                                    <a href="{{ route('system.users.edit', $user) }}" class="w-9 h-9 flex items-center justify-center rounded-xl bg-amber-50 text-amber-600 hover:bg-amber-600 hover:text-white shadow-sm transition-all" title="تعديل"><i class="fas fa-pen text-xs"></i></a>
+                            <td class="px-6 py-4">
+                                <div class="flex items-center justify-end gap-1.5">
+                                    <a href="{{ route('system.users.show', $user) }}"
+                                        class="p-2 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-brand-600 dark:hover:text-brand-400 hover:bg-brand-50 dark:hover:bg-brand-950/50 transition-colors"
+                                        title="عرض الملف">
+                                        <i class="fas fa-eye text-xs"></i>
+                                    </a>
+                                    <a href="{{ route('system.users.edit', $user) }}"
+                                        class="p-2 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/50 transition-colors"
+                                        title="تعديل">
+                                        <i class="fas fa-edit text-xs"></i>
+                                    </a>
                                     @if($user->id !== auth()->id())
                                         <form action="{{ route('system.users.destroy', $user) }}" method="POST" class="inline" onsubmit="return confirm('هل أنت متأكد من الحذف؟')">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" class="w-9 h-9 flex items-center justify-center rounded-xl bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white shadow-sm transition-all" title="حذف"><i class="fas fa-trash text-xs"></i></button>
+                                            <button type="submit"
+                                                class="p-2 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/50 transition-colors"
+                                                title="حذف">
+                                                <i class="fas fa-trash text-xs"></i>
+                                            </button>
                                         </form>
                                     @endif
                                 </div>
@@ -117,12 +136,12 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="py-20 text-center">
+                            <td colspan="6" class="py-16 text-center">
                                 <div class="flex flex-col items-center">
-                                    <div class="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-4">
-                                        <i class="fas fa-search text-slate-200 text-3xl"></i>
+                                    <div class="w-16 h-16 bg-slate-50 dark:bg-slate-800 rounded-2xl flex items-center justify-center mb-3">
+                                        <i class="fas fa-user-slash text-slate-300 dark:text-slate-600 text-2xl"></i>
                                     </div>
-                                    <p class="text-slate-400 font-bold">لا يوجد مستخدمون حالياً</p>
+                                    <p class="text-slate-500 dark:text-slate-400 font-medium">لا يوجد مستخدمون حالياً</p>
                                 </div>
                             </td>
                         </tr>
@@ -132,9 +151,10 @@
         </div>
     </div>
 
-    {{-- الترقيم --}}
-    <div class="mt-10 flex justify-center">
+    {{-- Pagination --}}
+    <div class="flex justify-center">
         {{ $users->withQueryString()->links() }}
     </div>
 </div>
 @endsection
+
