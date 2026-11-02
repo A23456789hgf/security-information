@@ -12,8 +12,6 @@ class DynamicDataController extends Controller
 {
     public function show(Page $page)
     {
-        abort_if(!auth()->user()->can("view_{$page->slug}"), 403, 'عفواً، لا تملك الصلاحية لعرض هذه الصفحة.');
-
         if (! $page->is_active) {
             abort(404);
         }
@@ -29,8 +27,6 @@ class DynamicDataController extends Controller
 
     public function create(Page $page)
     {
-        abort_if(!auth()->user()->can("create_{$page->slug}"), 403, 'عفواً، لا تملك الصلاحية لإضافة سجل جديد.');
-
         $page->load('fields');
 
         return view('system.dynamic_data.create', compact('page'));
@@ -38,8 +34,6 @@ class DynamicDataController extends Controller
 
     public function store(Request $request, Page $page)
     {
-        abort_if(!auth()->user()->can("create_{$page->slug}"), 403, 'عفواً، لا تملك الصلاحية لإضافة سجل جديد.');
-
         $fields = $page->fields;
         $rules = [];
         foreach ($fields as $field) {
@@ -76,8 +70,6 @@ class DynamicDataController extends Controller
 
     public function edit(Page $page, Record $record)
     {
-        abort_if(!auth()->user()->can("edit_{$page->slug}"), 403, 'عفواً، لا تملك الصلاحية لتعديل هذا السجل.');
-
         $page->load('fields');
         $record->load('values');
         $values = $record->values->pluck('value', 'field_id')->toArray();
@@ -87,8 +79,6 @@ class DynamicDataController extends Controller
 
     public function update(Request $request, Page $page, Record $record)
     {
-        abort_if(!auth()->user()->can("edit_{$page->slug}"), 403, 'عفواً، لا تملك الصلاحية لتعديل هذا السجل.');
-
         $fields = $page->fields;
         $rules = [];
         foreach ($fields as $field) {
@@ -120,10 +110,25 @@ class DynamicDataController extends Controller
 
     public function destroy(Page $page, Record $record)
     {
-        abort_if(!auth()->user()->can("delete_{$page->slug}"), 403, 'عفواً، لا تملك الصلاحية لحذف هذا السجل.');
-
         $record->delete();
 
         return back()->with('success', 'تم حذف السجل بنجاح');
+    }
+
+    public function print(Page $page)
+    {
+        if (! $page->is_active) {
+            abort(404);
+        }
+
+        $records = Record::where('page_id', $page->id)
+            ->visibleToUserForModule('dynamic_pages')
+            ->with(['values.field', 'user', 'entity'])
+            ->latest()
+            ->get();
+
+        $page->load('fields');
+
+        return view('system.dynamic_data.print', compact('page', 'records'));
     }
 }

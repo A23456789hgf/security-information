@@ -19,6 +19,11 @@
             </p>
         </div>
         <div class="flex items-center gap-3">
+            <a href="{{ route('system.users.print', $user) }}" target="_blank"
+                class="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl shadow-sm hover:shadow transition-all">
+                <i class="fas fa-print"></i>
+                طباعة الملف
+            </a>
             <a href="{{ route('system.users.index') }}"
                 class="inline-flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 text-sm font-semibold rounded-xl transition-all shadow-sm">
                 <i class="fas fa-arrow-right"></i>
@@ -77,10 +82,10 @@
                 </h3>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
                     <div class="bg-slate-50 dark:bg-slate-950/50 p-4 rounded-xl border border-slate-200 dark:border-slate-800">
-                        <span class="text-slate-400 block mb-1">الجهة التابع لها</span>
-                        <div class="flex items-center gap-2 font-bold text-slate-800 dark:text-slate-200 dark:text-slate-200 text-sm">
-                            <i class="fas fa-building text-brand-600 dark:text-brand-400"></i>
-                            <span>{{ $user->internal_entity->name ?? 'مستخدم عام / غير محدد' }}</span>
+                        <span class="text-slate-400 block mb-1">النطاق الإداري (الجهة)</span>
+                        <div class="flex items-center gap-2 font-bold text-slate-800 dark:text-slate-200 text-sm">
+                            <i class="fas fa-sitemap text-purple-600 dark:text-purple-400"></i>
+                            <span>{{ $user->internal_entity->name ?? 'عام (كافة الجهات)' }}</span>
                         </div>
                     </div>
                     <div class="bg-slate-50 dark:bg-slate-950/50 p-4 rounded-xl border border-slate-200 dark:border-slate-800">
@@ -96,6 +101,31 @@
                                 <span>غير نشط (معطل)</span>
                             </div>
                         @endif
+                    </div>
+                </div>
+
+                {{-- Geographical Scopes summary --}}
+                <div class="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800">
+                    <span class="text-slate-400 text-xs block mb-2 font-bold"><i class="fas fa-map-marked-alt text-emerald-500 ml-1"></i> النطاقات الجغرافية المحددة:</span>
+                    <div class="flex flex-wrap gap-2">
+                        @forelse($user->geographicScopes as $geo)
+                            @if($geo->scope_type === 'all')
+                                <span class="inline-flex items-center px-3 py-1 rounded-xl text-xs font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                                    <i class="fas fa-globe ml-1.5"></i> كل المحافظات وكل المديريات
+                                </span>
+                            @elseif($geo->scope_type === 'none')
+                                <span class="inline-flex items-center px-3 py-1 rounded-xl text-xs font-semibold bg-slate-500/10 text-slate-600 dark:text-slate-400 border border-slate-500/20">
+                                    <i class="fas fa-ban ml-1.5"></i> بدون محافظة
+                                </span>
+                            @else
+                                <span class="inline-flex items-center px-3 py-1 rounded-xl text-xs font-semibold bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20">
+                                    <i class="fas fa-map-marker-alt ml-1.5"></i>
+                                    {{ $geo->governorate->name ?? 'محافظة' }} - {{ $geo->directorate->name ?? 'كل المديريات' }}
+                                </span>
+                            @endif
+                        @empty
+                            <span class="text-slate-400 text-xs italic">لا توجد قيود نطاق جغرافي مخصصة (كافة النطاقات مسموحة إفتراضياً)</span>
+                        @endforelse
                     </div>
                 </div>
             </div>

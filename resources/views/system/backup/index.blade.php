@@ -16,6 +16,12 @@
                 <p class="text-slate-500 text-sm">إنشاء نسخ احتياطية مشفرة واستعادة وتحديث قواعد البيانات بأمان كامل.</p>
             </div>
         </div>
+        <div class="flex items-center gap-3">
+            <a href="{{ route('system.backup.print') }}" target="_blank"
+                class="px-5 py-3 bg-blue-600 text-white rounded-2xl font-bold hover:bg-blue-700 transition-all shadow-xl shadow-blue-100 flex items-center gap-2 text-sm">
+                <i class="fas fa-print"></i> طباعة سجل النسخ
+            </a>
+        </div>
     </div>
 
     {{-- رسائل التنبيه --}}

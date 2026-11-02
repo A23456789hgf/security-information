@@ -14,6 +14,7 @@ class SuspectController extends Controller
     public function index(Request $request)
     {
         $query = Suspect::with('personalData');
+        \App\Services\UserScopeService::applyScope($query);
 
         if ($search = $request->input('search')) {
             $query->where(function ($q) use ($search) {

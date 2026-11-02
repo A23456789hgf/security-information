@@ -16,6 +16,13 @@ class ProfileController extends Controller
         return view('system.profile.index', compact('user'));
     }
 
+    public function print()
+    {
+        $user = auth()->user()->load('roles.permissions', 'internal_entity');
+
+        return view('system.profile.print', compact('user'));
+    }
+
     public function update(Request $request)
     {
         $user = auth()->user();

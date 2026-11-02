@@ -178,7 +178,7 @@
     });
 
     function handleUpload(file) {
-        document.getElementById('uploadProgress').classList.remove('hidden');
+        document.getElementById('uploadProgress').classList.remove('d-none');
         
         let formData = new FormData();
         formData.append('excel_file', file);
@@ -188,14 +188,9 @@
             method: 'POST',
             body: formData
         })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            return response.json();
-        })
+        .then(response => response.json())
         .then(data => {
-            document.getElementById('uploadProgress').classList.add('hidden');
+            document.getElementById('uploadProgress').classList.add('d-none');
             if (data.success) {
                 headers = data.columns;
                 previewData = data.preview_data;
@@ -204,15 +199,15 @@
                 populateSelects(headers);
                 showPreviewTable(headers, previewData);
                 
-                document.getElementById('uploadStep').classList.add('hidden');
-                document.getElementById('mappingStep').classList.remove('hidden');
+                document.getElementById('uploadStep').classList.add('d-none');
+                document.getElementById('mappingStep').classList.remove('d-none');
             } else {
                 alert('خطأ: ' + (data.message || 'فشل تحميل الملف'));
             }
         })
         .catch(error => {
-            document.getElementById('uploadProgress').classList.add('hidden');
-            alert('حدث خطأ فني: ' + error.message);
+            document.getElementById('uploadProgress').classList.add('d-none');
+            alert('حدث خطأ فني أثناء المعالجة');
         });
     }
 

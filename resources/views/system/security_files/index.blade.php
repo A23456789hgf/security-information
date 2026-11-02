@@ -27,10 +27,10 @@
                 <i class="fas fa-file-excel"></i>
                 <span>تصدير Excel</span>
             </a>
-            <a href="{{ route('system.security-files.create') }}"
+            <a href="{{ route('system.security-files.create', array_filter(['personal_data_id' => request('personal_data_id')])) }}"
                 class="inline-flex items-center gap-2 px-4 py-2.5 bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold rounded-xl shadow-sm transition-all">
                 <i class="fas fa-plus-circle"></i>
-                <span>إضافة ملف أمني جديد</span>
+                <span>{{ isset($selectedPerson) && $selectedPerson ? 'إضافة ملف أمني باسم: ' . Str::limit($selectedPerson->name, 22) : 'إضافة ملف أمني جديد' }}</span>
             </a>
         </div>
     </div>
@@ -62,7 +62,7 @@
 
             <div>
                 <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">الفرد المرتبط بالملف</label>
-                <select name="personal_data_id" onchange="this.form.submit()" class="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:border-brand-500 transition-colors">
+                <select name="personal_data_id" id="filterPersonalDataSelect" onchange="this.form.submit()" class="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:border-brand-500 transition-colors select2">
                     <option value="">جميع الأفراد</option>
                     @foreach($personalDataList as $p)
                         <option value="{{ $p->id }}" {{ request('personal_data_id') == $p->id ? 'selected' : '' }}>
@@ -94,6 +94,82 @@
             </div>
         </form>
     </div>
+
+    {{-- بطاقة الفرد المختار عند التصفية وجلب كامل بياناته --}}
+    @if(isset($selectedPerson) && $selectedPerson)
+        @php
+            $personAddress = implode(' / ', array_filter([
+                $selectedPerson->governorate->name ?? null,
+                $selectedPerson->directorate->name ?? null,
+                $selectedPerson->subArea->name ?? null,
+                $selectedPerson->village->name ?? null,
+            ]));
+        @endphp
+        <div class="bg-gradient-to-r from-brand-50/70 via-white to-brand-50/40 dark:from-slate-900 dark:via-slate-900/90 dark:to-slate-900 p-5 rounded-2xl border-2 border-brand-500/30 dark:border-brand-500/20 shadow-sm print:hidden">
+            <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-5">
+                <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                    {{-- صورة الفرد المختار --}}
+                    <div class="relative w-20 h-20 rounded-2xl bg-white dark:bg-slate-800 border-2 border-brand-500 shadow-sm overflow-hidden shrink-0 flex items-center justify-center">
+                        @if($selectedPerson->photo_url)
+                            <img src="{{ $selectedPerson->photo_url }}" alt="{{ $selectedPerson->name }}" class="w-full h-full object-cover">
+                        @else
+                            <div class="w-full h-full flex flex-col items-center justify-center text-slate-400 bg-slate-100 dark:bg-slate-800 text-xs">
+                                <i class="fas fa-user-shield text-3xl text-brand-600/50 mb-1"></i>
+                                <span class="text-[9px]">بدون صورة</span>
+                            </div>
+                        @endif
+                    </div>
+
+                    {{-- تفاصيل الفرد المختار --}}
+                    <div class="space-y-1.5">
+                        <div class="flex flex-wrap items-center gap-2">
+                            <h2 class="text-base font-bold text-slate-900 dark:text-white">{{ $selectedPerson->name }}</h2>
+                            @if($selectedPerson->jihadi_name)
+                                <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20">
+                                    الجهادي: {{ $selectedPerson->jihadi_name }}
+                                </span>
+                            @endif
+                            @if($selectedPerson->military_number)
+                                <span class="px-2.5 py-0.5 rounded-full text-xs font-mono font-bold bg-blue-500/10 text-blue-700 dark:text-blue-400 border border-blue-500/20">
+                                    عسكري: {{ $selectedPerson->military_number }}
+                                </span>
+                            @endif
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-1 text-xs text-slate-600 dark:text-slate-300">
+                            <div><strong class="text-slate-800 dark:text-slate-200">الرقم الوطني:</strong> {{ $selectedPerson->national_id_number ?: 'غير مسجل' }}</div>
+                            <div><strong class="text-slate-800 dark:text-slate-200">رقم الهاتف:</strong> {{ $selectedPerson->phone_1 ?: ($selectedPerson->phone_2 ?: 'غير مسجل') }}</div>
+                            <div><strong class="text-slate-800 dark:text-slate-200">الرتبة:</strong> {{ $selectedPerson->rank->name ?? 'غير محدد' }}</div>
+                            <div><strong class="text-slate-800 dark:text-slate-200">جهة العمل / الوظيفة:</strong> {{ $selectedPerson->workplace ?: ($selectedPerson->job ?: 'غير مسجل') }}</div>
+                            <div class="sm:col-span-2"><strong class="text-slate-800 dark:text-slate-200">العنوان:</strong> {{ $personAddress ?: 'غير محدد' }}</div>
+                            <div><strong class="text-slate-800 dark:text-slate-200">الملفات الأمنية المسجلة:</strong> <span class="font-bold text-brand-600">{{ $selectedPerson->securityFiles->count() }}</span> ملف</div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- زر الإضافة المباشرة باسم الفرد المختار --}}
+                <div class="flex flex-wrap items-center gap-2.5 w-full lg:w-auto justify-end shrink-0 pt-3 lg:pt-0 border-t lg:border-t-0 border-slate-200 dark:border-slate-800">
+                    <a href="{{ route('system.security-files.create', ['personal_data_id' => $selectedPerson->id]) }}"
+                        class="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-bold rounded-xl shadow-md hover:shadow-lg transition-all text-xs"
+                        style="background-color: #059669 !important; color: #ffffff !important;">
+                        <i class="fas fa-plus-circle text-sm text-white"></i>
+                        <span>إضافة ملف أمني باسم ({{ Str::limit($selectedPerson->name, 22) }})</span>
+                    </a>
+                    <a href="{{ route('system.personal-data.show', $selectedPerson->id) }}" target="_blank"
+                        class="inline-flex items-center gap-1.5 px-3 py-2 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold rounded-xl border border-slate-200 dark:border-slate-700 transition-all text-xs">
+                        <i class="fas fa-id-card text-brand-600"></i>
+                        <span>السجل الشخصي</span>
+                    </a>
+                    <a href="{{ route('system.security-files.index') }}"
+                        class="inline-flex items-center gap-1.5 px-3 py-2 bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-900/50 text-rose-600 dark:text-rose-400 font-semibold rounded-xl border border-rose-200 dark:border-rose-900/40 transition-all text-xs"
+                        title="إلغاء التحديد وعرض كل الأفراد">
+                        <i class="fas fa-times"></i>
+                        <span>إلغاء</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    @endif
 
     {{-- Data Table --}}
     <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
@@ -205,4 +281,27 @@
     </div>
 
 </div>
+
+@push('scripts')
+<script src="{{ asset('vendor/jquery/jquery.min.js') }}"></script>
+<script src="{{ asset('vendor/select2/select2.min.js') }}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        if (typeof $ !== 'undefined' && $.fn.select2) {
+            $('#filterPersonalDataSelect').select2({
+                dir: 'rtl',
+                language: 'ar',
+                placeholder: 'جميع الأفراد',
+                allowClear: true,
+                width: '100%'
+            }).on('select2:select', function () {
+                this.form.submit();
+            }).on('select2:clear', function() {
+                $(this).val('').trigger('change');
+                this.form.submit();
+            });
+        }
+    });
+</script>
+@endpush
 @endsection

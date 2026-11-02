@@ -222,3 +222,77 @@
     </form>
 </div>
 @endsection
+
+@push('styles')
+    <link rel="stylesheet" href="{{ asset('vendor/select2/select2.min.css') }}">
+    <style>
+        .select2-container--default .select2-selection--single {
+            height: 42px !important;
+            border-radius: 0.75rem !important;
+            border-color: #e2e8f0 !important;
+            background-color: #f8fafc !important;
+            display: flex !important;
+            align-items: center !important;
+        }
+        .dark .select2-container--default .select2-selection--single {
+            background-color: #020617 !important;
+            border-color: #1e293b !important;
+            color: #ffffff !important;
+        }
+        .select2-container--default .select2-selection--single .select2-selection__rendered {
+            color: #0f172a !important;
+            font-size: 0.875rem !important;
+            font-weight: 600 !important;
+        }
+        .dark .select2-container--default .select2-selection--single .select2-selection__rendered {
+            color: #ffffff !important;
+        }
+    </style>
+@endpush
+
+@push('scripts')
+<script src="{{ asset('vendor/select2/select2.min.js') }}"></script>
+<script>
+    $(document).ready(function() {
+        $('select[name="internal_entity_id"]').select2({
+            dir: 'rtl',
+            language: 'ar',
+            placeholder: 'اختر أو ابحث...',
+            allowClear: true,
+            tags: true,
+            createTag: function(params) {
+                const term = $.trim(params.term);
+                if (term === '') return null;
+                return { id: term, text: term, isNew: true };
+            },
+            templateResult: function(data) {
+                if (!data.id) return data.text;
+                const $res = $('<span></span>').text(data.text);
+                if (data.isNew) {
+                    $res.append(' <span class="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300 text-[10px] font-bold px-1.5 py-0.5 rounded-md mr-1.5">جديد +</span>');
+                }
+                return $res;
+            },
+            width: '100%'
+        });
+
+        // ── CSRF Token Refresher ──
+        function refreshCsrfToken() {
+            fetch('/csrf-token', { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.token) {
+                        $('meta[name="csrf-token"]').attr('content', data.token);
+                        $('input[name="_token"]').val(data.token);
+                    }
+                })
+                .catch(() => {});
+        }
+        setInterval(refreshCsrfToken, 30 * 60 * 1000);
+
+        $('#reportEditForm').on('submit', function() {
+            $('input[name="_token"]').val($('meta[name="csrf-token"]').attr('content'));
+        });
+    });
+</script>
+@endpush

@@ -84,6 +84,15 @@
         justify-content: center;
         margin-bottom: 4px;
     }
+    .national-emblem-wrap img,
+    .national-logo {
+        max-width: 65px;
+        max-height: 52px;
+        width: auto;
+        height: auto;
+        object-fit: contain;
+        display: block;
+    }
     .national-emblem-wrap svg {
         width: 44px;
         height: 44px;
@@ -445,12 +454,7 @@
 
         <div class="header-center">
             <div class="national-emblem-wrap">
-                <svg viewBox="0 0 100 100" fill="currentColor">
-                    <path d="M50 10 L62 38 L94 38 L68 56 L78 86 L50 68 L22 86 L32 56 L6 38 L38 38 Z" opacity="0.15" />
-                    <path d="M50 15 C58 28 72 32 85 36 C75 48 65 60 50 82 C35 60 25 48 15 36 C28 32 42 28 50 15 Z" fill="none" stroke="currentColor" stroke-width="2.5" />
-                    <circle cx="50" cy="42" r="14" fill="none" stroke="currentColor" stroke-width="2" />
-                    <path d="M50 32 L54 42 L46 42 Z" fill="currentColor" />
-                </svg>
+                <img src="{{ asset('images/logo1.png') }}" alt="شعار" class="national-logo" onerror="this.onerror=null; this.src='/images/logo1.png';">
             </div>
             <h2 class="report-main-title">{{ $settings['report_title'] ?? 'تقرير السجل الأساسي للمنتسب' }}</h2>
             <span class="report-sub-code">وثيقة قيد وسجل بيانات شخصية • معتمدة رقمياً</span>
@@ -489,6 +493,8 @@
 
     {{-- 2) البيانات التعريفية + بطاقة الصورة --}}
     <section class="grid-profile-row">
+        
+        {{-- جدول البيانات الأساسية --}}
         <div class="section-card">
             <div class="section-header">
                 <div class="section-header-title">
@@ -531,50 +537,55 @@
             </table>
         </div>
 
+        {{-- بطاقة الصورة --}}
         <div class="profile-card">
             <div class="photo-frame">
                 @if(!empty($personalData->main_profile_photo))
-                    @php
-                        $photo = $personalData->main_profile_photo;
-                        $photoUrl = Str::startsWith($photo, ['http://','https://']) ? $photo : asset('storage/' . $photo);
-                    @endphp
-                    <img src="{{ $photoUrl }}" alt="الصورة الشخصية"
-                         onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                    <div class="no-photo-icon" style="display:none;"><i class="fas fa-user-shield"></i></div>
+                    <img src="{{ asset('storage/' . $personalData->main_profile_photo) }}" alt="الصورة الشخصية">
                 @else
-                    <div class="no-photo-icon"><i class="fas fa-user-tie"></i></div>
+                    <i class="fas fa-user no-photo-icon" style="color: #94a3b8; font-size: 42px;"></i>
                 @endif
             </div>
-            <h3 class="profile-name-badge">{{ $personalData->name ?? 'غير محدد' }}</h3>
-            <div class="profile-rank-tag">{{ $personalData->rank->rank ?? 'بدون رتبة مسجلة' }}</div>
+            
+            <h4 class="profile-name-badge">
+                {{ explode(' ', $personalData->name ?? '')[0] ?? 'المنتسب' }}
+            </h4>
+            
+            <div class="profile-rank-tag">
+                {{ $personalData->rank ?? 'غير محدد' }}
+            </div>
+            
             @if(!empty($personalData->jihadi_name))
                 <div class="jihadi-name-pill">
-                    <i class="fas fa-tag"></i>
-                    <span>{{ $personalData->jihadi_name }}</span>
+                    <i class="fas fa-star" style="color: #b91c1c; font-size: 9px;"></i>
+                    {{ $personalData->jihadi_name }}
                 </div>
             @endif
         </div>
     </section>
 
-    {{-- 3) البيانات الوظيفية + الطبية --}}
+    {{-- 3) بيانات إضافية (مقسمة لعمودين) --}}
     <section class="grid-two-columns">
         <div class="section-card">
             <div class="section-header">
                 <div class="section-header-title">
-                    <i class="fas fa-award"></i>
-                    <span>البيانات الوظيفية والعسكرية</span>
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span>بيانات السكن والاتصال</span>
                 </div>
-                <span class="section-header-badge">الوضع الإداري</span>
             </div>
             <table class="data-table">
                 <tbody>
-                    <tr><th>الرتبة العسكرية</th><td class="highlight">{{ $personalData->rank->rank ?? '-' }}</td></tr>
-                    <tr><th>الدائرة / المنطقة</th><td>{{ $personalData->militaryDistrict->name ?? '-' }}</td></tr>
-                    <tr><th>الشعبة / الوحدة</th><td>{{ $personalData->division->name ?? '-' }}</td></tr>
-                    <tr><th>حالة الوظيفة</th><td>{{ $personalData->jobStatus->job_status ?? '-' }}</td></tr>
                     <tr>
-                        <th>تاريخ التعيين</th>
-                        <td>{{ !empty($personalData->appointment_date) ? (is_string($personalData->appointment_date) ? $personalData->appointment_date : $personalData->appointment_date->format('Y/m/d')) : '-' }}</td>
+                        <th>المحافظة</th>
+                        <td>{{ $personalData->governorate->name ?? '-' }}</td>
+                    </tr>
+                    <tr>
+                        <th>المديرية</th>
+                        <td>{{ $personalData->directorate->name ?? '-' }}</td>
+                    </tr>
+                    <tr>
+                        <th>رقم الهاتف</th>
+                        <td dir="ltr" style="text-align: right;">{{ $personalData->phone_number ?? '-' }}</td>
                     </tr>
                 </tbody>
             </table>
@@ -583,217 +594,83 @@
         <div class="section-card">
             <div class="section-header">
                 <div class="section-header-title">
-                    <i class="fas fa-notes-medical"></i>
-                    <span>البيانات الطبية والاجتماعية</span>
+                    <i class="fas fa-file-medical"></i>
+                    <span>البيانات الطبية والتجنيد</span>
                 </div>
-                <span class="section-header-badge">المؤهلات والحالة</span>
             </div>
             <table class="data-table">
                 <tbody>
                     <tr>
                         <th>فصيلة الدم</th>
-                        <td><span class="blood-badge">{{ $personalData->bloodType->type ?? '-' }}</span></td>
+                        <td>
+                            <span class="blood-badge">{{ $personalData->blood_type ?? '-' }}</span>
+                        </td>
                     </tr>
-                    <tr><th>الحالة الاجتماعية</th><td>{{ $personalData->maritalStatus->status ?? '-' }}</td></tr>
-                    <tr><th>عدد الأبناء</th><td>{{ $personalData->number_of_children ?? '0' }}</td></tr>
-                    <tr><th>المؤهل العلمي</th><td>{{ $personalData->qualification->name ?? '-' }}</td></tr>
-                    <tr><th>التخصص الدقيق</th><td>{{ $personalData->specialization ?? '-' }}</td></tr>
-                </tbody>
-            </table>
-        </div>
-    </section>
-
-    {{-- 4) السكن + مكان الميلاد --}}
-    <section class="grid-two-columns">
-        <div class="section-card">
-            <div class="section-header">
-                <div class="section-header-title">
-                    <i class="fas fa-map-marked-alt"></i>
-                    <span>بيانات السكن والإقامة الحالية</span>
-                </div>
-            </div>
-            <table class="data-table">
-                <tbody>
-                    <tr><th>المحافظة</th><td>{{ $personalData->governorate->name ?? '-' }}</td></tr>
-                    <tr><th>المديرية</th><td>{{ $personalData->directorate->name ?? '-' }}</td></tr>
-                    <tr><th>العزلة / المنطقة</th><td>{{ $personalData->subArea->name ?? '-' }}</td></tr>
-                    <tr><th>القرية / الشارع</th><td>{{ $personalData->village->name ?? '-' }}</td></tr>
-                </tbody>
-            </table>
-        </div>
-
-        <div class="section-card">
-            <div class="section-header">
-                <div class="section-header-title">
-                    <i class="fas fa-compass"></i>
-                    <span>مكان الميلاد والنشأة</span>
-                </div>
-            </div>
-            <table class="data-table">
-                <tbody>
-                    <tr><th>الدولة</th><td>{{ $personalData->placeOfBirthCountry->name ?? 'اليمن' }}</td></tr>
-                    <tr><th>المحافظة</th><td>{{ $personalData->placeOfBirthGovernorate->name ?? '-' }}</td></tr>
-                    <tr><th>المديرية</th><td>{{ $personalData->placeOfBirthDirectorate->name ?? '-' }}</td></tr>
-                    <tr><th>القرية / المحلة</th><td>{{ $personalData->placeOfBirthVillage->name ?? '-' }}</td></tr>
-                </tbody>
-            </table>
-        </div>
-    </section>
-
-    {{-- 5) البيانات الثانوية والجهادية --}}
-    @if($personalData->secondaryData)
-        <section class="section-card" style="margin-bottom: 12px;">
-            <div class="section-header">
-                <div class="section-header-title">
-                    <i class="fas fa-history"></i>
-                    <span>البيانات الثانوية والسجل الجهادي</span>
-                </div>
-                <span class="section-header-badge">المعلومات الإضافية</span>
-            </div>
-            <table class="data-table">
-                <tbody>
                     <tr>
                         <th>الحالة الصحية</th>
-                        <td>{{ $personalData->secondaryData->healthStatus->name ?? '-' }}</td>
-                        <th>المشرف المباشر</th>
-                        <td>{{ $personalData->secondaryData->direct_supervisor ?? '-' }}</td>
+                        <td>{{ $personalData->health_status ?? 'لائق' }}</td>
                     </tr>
                     <tr>
-                        <th>عام الالتحاق / الانطلاقة</th>
-                        <td>{{ $personalData->secondaryData->start_date ? $personalData->secondaryData->start_date->format('Y') : '-' }}</td>
-                        <th>النشاط الجهادي الحالي</th>
-                        <td>{{ $personalData->secondaryData->current_jihadist_activity ?? '-' }}</td>
+                        <th>تاريخ التجنيد</th>
+                        <td>{{ $personalData->join_date ?? '-' }}</td>
                     </tr>
-                    @if($personalData->secondaryData->previous_jihadist_activity)
-                    <tr>
-                        <th>ملاحظات النشاط السابق</th>
-                        <td colspan="3">{{ $personalData->secondaryData->previous_jihadist_activity }}</td>
-                    </tr>
-                    @endif
                 </tbody>
             </table>
-
-            {{-- الأسلحة والعهد --}}
-            @if($personalData->secondaryData->weapons && $personalData->secondaryData->weapons->count() > 0)
-                <div style="padding: 6px 10px; background: #f8fafc; border-top: 1px solid #cbd5e1; font-weight: 800; font-size: 11px; color: #0f2942;">
-                    الأسلحة والعهد المسجلة ({{ $personalData->secondaryData->weapons->count() }})
-                </div>
-                <table class="data-table">
-                    <thead>
-                        <tr style="background: #f1f5f9;">
-                            <th style="width: 25%;">نوع السلاح</th>
-                            <th style="width: 25%;">الرقم</th>
-                            <th style="width: 25%;">نوع الحيازة</th>
-                            <th style="width: 25%;">حالة المتابعة</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach($personalData->secondaryData->weapons as $weapon)
-                            <tr>
-                                <td>{{ $weapon->weapon_type ?? '-' }}</td>
-                                <td>{{ $weapon->number ?? '-' }}</td>
-                                <td>{{ $weapon->ownership ?? '-' }}</td>
-                                <td>{{ $weapon->tracking ?? '-' }}</td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            @endif
-
-            {{-- الانتماءات --}}
-            @if($personalData->secondaryData->affiliations && $personalData->secondaryData->affiliations->count() > 0)
-                <div style="padding: 6px 10px; background: #f8fafc; border-top: 1px solid #cbd5e1; font-weight: 800; font-size: 11px; color: #0f2942;">
-                    سجل الانتماءات العقائدية والسياسية ({{ $personalData->secondaryData->affiliations->count() }})
-                </div>
-                <table class="data-table">
-                    <thead>
-                        <tr style="background: #f1f5f9;">
-                            <th>الانتماء العقائدي</th>
-                            <th>الانتماء السياسي</th>
-                            <th>الجهة / الحزب</th>
-                            <th>المسؤول المباشر</th>
-                            <th>المدة</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach($personalData->secondaryData->affiliations as $aff)
-                            <tr>
-                                <td>{{ $aff->ideologicalAffiliation->name ?? '-' }}</td>
-                                <td>{{ $aff->politicalAffiliation->name ?? '-' }}</td>
-                                <td>{{ $aff->party ?? '-' }}</td>
-                                <td>{{ $aff->direct_supervisor ?? '-' }}</td>
-                                <td>{{ $aff->duration ?? '-' }}</td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            @endif
-        </section>
-    @endif
-
-    {{-- 6) الملاحظات --}}
-    @if(!empty($personalData->notes))
-        <section class="notes-box">
-            <div class="section-header">
-                <div class="section-header-title">
-                    <i class="fas fa-comment-alt"></i>
-                    <span>ملاحظات إدارية وتدقيق القيد</span>
-                </div>
-            </div>
-            <p class="notes-content">{{ $personalData->notes }}</p>
-        </section>
-    @endif
-
-    {{-- 6) التوقيعات والاعتماد --}}
-    <section class="signatures-grid">
-        <div class="signature-box">
-            <div class="sig-role">إعداد وتجهيز المختص</div>
-            <div class="sig-line">الاسم: .......................................</div>
-            <div class="sig-line">التوقيع: .....................................</div>
-        </div>
-
-        <div class="signature-box">
-            <div class="sig-role">تدقيق ومراجعة شؤون القوى البشرية</div>
-            <div class="sig-line">الاسم: .......................................</div>
-            <div class="sig-line">التوقيع: .....................................</div>
-        </div>
-
-        <div class="signature-box" style="position: relative;">
-            <div class="sig-role">اعتماد مدير الدائرة / الختم الرسمي</div>
-            <div style="position: absolute; bottom: 4px; left: 10px; width: 62px; height: 62px; border: 2px dashed #b91c1c; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; transform: rotate(-8deg); opacity: .85;">
-                <span style="font-size: 7px; color: #b91c1c; font-weight: 800;">الختم المعتمد</span>
-                <i class="fas fa-certificate" style="font-size: 14px; color: #b91c1c; margin: 2px 0;"></i>
-                <span style="font-size: 6px; color: #b91c1c;">وحدة المعلومات</span>
-            </div>
-            <div class="sig-line">التوقيع والختم: .......................</div>
         </div>
     </section>
 
-    {{-- 7) التذييل --}}
+    {{-- 4) الملاحظات الإضافية --}}
+    <section class="notes-box">
+        <div class="section-header">
+            <div class="section-header-title">
+                <i class="fas fa-sticky-note"></i>
+                <span>ملاحظات السجل</span>
+            </div>
+        </div>
+        <div class="notes-content">
+            {{ $personalData->notes ?? 'لا توجد ملاحظات إضافية مقيدة في السجل حتى تاريخ التصدير.' }}
+        </div>
+    </section>
+
+    {{-- 5) التوقيعات والاعتماد الرسمي --}}
+    <section class="signatures-grid">
+        <div class="signature-box">
+            <div class="sig-role">مسؤول السجلات والبيانات</div>
+            <div class="sig-line">الاسم: .......................................</div>
+            <div class="sig-line" style="margin-top: 8px;">التوقيع: ....................................</div>
+        </div>
+        <div class="signature-box">
+            <div class="sig-role">مدير إدارة الموارد البشرية</div>
+            <div class="sig-line">الاسم: .......................................</div>
+            <div class="sig-line" style="margin-top: 8px;">التوقيع: ....................................</div>
+        </div>
+        <div class="signature-box">
+            <div class="sig-role">اعتماد قائد الوحدة / المدير العام</div>
+            <div class="sig-line">الختم الرسمي:</div>
+            <div class="sig-line" style="margin-top: 15px; text-align: center;">(ختم الجهة)</div>
+        </div>
+    </section>
+
+    {{-- 6) التذييل --}}
     <footer class="report-footer">
         <div>
-            <span>طُبع بواسطة: </span>
-            <strong>{{ auth()->user()->name ?? 'النظام الآلي الموحد' }}</strong>
-            <span style="margin: 0 6px;">|</span>
-            <span>تاريخ الطباعة: {{ now()->format('Y/m/d - H:i:s') }}</span>
+            تم استخراج هذه الوثيقة من النظام الإلكتروني بتاريخ {{ now()->format('Y-m-d H:i') }}
         </div>
-        <div>
-            <span>نظام إدارة السجلات والقوى البشرية الموحد</span>
-            <span style="margin: 0 4px;">•</span>
-            <span style="font-weight: 700;">صفحة 1 من 1</span>
+        <div style="font-weight: 700;">
+            {{ $settings['system_name'] ?? 'نظام السجل الإلكتروني' }} - صفحة 1 من 1
         </div>
     </footer>
+
 </div>
 
-{{-- أزرار التحكم (مخفية عند الطباعة) --}}
-<div class="no-print controls-wrapper">
-    <button onclick="window.print()" class="px-6 py-2.5 bg-blue-700 text-white rounded-lg font-bold hover:bg-blue-800 transition-colors shadow flex items-center gap-2 text-sm cursor-pointer">
-        <i class="fas fa-print"></i>
-        <span>طباعة الاستمارة الرسمية (Ctrl + P)</span>
+{{-- أزرار الطباعة تظهر فقط على الشاشة وتختفي عند الطباعة --}}
+<div class="controls-wrapper no-print">
+    <button onclick="window.print()" style="background: #0f2942; color: #fff; border: none; padding: 8px 20px; border-radius: 6px; font-family: inherit; font-weight: bold; cursor: pointer;">
+        <i class="fas fa-print"></i> طباعة التقرير
     </button>
-    <button onclick="window.history.back()" class="px-5 py-2.5 bg-slate-200 text-slate-700 rounded-lg font-bold hover:bg-slate-300 transition-colors flex items-center gap-2 text-sm cursor-pointer">
-        <i class="fas fa-arrow-right"></i>
-        <span>العودة للنظام</span>
-    </button>
+    <a href="{{ url()->previous() }}" style="background: #e2e8f0; color: #0f172a; text-decoration: none; padding: 8px 20px; border-radius: 6px; font-family: inherit; font-weight: bold;">
+        عودة
+    </a>
 </div>
+
 @endsection

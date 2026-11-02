@@ -436,20 +436,7 @@
                 theme: 'bootstrap-5',
                 dir: 'rtl',
                 tags: true,
-                width: '100%',
-                createTag: function (params) {
-                    const term = $.trim(params.term);
-                    if (term === '') {
-                        return null;
-                    }
-                    return {id: term, text: term, newTag: true};
-                },
-                templateResult: function (data) {
-                    if (data.newTag) {
-                        return $('<span>').text('إضافة "' + data.text + '"');
-                    }
-                    return data.text;
-                }
+                width: '100%'
             });
         }
 
@@ -550,20 +537,7 @@
                     theme: 'bootstrap-5',
                     dir: 'rtl',
                     tags: true,
-                    width: '100%',
-                    createTag: function (params) {
-                        const term = $.trim(params.term);
-                        if (term === '') {
-                            return null;
-                        }
-                        return {id: term, text: term, newTag: true};
-                    },
-                    templateResult: function (data) {
-                        if (data.newTag) {
-                            return $('<span>').text('إضافة "' + data.text + '"');
-                        }
-                        return data.text;
-                    }
+                    width: '100%'
                 });
             }
             affIndex++;

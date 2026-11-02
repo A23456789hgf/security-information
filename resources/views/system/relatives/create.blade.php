@@ -537,9 +537,6 @@
                 </td>
             `;
             document.querySelector('#relativesTable tbody').appendChild(tr);
-            if (typeof initSelect2ForElements === 'function') {
-                initSelect2ForElements($(tr).find('select'));
-            }
             relIndex++;
             updateRelativeRemoveButtons();
         });
@@ -610,9 +607,6 @@
                 </td>
             `;
             document.querySelector('#enemyTable tbody').appendChild(tr);
-            if (typeof initSelect2ForElements === 'function') {
-                initSelect2ForElements($(tr).find('select'));
-            }
             enemyIndex++;
             updateEnemyRemoveButtons();
         });
@@ -689,9 +683,6 @@
                 </td>
             `;
             document.querySelector('#travelingTable tbody').appendChild(tr);
-            if (typeof initSelect2ForElements === 'function') {
-                initSelect2ForElements($(tr).find('select'));
-            }
             travelingIndex++;
             updateTravelingRemoveButtons();
         });
@@ -710,32 +701,14 @@
             });
         }
 
-        window.initSelect2ForElements = function(elements) {
-            if (typeof $ !== 'undefined' && $.fn.select2) {
-                elements.each(function() {
-                    $(this).select2({
-                        theme: 'bootstrap-5',
-                        dir: 'rtl',
-                        tags: true,
-                        width: '100%',
-                        createTag: function (params) {
-                            const term = $.trim(params.term);
-                            if (term === '') {
-                                return null;
-                            }
-                            return {id: term, text: term, newTag: true};
-                        },
-                        templateResult: function (data) {
-                            if (data.newTag) {
-                                return $('<span>').text('إضافة "' + data.text + '"');
-                            }
-                            return data.text;
-                        }
-                    });
-                });
-            }
-        };
-        initSelect2ForElements($('select'));
+        if (typeof $ !== 'undefined' && $.fn.select2) {
+            $('select').select2({
+                theme: 'bootstrap-5',
+                dir: 'rtl',
+                tags: true,
+                width: '100%'
+            });
+        }
     });
 </script>
 @endsection

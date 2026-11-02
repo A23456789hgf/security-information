@@ -24,12 +24,8 @@ class PersonalDataController extends Controller
 {
     public function index(Request $request)
     {
-        $entityIdsByEnt = \App\Models\InternalEntity::getAllChildrenIds(auth()->user()->administrative_scope_id);
         $query = PersonalData::query();
-
-        if (!empty($entityIdsByEnt)) {
-            $query->whereIn('internal_entity_id', $entityIdsByEnt);
-        }
+        \App\Services\UserScopeService::applyScope($query);
 
         if ($request->filled('personal_data_id')) {
             $query->where('id', $request->personal_data_id);
@@ -110,12 +106,10 @@ class PersonalDataController extends Controller
         $ranks = Rank::pluck('rank', 'id');
         $militaryDistricts = MilitaryDistrict::pluck('name', 'id');
         $divisions = Division::pluck('name', 'id');
-        $countries = Country::pluck('name', 'id');
-        $governorates = Governorate::pluck('name', 'id');
+        $governorates = \App\Services\UserScopeService::getScopedGovernorates()->pluck('name', 'id');
         $financialStatuses = FinancialStatus::pluck('name', 'id');
-
-        // Structured geo data for client-side filtering (no AJAX needed)
-        $allDirectorates = Directorate::orderBy('name')->get(['id', 'name', 'governorate_id']);
+        // Structured geo data for client-side filtering (scoped to user geographical permissions)
+        $allDirectorates = \App\Services\UserScopeService::getScopedDirectorates();
         $allSubAreas = SubArea::orderBy('name')->get(['id', 'name', 'directorate_id']);
         $allVillages = Village::orderBy('name')->get(['id', 'name', 'sub_area_id']);
 
@@ -253,6 +247,34 @@ class PersonalDataController extends Controller
         return view('system.personal_data.show', compact('personalData'));
     }
 
+    public function printList(Request $request)
+    {
+        $entityIdsByEnt = \App\Models\InternalEntity::getAllChildrenIds(auth()->user()->administrative_scope_id);
+        $query = PersonalData::query()->with(['rank', 'militaryDistrict', 'governorate', 'directorate', 'bloodType']);
+
+        if (!empty($entityIdsByEnt)) {
+            $query->whereIn('internal_entity_id', $entityIdsByEnt);
+        }
+
+        if ($request->filled('personal_data_id')) {
+            $query->where('id', $request->personal_data_id);
+        }
+
+        if ($search = $request->input('search')) {
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%$search%")
+                  ->orWhere('jihadi_name', 'like', "%$search%")
+                  ->orWhere('national_id_number', 'like', "%$search%")
+                  ->orWhere('military_number', 'like', "%$search%")
+                  ->orWhere('phone_1', 'like', "%$search%");
+            });
+        }
+
+        $personalDataList = $query->limit(500)->get();
+
+        return view('system.personal_data.print_all', compact('personalDataList'));
+    }
+
     public function print(PersonalData $personalData)
     {
         $personalData->load([
@@ -271,7 +293,12 @@ class PersonalDataController extends Controller
     public function printFull(PersonalData $personalData)
     {
         $personalData->load([
-            'wives',
+            'entity',
+            'financialStatus',
+            'wives.governorate',
+            'wives.directorate',
+            'wives.subArea',
+            'wives.village',
             'relatives.kinship',
             'relatives.ideologicalAffiliation',
             'relatives.politicalAffiliation',
@@ -285,6 +312,8 @@ class PersonalDataController extends Controller
             'travelingRelatives.ideologicalAffiliation',
             'courses.courseType',
             'courses.sendingEntity',
+            'courses.governorate',
+            'courses.directorate',
             'rank',
             'bloodType',
             'maritalStatus',
@@ -340,14 +369,14 @@ class PersonalDataController extends Controller
         $ranks = Rank::pluck('rank', 'id');
         $militaryDistricts = MilitaryDistrict::pluck('name', 'id');
         $divisions = Division::pluck('name', 'id');
-        $countries = Country::pluck('name', 'id');
-        $governorates = Governorate::pluck('name', 'id');
+        $governorates = \App\Services\UserScopeService::getScopedGovernorates()->pluck('name', 'id');
         $financialStatuses = FinancialStatus::pluck('name', 'id');
 
-        // Structured geo data for client-side filtering (no AJAX needed)
-        $allDirectorates = Directorate::orderBy('name')->get(['id', 'name', 'governorate_id']);
+        // Structured geo data for client-side filtering (scoped to user geographical permissions)
+        $allDirectorates = \App\Services\UserScopeService::getScopedDirectorates();
         $allSubAreas = SubArea::orderBy('name')->get(['id', 'name', 'directorate_id']);
         $allVillages = Village::orderBy('name')->get(['id', 'name', 'sub_area_id']);
+        $governorates = \App\Services\UserScopeService::getScopedGovernorates()->pluck('name', 'id');
 
         return view('system.personal_data.edit', compact(
             'personalData', 'bloodTypes', 'maritalStatuses', 'qualifications', 'numberClassifications',

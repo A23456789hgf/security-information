@@ -19,6 +19,7 @@
             </div>
         </div>
         <div class="flex flex-wrap gap-3">
+            <x-print-button :url="route('system.entities.print-all', request()->all())" text="طباعة الكشف" />
             <a href="{{ route('system.entities.create') }}"
                 class="px-4 py-2.5 bg-brand-600 text-white rounded-xl font-bold hover:bg-brand-700 transition-all shadow-sm shadow-brand-500/30 text-xs sm:text-sm flex items-center gap-2 text-sm">
                 <i class="fas fa-plus-circle"></i> إضافة جهة جديدة
@@ -218,6 +219,7 @@
                             </td>
                             <td class="px-8 py-5">
                                 <div class="flex justify-end items-center gap-2">
+                                    <a href="{{ route('system.entities.print', $entity) }}" target="_blank" class="w-9 h-9 flex items-center justify-center rounded-xl bg-purple-50 text-purple-600 hover:bg-purple-600 hover:text-white shadow-sm transition-all" title="طباعة"><i class="fas fa-print text-xs"></i></a>
                                     <a href="{{ route('system.entities.create', ['parent_id' => $entity->id]) }}" class="w-9 h-9 flex items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white shadow-sm transition-all" title="إضافة فرع"><i class="fas fa-plus text-xs"></i></a>
                                     <a href="{{ route('system.entities.show', $entity) }}" class="w-9 h-9 flex items-center justify-center rounded-xl bg-soft-primary hover:bg-brand-600 hover:text-white shadow-sm transition-all" title="عرض"><i class="fas fa-eye text-xs"></i></a>
                                     <a href="{{ route('system.entities.edit', $entity) }}" class="w-9 h-9 flex items-center justify-center rounded-xl bg-amber-50 text-amber-600 hover:bg-amber-600 hover:text-white shadow-sm transition-all" title="تعديل"><i class="fas fa-pen text-xs"></i></a>

@@ -7,13 +7,21 @@
 <div class="space-y-6" dir="rtl">
 
     {{-- Page Header --}}
-    <div class="flex items-center gap-4 mb-10">
-        <div class="w-16 h-16 bg-brand-600 rounded-3xl shadow-xl shadow-blue-100 flex items-center justify-center text-white">
-            <i class="fas fa-user-circle text-2xl"></i>
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-10">
+        <div class="flex items-center gap-4">
+            <div class="w-16 h-16 bg-brand-600 rounded-3xl shadow-xl shadow-blue-100 flex items-center justify-center text-white">
+                <i class="fas fa-user-circle text-2xl"></i>
+            </div>
+            <div>
+                <h2 class="font-display font-bold text-2xl text-slate-900 dark:text-white m-0">الملف الشخصي</h2>
+                <p class="text-slate-500 text-sm">إدارة بيانات حسابك الشخصي وتحديث كلمة المرور.</p>
+            </div>
         </div>
-        <div>
-            <h2 class="font-display font-bold text-2xl text-slate-900 dark:text-white m-0">الملف الشخصي</h2>
-            <p class="text-slate-500 text-sm">إدارة بيانات حسابك الشخصي وتحديث كلمة المرور.</p>
+        <div class="flex items-center gap-3">
+            <a href="{{ route('system.profile.print') }}" target="_blank"
+                class="px-5 py-3 bg-blue-600 text-white rounded-2xl font-bold hover:bg-blue-700 transition-all shadow-xl shadow-blue-100 flex items-center gap-2 text-sm">
+                <i class="fas fa-print"></i> طباعة الملف الشخصي
+            </a>
         </div>
     </div>
 

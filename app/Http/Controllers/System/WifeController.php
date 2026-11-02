@@ -21,6 +21,7 @@ class WifeController extends Controller
     public function index(Request $request)
     {
         $query = Wife::with(['personalData', 'governorate', 'directorate', 'subArea', 'village']);
+        \App\Services\UserScopeService::applyScope($query);
 
         if ($request->filled('personal_data_id')) {
             $query->where('personal_data_id', $request->personal_data_id);
@@ -79,10 +80,10 @@ class WifeController extends Controller
      */
     public function create(Request $request)
     {
-        $personalDataList = PersonalData::pluck('name', 'id');
-        $allPeople = PersonalData::select('id', 'name')->get();
-        $governorates = Governorate::pluck('name', 'id');
-        $directorates = Directorate::pluck('name', 'id');
+        $personalDataList = \App\Services\UserScopeService::applyScope(PersonalData::query())->pluck('name', 'id');
+        $allPeople = \App\Services\UserScopeService::applyScope(PersonalData::query())->select('id', 'name')->get();
+        $governorates = \App\Services\UserScopeService::getScopedGovernorates()->pluck('name', 'id');
+        $directorates = \App\Services\UserScopeService::getScopedDirectorates()->pluck('name', 'id');
         $subAreas = SubArea::pluck('name', 'id');
         $villages = Village::pluck('name', 'id');
 
@@ -98,65 +99,49 @@ class WifeController extends Controller
      */
     public function store(Request $request)
     {
-        if ($request->filled('personal_data_id') && !is_numeric($request->personal_data_id)) {
-            $person = PersonalData::where('name', $request->personal_data_id)
-                ->orWhere('jihadi_name', $request->personal_data_id)
-                ->orWhere('military_number', $request->personal_data_id)
-                ->first();
-            if ($person) {
-                $request->merge(['personal_data_id' => $person->id]);
-            }
-        }
+        $this->resolveInputFields($request);
 
         $request->validate([
             'personal_data_id' => 'required|exists:personal_data,id',
-            'wives' => 'required|array|min:1',
-            'wives.*.name' => 'required|string|max:255',
-            'wives.*.status' => 'required|string|in:مستمرة,متوفية,مطلقة,أخرى',
-            'wives.*.wife_id_number' => 'nullable|string|max:255',
-            'wives.*.wife_birth_date' => 'nullable|date',
-            'wives.*.wife_phone' => 'nullable|string|max:255',
-            'wives.*.wife_address' => 'nullable|string|max:255',
-            'wives.*.governorate_id' => 'nullable',
-            'wives.*.directorate_id' => 'nullable',
-            'wives.*.sub_area_id' => 'nullable',
-            'wives.*.village_id' => 'nullable',
+            'name' => 'required|string|max:255',
+            'status' => 'required|string|in:مستمرة,متوفية,مطلقة,أخرى',
+            'wife_id_number' => 'nullable|string|max:255',
+            'wife_birth_date' => 'nullable|date',
+            'wife_phone' => 'nullable|string|max:255',
+            'wife_address' => 'nullable|string|max:255',
+            'governorate_id' => 'nullable|exists:governorates,id',
+            'directorate_id' => 'nullable|exists:directorates,id',
+            'sub_area_id' => 'nullable|exists:sub_areas,id',
+            'village_id' => 'nullable|exists:villages,id',
         ]);
 
-        $wivesData = $request->wives;
-        
-        // Check "مستمرة" limit
-        if (Schema::hasColumn('wives', 'status')) {
-            $currentActiveCount = Wife::where('personal_data_id', $request->personal_data_id)
+        if ($request->status == 'مستمرة' && Schema::hasColumn('wives', 'status')) {
+            $count = Wife::where('personal_data_id', $request->personal_data_id)
                 ->where('status', 'مستمرة')
                 ->count();
-            
-            $newActiveCount = collect($wivesData)->where('status', 'مستمرة')->count();
-            
-            if (($currentActiveCount + $newActiveCount) > 4) {
+            if ($count >= 4) {
                 return back()->withErrors(['status' => 'لا يمكن إضافة أكثر من 4 زوجات بحالة (مستمرة) لنفس الشخص.'])->withInput();
             }
         }
 
+        // Get only the fields that exist in the database to prevent "Column not found" errors
         $allFields = [
             'personal_data_id', 'name', 'status', 'wife_id_number',
             'wife_birth_date', 'wife_phone', 'wife_address',
             'governorate_id', 'directorate_id', 'sub_area_id', 'village_id',
         ];
 
-        foreach ($wivesData as $wifeInput) {
-            $resolvedWife = $this->resolveWifeFields($wifeInput);
-            $data = ['personal_data_id' => $request->personal_data_id];
-            foreach ($allFields as $field) {
-                if ($field !== 'personal_data_id' && isset($resolvedWife[$field]) && Schema::hasColumn('wives', $field)) {
-                    $data[$field] = $resolvedWife[$field];
-                }
+        $data = [];
+        foreach ($allFields as $field) {
+            if ($request->has($field) && Schema::hasColumn('wives', $field)) {
+                $data[$field] = $request->get($field);
             }
-            Wife::create($data);
         }
 
+        Wife::create($data);
+
         return redirect()->route('system.wives.index', ['personal_data_id' => $request->personal_data_id])
-            ->with('success', 'تمت إضافة الزوجات بنجاح');
+            ->with('success', 'تمت إضافة الزوجة بنجاح');
     }
 
     /**
@@ -172,10 +157,10 @@ class WifeController extends Controller
      */
     public function edit(Wife $wife)
     {
-        $personalDataList = PersonalData::pluck('name', 'id');
-        $allPeople = PersonalData::select('id', 'name')->get();
-        $governorates = Governorate::pluck('name', 'id');
-        $directorates = Directorate::pluck('name', 'id');
+        $personalDataList = \App\Services\UserScopeService::applyScope(PersonalData::query())->pluck('name', 'id');
+        $allPeople = \App\Services\UserScopeService::applyScope(PersonalData::query())->select('id', 'name')->get();
+        $governorates = \App\Services\UserScopeService::getScopedGovernorates()->pluck('name', 'id');
+        $directorates = \App\Services\UserScopeService::getScopedDirectorates()->pluck('name', 'id');
         $subAreas = SubArea::pluck('name', 'id');
         $villages = Village::pluck('name', 'id');
 
@@ -189,15 +174,7 @@ class WifeController extends Controller
      */
     public function update(Request $request, Wife $wife)
     {
-        if ($request->filled('personal_data_id') && !is_numeric($request->personal_data_id)) {
-            $person = PersonalData::where('name', $request->personal_data_id)
-                ->orWhere('jihadi_name', $request->personal_data_id)
-                ->orWhere('military_number', $request->personal_data_id)
-                ->first();
-            if ($person) {
-                $request->merge(['personal_data_id' => $person->id]);
-            }
-        }
+        $this->resolveInputFields($request);
 
         $request->validate([
             'personal_data_id' => 'required|exists:personal_data,id',
@@ -207,33 +184,23 @@ class WifeController extends Controller
             'wife_birth_date' => 'nullable|date',
             'wife_phone' => 'nullable|string|max:255',
             'wife_address' => 'nullable|string|max:255',
-            'governorate_id' => 'nullable',
-            'directorate_id' => 'nullable',
-            'sub_area_id' => 'nullable',
-            'village_id' => 'nullable',
-            'new_wives' => 'nullable|array',
-            'new_wives.*.name' => 'required_with:new_wives|string|max:255',
-            'new_wives.*.status' => 'required_with:new_wives|string|in:مستمرة,متوفية,مطلقة,أخرى',
+            'governorate_id' => 'nullable|exists:governorates,id',
+            'directorate_id' => 'nullable|exists:directorates,id',
+            'sub_area_id' => 'nullable|exists:sub_areas,id',
+            'village_id' => 'nullable|exists:villages,id',
         ]);
 
-        $resolvedMainWife = $this->resolveWifeFields($request->all());
-
-        if ($resolvedMainWife['status'] == 'مستمرة' && Schema::hasColumn('wives', 'status')) {
+        if ($request->status == 'مستمرة' && Schema::hasColumn('wives', 'status')) {
             $count = Wife::where('personal_data_id', $request->personal_data_id)
                 ->where('status', 'مستمرة')
                 ->where('id', '!=', $wife->id)
                 ->count();
-            
-            $newActiveCount = 0;
-            if ($request->has('new_wives')) {
-                $newActiveCount = collect($request->new_wives)->where('status', 'مستمرة')->count();
-            }
-
-            if (($count + 1 + $newActiveCount) > 4) {
+            if ($count >= 4) {
                 return back()->withErrors(['status' => 'لا يمكن إضافة أكثر من 4 زوجات بحالة (مستمرة) لنفس الشخص.'])->withInput();
             }
         }
 
+        // Get only the fields that exist in the database
         $allFields = [
             'personal_data_id', 'name', 'status', 'wife_id_number',
             'wife_birth_date', 'wife_phone', 'wife_address',
@@ -242,27 +209,12 @@ class WifeController extends Controller
 
         $data = [];
         foreach ($allFields as $field) {
-            if (isset($resolvedMainWife[$field]) && Schema::hasColumn('wives', $field)) {
-                $data[$field] = $resolvedMainWife[$field];
+            if ($request->has($field) && Schema::hasColumn('wives', $field)) {
+                $data[$field] = $request->get($field);
             }
         }
-        $data['personal_data_id'] = $request->personal_data_id;
 
         $wife->update($data);
-
-        // Handle New Wives Additions
-        if ($request->has('new_wives')) {
-            foreach ($request->new_wives as $wifeInput) {
-                $resolvedWife = $this->resolveWifeFields($wifeInput);
-                $newWifeData = ['personal_data_id' => $request->personal_data_id];
-                foreach ($allFields as $field) {
-                    if ($field !== 'personal_data_id' && isset($resolvedWife[$field]) && Schema::hasColumn('wives', $field)) {
-                        $newWifeData[$field] = $resolvedWife[$field];
-                    }
-                }
-                Wife::create($newWifeData);
-            }
-        }
 
         return redirect()->route('system.wives.index', ['personal_data_id' => $request->personal_data_id])
             ->with('success', 'تم تحديث بيانات الزوجة بنجاح');
@@ -350,16 +302,26 @@ class WifeController extends Controller
     /**
      * Resolve string tags from Select2 inputs to numeric IDs for database.
      */
-    protected function resolveWifeFields(array $wifeInput): array
+    protected function resolveInputFields(Request $request): void
     {
-        $govId = $wifeInput['governorate_id'] ?? null;
-        $dirId = $wifeInput['directorate_id'] ?? null;
-        $subId = $wifeInput['sub_area_id'] ?? null;
-        $vilId = $wifeInput['village_id'] ?? null;
+        if ($request->filled('personal_data_id') && !is_numeric($request->personal_data_id)) {
+            $person = PersonalData::where('name', $request->personal_data_id)
+                ->orWhere('jihadi_name', $request->personal_data_id)
+                ->orWhere('military_number', $request->personal_data_id)
+                ->first();
+            if ($person) {
+                $request->merge(['personal_data_id' => $person->id]);
+            }
+        }
+
+        $govId = $request->governorate_id;
+        $dirId = $request->directorate_id;
+        $subId = $request->sub_area_id;
+        $vilId = $request->village_id;
 
         if ($govId && !is_numeric($govId)) {
             $gov = Governorate::where('name', $govId)->first();
-            $wifeInput['governorate_id'] = $gov?->id;
+            $request->merge(['governorate_id' => $gov?->id]);
             $govId = $gov?->id;
         }
 
@@ -367,7 +329,7 @@ class WifeController extends Controller
             $query = Directorate::where('name', $dirId);
             if ($govId && is_numeric($govId)) $query->where('governorate_id', $govId);
             $dir = $query->first();
-            $wifeInput['directorate_id'] = $dir?->id;
+            $request->merge(['directorate_id' => $dir?->id]);
             $dirId = $dir?->id;
         }
 
@@ -382,7 +344,7 @@ class WifeController extends Controller
                     'governorate_id' => $govId
                 ]);
             }
-            $wifeInput['sub_area_id'] = $sub?->id;
+            $request->merge(['sub_area_id' => $sub?->id]);
             $subId = $sub?->id;
         }
 
@@ -396,9 +358,7 @@ class WifeController extends Controller
                     'sub_area_id' => $subId
                 ]);
             }
-            $wifeInput['village_id'] = $vil?->id;
+            $request->merge(['village_id' => $vil?->id]);
         }
-
-        return $wifeInput;
     }
 }

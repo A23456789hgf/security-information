@@ -32,7 +32,7 @@
     {{-- Google Fonts: Cairo & Tajawal (Non-blocking for fast LAN load) --}}
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 
     {{-- Select2 Searchable Dropdowns (Loaded Locally for Fast LAN Performance) --}}
     <link rel="stylesheet" href="{{ asset('vendor/select2/select2.min.css') }}">
@@ -276,45 +276,235 @@
                     <span class="whitespace-nowrap">لوحة التحكم</span>
                 </a>
 
-                @if(isset($sidebarDynamicSections) && $sidebarDynamicSections->count() > 0)
-                    @foreach($sidebarDynamicSections as $dynamicSection)
-                        @php
-                            $viewablePages = $dynamicSection->pages->filter(function($page) {
-                                return auth()->user()->can("view_{$page->slug}");
-                            });
-                        @endphp
-                        @if($viewablePages->count() > 0)
-                        <div class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest px-3 py-2 mt-4">
-                            {{ $dynamicSection->name }}
+                {{-- Section: إدارة الأفراد --}}
+                <div class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest px-3 py-2 mt-4">
+                    إدارة الأفراد
+                </div>
+
+                @php $isPersonal = request()->is('system/personal-data*'); @endphp
+                <a href="{{ route('system.personal-data.index') }}" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all relative group {{ $isPersonal ? 'bg-gradient-to-l from-brand-50 to-indigo-50/50 dark:from-brand-500/10 dark:to-indigo-500/5 text-brand-600 dark:text-brand-400' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white' }}">
+                    @if($isPersonal) <span class="absolute right-0 top-1/2 -translate-y-1/2 w-1 h-5 bg-brand-600 dark:bg-brand-500 rounded-l-full"></span> @endif
+                    <div class="shrink-0 {{ $isPersonal ? 'text-brand-600 dark:text-brand-400' : 'text-slate-400 dark:text-slate-500 group-hover:text-brand-600 dark:group-hover:text-brand-400' }}">
+                        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    </div>
+                    <span class="whitespace-nowrap">البيانات الشخصية</span>
+                </a>
+
+                @php $isSecData = request()->is('system/secondary-data*'); @endphp
+                <a href="{{ route('system.secondary-data.index') }}" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all relative group {{ $isSecData ? 'bg-gradient-to-l from-brand-50 to-indigo-50/50 dark:from-brand-500/10 dark:to-indigo-500/5 text-brand-600 dark:text-brand-400' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white' }}">
+                    @if($isSecData) <span class="absolute right-0 top-1/2 -translate-y-1/2 w-1 h-5 bg-brand-600 dark:bg-brand-500 rounded-l-full"></span> @endif
+                    <div class="shrink-0 {{ $isSecData ? 'text-brand-600 dark:text-brand-400' : 'text-slate-400 dark:text-slate-500 group-hover:text-brand-600 dark:group-hover:text-brand-400' }}">
+                        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="14" x="3" y="5" rx="2"/><circle cx="8" cy="11" r="2"/><path d="M14 9h2"/><path d="M14 13h2"/></svg>
+                    </div>
+                    <span class="whitespace-nowrap">البيانات الثانوية</span>
+                </a>
+
+                @php $isWives = request()->is('system/wives*'); @endphp
+                <a href="{{ route('system.wives.index') }}" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all relative group {{ $isWives ? 'bg-gradient-to-l from-brand-50 to-indigo-50/50 dark:from-brand-500/10 dark:to-indigo-500/5 text-brand-600 dark:text-brand-400' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white' }}">
+                    @if($isWives) <span class="absolute right-0 top-1/2 -translate-y-1/2 w-1 h-5 bg-brand-600 dark:bg-brand-500 rounded-l-full"></span> @endif
+                    <div class="shrink-0 {{ $isWives ? 'text-brand-600 dark:text-brand-400' : 'text-slate-400 dark:text-slate-500 group-hover:text-brand-600 dark:group-hover:text-brand-400' }}">
+                        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+                    </div>
+                    <span class="whitespace-nowrap">بيانات الزوجات</span>
+                </a>
+
+                @php $isRelatives = request()->is('system/relatives*'); @endphp
+                <a href="{{ route('system.relatives.index') }}" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all relative group {{ $isRelatives ? 'bg-gradient-to-l from-brand-50 to-indigo-50/50 dark:from-brand-500/10 dark:to-indigo-500/5 text-brand-600 dark:text-brand-400' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white' }}">
+                    @if($isRelatives) <span class="absolute right-0 top-1/2 -translate-y-1/2 w-1 h-5 bg-brand-600 dark:bg-brand-500 rounded-l-full"></span> @endif
+                    <div class="shrink-0 {{ $isRelatives ? 'text-brand-600 dark:text-brand-400' : 'text-slate-400 dark:text-slate-500 group-hover:text-brand-600 dark:group-hover:text-brand-400' }}">
+                        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                    </div>
+                    <span class="whitespace-nowrap">الأهل والأقارب</span>
+                </a>
+
+                @php $isSecFiles = request()->is('system/security-files*'); @endphp
+                <a href="{{ route('system.security-files.index') }}" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all relative group {{ $isSecFiles ? 'bg-gradient-to-l from-brand-50 to-indigo-50/50 dark:from-brand-500/10 dark:to-indigo-500/5 text-brand-600 dark:text-brand-400' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white' }}">
+                    @if($isSecFiles) <span class="absolute right-0 top-1/2 -translate-y-1/2 w-1 h-5 bg-brand-600 dark:bg-brand-500 rounded-l-full"></span> @endif
+                    <div class="shrink-0 {{ $isSecFiles ? 'text-brand-600 dark:text-brand-400' : 'text-slate-400 dark:text-slate-500 group-hover:text-brand-600 dark:group-hover:text-brand-400' }}">
+                        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
+                    </div>
+                    <span class="whitespace-nowrap">الملف الأمني</span>
+                </a>
+
+                @php $isCourses = request()->is('system/courses*'); @endphp
+                <a href="{{ route('system.courses.index') }}" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all relative group {{ $isCourses ? 'bg-gradient-to-l from-brand-50 to-indigo-50/50 dark:from-brand-500/10 dark:to-indigo-500/5 text-brand-600 dark:text-brand-400' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white' }}">
+                    @if($isCourses) <span class="absolute right-0 top-1/2 -translate-y-1/2 w-1 h-5 bg-brand-600 dark:bg-brand-500 rounded-l-full"></span> @endif
+                    <div class="shrink-0 {{ $isCourses ? 'text-brand-600 dark:text-brand-400' : 'text-slate-400 dark:text-slate-500 group-hover:text-brand-600 dark:group-hover:text-brand-400' }}">
+                        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+                    </div>
+                    <span class="whitespace-nowrap">الدورات التدريبية</span>
+                </a>
+
+                {{-- Section: السجلات الأمنية --}}
+                <div class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest px-3 py-2 mt-4">
+                    السجلات الأمنية
+                </div>
+
+                @php $isArrests = request()->is('system/arrests*'); @endphp
+                <a href="{{ route('system.arrests.index') }}" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all relative group {{ $isArrests ? 'bg-gradient-to-l from-brand-50 to-indigo-50/50 dark:from-brand-500/10 dark:to-indigo-500/5 text-brand-600 dark:text-brand-400' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white' }}">
+                    @if($isArrests) <span class="absolute right-0 top-1/2 -translate-y-1/2 w-1 h-5 bg-brand-600 dark:bg-brand-500 rounded-l-full"></span> @endif
+                    <div class="shrink-0 {{ $isArrests ? 'text-brand-600 dark:text-brand-400' : 'text-slate-400 dark:text-slate-500 group-hover:text-brand-600 dark:group-hover:text-brand-400' }}">
+                        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                    </div>
+                    <span class="whitespace-nowrap">سجلات الضبط</span>
+                </a>
+
+                @php $isSuspicious = request()->is('system/suspicious*'); @endphp
+                <a href="{{ route('system.suspicious.index') }}" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all relative group {{ $isSuspicious ? 'bg-gradient-to-l from-brand-50 to-indigo-50/50 dark:from-brand-500/10 dark:to-indigo-500/5 text-brand-600 dark:text-brand-400' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white' }}">
+                    @if($isSuspicious) <span class="absolute right-0 top-1/2 -translate-y-1/2 w-1 h-5 bg-brand-600 dark:bg-brand-500 rounded-l-full"></span> @endif
+                    <div class="shrink-0 {{ $isSuspicious ? 'text-brand-600 dark:text-brand-400' : 'text-slate-400 dark:text-slate-500 group-hover:text-brand-600 dark:group-hover:text-brand-400' }}">
+                        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a5 5 0 0 0-5 5v2a5 5 0 0 0 10 0V7a5 5 0 0 0-5-5Z"/><path d="M4 19v-2a8 8 0 0 1 16 0v2"/><circle cx="12" cy="11" r="1"/></svg>
+                    </div>
+                    <span class="whitespace-nowrap">المشتبه بهم</span>
+                </a>
+
+                @php $isReports = request()->is('system/security-reports*'); @endphp
+                <a href="{{ route('system.security-reports.index') }}" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all relative group {{ $isReports ? 'bg-gradient-to-l from-brand-50 to-indigo-50/50 dark:from-brand-500/10 dark:to-indigo-500/5 text-brand-600 dark:text-brand-400' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white' }}">
+                    @if($isReports) <span class="absolute right-0 top-1/2 -translate-y-1/2 w-1 h-5 bg-brand-600 dark:bg-brand-500 rounded-l-full"></span> @endif
+                    <div class="shrink-0 {{ $isReports ? 'text-brand-600 dark:text-brand-400' : 'text-slate-400 dark:text-slate-500 group-hover:text-brand-600 dark:group-hover:text-brand-400' }}">
+                        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
+                    </div>
+                    <span class="whitespace-nowrap">البلاغات الأمنية</span>
+                </a>
+
+                @php $isFieldResp = request()->is('system/field-responses*'); @endphp
+                <a href="{{ route('system.field-responses.index') }}" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all relative group {{ $isFieldResp ? 'bg-gradient-to-l from-brand-50 to-indigo-50/50 dark:from-brand-500/10 dark:to-indigo-500/5 text-brand-600 dark:text-brand-400' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white' }}">
+                    @if($isFieldResp) <span class="absolute right-0 top-1/2 -translate-y-1/2 w-1 h-5 bg-brand-600 dark:bg-brand-500 rounded-l-full"></span> @endif
+                    <div class="shrink-0 {{ $isFieldResp ? 'text-brand-600 dark:text-brand-400' : 'text-slate-400 dark:text-slate-500 group-hover:text-brand-600 dark:group-hover:text-brand-400' }}">
+                        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="2"/><path d="M16.24 7.76a6 6 0 0 1 0 8.49"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M7.76 16.24a6 6 0 0 1 0-8.49"/><path d="M4.93 19.07a10 10 0 0 1 0-14.14"/></svg>
+                    </div>
+                    <span class="whitespace-nowrap">الرد الميداني</span>
+                </a>
+
+                {{-- Section: أدوات البيانات --}}
+                <div class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest px-3 py-2 mt-4">
+                    أدوات البيانات
+                </div>
+
+                @php $isPages = request()->is('system/pages*'); @endphp
+                <a href="{{ route('system.pages.index') }}" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all relative group {{ $isPages ? 'bg-gradient-to-l from-brand-50 to-indigo-50/50 dark:from-brand-500/10 dark:to-indigo-500/5 text-brand-600 dark:text-brand-400' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white' }}">
+                    @if($isPages) <span class="absolute right-0 top-1/2 -translate-y-1/2 w-1 h-5 bg-brand-600 dark:bg-brand-500 rounded-l-full"></span> @endif
+                    <div class="shrink-0 {{ $isPages ? 'text-brand-600 dark:text-brand-400' : 'text-slate-400 dark:text-slate-500 group-hover:text-brand-600 dark:group-hover:text-brand-400' }}">
+                        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+                    </div>
+                    <span class="whitespace-nowrap">الصفحات الديناميكية</span>
+                </a>
+
+                @php $isImport = request()->is('data/import*'); @endphp
+                <a href="{{ route('data.import.index') }}" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all relative group {{ $isImport ? 'bg-gradient-to-l from-brand-50 to-indigo-50/50 dark:from-brand-500/10 dark:to-indigo-500/5 text-brand-600 dark:text-brand-400' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white' }}">
+                    @if($isImport) <span class="absolute right-0 top-1/2 -translate-y-1/2 w-1 h-5 bg-brand-600 dark:bg-brand-500 rounded-l-full"></span> @endif
+                    <div class="shrink-0 {{ $isImport ? 'text-brand-600 dark:text-brand-400' : 'text-slate-400 dark:text-slate-500 group-hover:text-brand-600 dark:group-hover:text-brand-400' }}">
+                        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                    </div>
+                    <span class="whitespace-nowrap">استيراد البيانات</span>
+                </a>
+
+                @php $isDiff = request()->is('data/differentiation*'); @endphp
+                <a href="{{ route('data.differentiation.index') }}" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all relative group {{ $isDiff ? 'bg-gradient-to-l from-brand-50 to-indigo-50/50 dark:from-brand-500/10 dark:to-indigo-500/5 text-brand-600 dark:text-brand-400' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white' }}">
+                    @if($isDiff) <span class="absolute right-0 top-1/2 -translate-y-1/2 w-1 h-5 bg-brand-600 dark:bg-brand-500 rounded-l-full"></span> @endif
+                    <div class="shrink-0 {{ $isDiff ? 'text-brand-600 dark:text-brand-400' : 'text-slate-400 dark:text-slate-500 group-hover:text-brand-600 dark:group-hover:text-brand-400' }}">
+                        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/><line x1="4" y1="4" x2="9" y2="9"/></svg>
+                    </div>
+                    <span class="whitespace-nowrap">مقارنة وتمايز البيانات</span>
+                </a>
+
+                {{-- Accordion Section: الترميزات والإعدادات --}}
+                <div class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest px-3 py-2 mt-4">
+                    إدارة المنظومة والترميزات
+                </div>
+
+                <details class="group/acc [&_summary::-webkit-details-marker]:hidden" {{ request()->is('configuration*') ? 'open' : '' }}>
+                    <summary class="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white cursor-pointer transition-all">
+                        <div class="flex items-center gap-3">
+                            <div class="shrink-0 text-slate-400 dark:text-slate-500 group-hover/acc:text-brand-600">
+                                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
+                            </div>
+                            <span>الترميزات الجغرافية</span>
                         </div>
-                        @foreach($viewablePages as $page)
-                            @php 
-                                $isDynamicPage = false;
-                                $href = '#';
-                                if ($page->route_name) {
-                                    $isDynamicPage = request()->routeIs($page->route_name);
-                                    if(!$isDynamicPage) {
-                                        // Some routes might not match exactly by name but by prefix, e.g. system.personal-data.edit
-                                        $prefix = explode('.', $page->route_name)[0] . '.' . explode('.', $page->route_name)[1] . '.*';
-                                        $isDynamicPage = request()->routeIs($prefix);
-                                    }
-                                    $href = route($page->route_name);
-                                } else {
-                                    $isDynamicPage = request()->is("data/{$page->slug}*");
-                                    $href = route('system.dynamic-data.show', $page->slug);
-                                }
-                            @endphp
-                            <a href="{{ $href }}" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all relative group {{ $isDynamicPage ? 'bg-gradient-to-l from-brand-50 to-indigo-50/50 dark:from-brand-500/10 dark:to-indigo-500/5 text-brand-600 dark:text-brand-400' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white' }}">
-                                @if($isDynamicPage) <span class="absolute right-0 top-1/2 -translate-y-1/2 w-1 h-5 bg-brand-600 dark:bg-brand-500 rounded-l-full"></span> @endif
-                                <div class="shrink-0 {{ $isDynamicPage ? 'text-brand-600 dark:text-brand-400' : 'text-slate-400 dark:text-slate-500 group-hover:text-brand-600 dark:group-hover:text-brand-400' }}">
-                                    <i class="fas {{ $page->icon ?? 'fa-file-alt' }} text-lg w-5 h-5 flex items-center justify-center"></i>
-                                </div>
-                                <span class="whitespace-nowrap">{{ $page->name }}</span>
-                            </a>
-                        @endforeach
-                        @endif
-                    @endforeach
-                @endif
+                        <svg class="w-4 h-4 transition-transform group-open/acc:-rotate-180 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                    </summary>
+                    <div class="pr-7 pl-2 py-1 space-y-1 border-r border-slate-200 dark:border-slate-800 mr-4 mt-1">
+                        <a href="{{ route('configuration.countries.index') }}" class="block px-3 py-1.5 rounded-lg text-xs font-medium {{ request()->is('configuration/countries*') ? 'text-brand-600 dark:text-brand-400 font-bold bg-brand-50/60 dark:bg-brand-500/10' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white' }}">الدول</a>
+                        <a href="{{ route('configuration.governorates.index') }}" class="block px-3 py-1.5 rounded-lg text-xs font-medium {{ request()->is('configuration/governorates*') ? 'text-brand-600 dark:text-brand-400 font-bold bg-brand-50/60 dark:bg-brand-500/10' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white' }}">المحافظات</a>
+                        <a href="{{ route('configuration.directorates.index') }}" class="block px-3 py-1.5 rounded-lg text-xs font-medium {{ request()->is('configuration/directorates*') ? 'text-brand-600 dark:text-brand-400 font-bold bg-brand-50/60 dark:bg-brand-500/10' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white' }}">المديريات</a>
+                        <a href="{{ route('configuration.sub-areas.index') }}" class="block px-3 py-1.5 rounded-lg text-xs font-medium {{ request()->is('configuration/sub-areas*') ? 'text-brand-600 dark:text-brand-400 font-bold bg-brand-50/60 dark:bg-brand-500/10' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white' }}">العزل والمناطق</a>
+                        <a href="{{ route('configuration.villages.index') }}" class="block px-3 py-1.5 rounded-lg text-xs font-medium {{ request()->is('configuration/villages*') ? 'text-brand-600 dark:text-brand-400 font-bold bg-brand-50/60 dark:bg-brand-500/10' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white' }}">القرى والمحلات</a>
+                    </div>
+                </details>
+
+                <details class="group/acc [&_summary::-webkit-details-marker]:hidden" {{ request()->is('configuration/blood-types*', 'configuration/health-statuses*', 'configuration/marital-statuses*', 'configuration/qualifications*', 'configuration/kinships*', 'configuration/ideological-affiliations*', 'configuration/political-affiliations*') ? 'open' : '' }}>
+                    <summary class="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white cursor-pointer transition-all">
+                        <div class="flex items-center gap-3">
+                            <div class="shrink-0 text-slate-400 dark:text-slate-500 group-hover/acc:text-brand-600">
+                                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/></svg>
+                            </div>
+                            <span>ترميزات الحالة</span>
+                        </div>
+                        <svg class="w-4 h-4 transition-transform group-open/acc:-rotate-180 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                    </summary>
+                    <div class="pr-7 pl-2 py-1 space-y-1 border-r border-slate-200 dark:border-slate-800 mr-4 mt-1">
+                        <a href="{{ route('configuration.blood-types.index') }}" class="block px-3 py-1.5 rounded-lg text-xs font-medium text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white">فصائل الدم</a>
+                        <a href="{{ route('configuration.health-statuses.index') }}" class="block px-3 py-1.5 rounded-lg text-xs font-medium text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white">الحالات الصحية</a>
+                        <a href="{{ route('configuration.marital-statuses.index') }}" class="block px-3 py-1.5 rounded-lg text-xs font-medium text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white">الحالات الاجتماعية</a>
+                        <a href="{{ route('configuration.qualifications.index') }}" class="block px-3 py-1.5 rounded-lg text-xs font-medium text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white">المؤهلات الدراسية</a>
+                        <a href="{{ route('configuration.kinships.index') }}" class="block px-3 py-1.5 rounded-lg text-xs font-medium text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white">صلات القرابة</a>
+                        <a href="{{ route('configuration.ideological-affiliations.index') }}" class="block px-3 py-1.5 rounded-lg text-xs font-medium text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white">الانتماءات العقائدية</a>
+                        <a href="{{ route('configuration.political-affiliations.index') }}" class="block px-3 py-1.5 rounded-lg text-xs font-medium text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white">الانتماءات السياسية</a>
+                    </div>
+                </details>
+
+                <details class="group/acc [&_summary::-webkit-details-marker]:hidden" {{ request()->is('configuration/ranks*', 'configuration/job-statuses*', 'configuration/financial-statuses*', 'configuration/number-classifications*', 'configuration/military-districts*', 'configuration/divisions*', 'configuration/axes*', 'configuration/course-types*', 'configuration/filling-agencies*', 'configuration/electronic-inputs*', 'configuration/arresting-authorities*', 'configuration/case-types*') ? 'open' : '' }}>
+                    <summary class="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white cursor-pointer transition-all">
+                        <div class="flex items-center gap-3">
+                            <div class="shrink-0 text-slate-400 dark:text-slate-500 group-hover/acc:text-brand-600">
+                                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+                            </div>
+                            <span>الترميزات العسكرية والمهنية</span>
+                        </div>
+                        <svg class="w-4 h-4 transition-transform group-open/acc:-rotate-180 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                    </summary>
+                    <div class="pr-7 pl-2 py-1 space-y-1 border-r border-slate-200 dark:border-slate-800 mr-4 mt-1">
+                        <a href="{{ route('configuration.ranks.index') }}" class="block px-3 py-1.5 rounded-lg text-xs font-medium text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white">الرتب العسكرية</a>
+                        <a href="{{ route('configuration.job-statuses.index') }}" class="block px-3 py-1.5 rounded-lg text-xs font-medium text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white">الحالات الوظيفية</a>
+                        <a href="{{ route('configuration.military-districts.index') }}" class="block px-3 py-1.5 rounded-lg text-xs font-medium text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white">المناطق العسكرية</a>
+                        <a href="{{ route('configuration.divisions.index') }}" class="block px-3 py-1.5 rounded-lg text-xs font-medium text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white">الشعب والوحدات</a>
+                        <a href="{{ route('configuration.axes.index') }}" class="block px-3 py-1.5 rounded-lg text-xs font-medium text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white">المحاور الجبهوية</a>
+                        <a href="{{ route('configuration.arresting-authorities.index') }}" class="block px-3 py-1.5 rounded-lg text-xs font-medium text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white">جهات الضبط</a>
+                        <a href="{{ route('configuration.case-types.index') }}" class="block px-3 py-1.5 rounded-lg text-xs font-medium text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white">أنواع القضايا</a>
+                    </div>
+                </details>
+
+                {{-- Section: الإدارة والصلاحيات --}}
+                <div class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest px-3 py-2 mt-4">
+                    الإدارة والصلاحيات
+                </div>
+
+                @php $isUsers = request()->is('system/users*'); @endphp
+                <a href="{{ route('system.users.index') }}" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all relative group {{ $isUsers ? 'bg-gradient-to-l from-brand-50 to-indigo-50/50 dark:from-brand-500/10 dark:to-indigo-500/5 text-brand-600 dark:text-brand-400' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white' }}">
+                    @if($isUsers) <span class="absolute right-0 top-1/2 -translate-y-1/2 w-1 h-5 bg-brand-600 dark:bg-brand-500 rounded-l-full"></span> @endif
+                    <div class="shrink-0 {{ $isUsers ? 'text-brand-600 dark:text-brand-400' : 'text-slate-400 dark:text-slate-500 group-hover:text-brand-600 dark:group-hover:text-brand-400' }}">
+                        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                    </div>
+                    <span class="whitespace-nowrap">إدارة المستخدمين</span>
+                </a>
+
+                @php $isRoles = request()->is('system/roles*'); @endphp
+                <a href="{{ route('system.roles.index') }}" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all relative group {{ $isRoles ? 'bg-gradient-to-l from-brand-50 to-indigo-50/50 dark:from-brand-500/10 dark:to-indigo-500/5 text-brand-600 dark:text-brand-400' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white' }}">
+                    @if($isRoles) <span class="absolute right-0 top-1/2 -translate-y-1/2 w-1 h-5 bg-brand-600 dark:bg-brand-500 rounded-l-full"></span> @endif
+                    <div class="shrink-0 {{ $isRoles ? 'text-brand-600 dark:text-brand-400' : 'text-slate-400 dark:text-slate-500 group-hover:text-brand-600 dark:group-hover:text-brand-400' }}">
+                        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21 2-2 2m-6 6 2-2m-4-4 2-2M3 21l9-9"/><circle cx="17.5" cy="6.5" r="3.5"/></svg>
+                    </div>
+                    <span class="whitespace-nowrap">الأدوار والصلاحيات</span>
+                </a>
+
+                @php $isEntities = request()->is('system/entities*', 'system/sections*'); @endphp
+                <a href="{{ route('system.entities.index') }}" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all relative group {{ $isEntities ? 'bg-gradient-to-l from-brand-50 to-indigo-50/50 dark:from-brand-500/10 dark:to-indigo-500/5 text-brand-600 dark:text-brand-400' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white' }}">
+                    @if($isEntities) <span class="absolute right-0 top-1/2 -translate-y-1/2 w-1 h-5 bg-brand-600 dark:bg-brand-500 rounded-l-full"></span> @endif
+                    <div class="shrink-0 {{ $isEntities ? 'text-brand-600 dark:text-brand-400' : 'text-slate-400 dark:text-slate-500 group-hover:text-brand-600 dark:group-hover:text-brand-400' }}">
+                        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="16" height="20" x="4" y="2" rx="2" ry="2"/><path d="M9 22v-4h6v4"/><path d="M8 6h.01"/><path d="M16 6h.01"/><path d="M12 6h.01"/><path d="M12 10h.01"/><path d="M12 14h.01"/><path d="M16 10h.01"/><path d="M16 14h.01"/><path d="M8 10h.01"/><path d="M8 14h.01"/></svg>
+                    </div>
+                    <span class="whitespace-nowrap">الجهات والأقسام</span>
+                </a>
                 
                 <div class="h-6"></div>
             </div>
@@ -665,7 +855,6 @@
         }
 
         // ─── Global Searchable Selects (Select2) ───
-        // ─── Global Searchable Selects (Select2) ───
         window.initSearchableSelects = function() {
             if (typeof jQuery !== 'undefined' && jQuery.fn.select2) {
                 $('select').not('.no-select2').not('.swal2-select').each(function() {
@@ -683,36 +872,11 @@
                         width: '100%'
                     });
 
-                    // Handle selection events, auto‑save new tags
                     $select.on('select2:select', function(e) {
-                        // Preserve existing submit‑on‑change behavior
                         if ($select.attr('onchange') && $select.attr('onchange').includes('submit')) {
                             if (this.form) {
                                 this.form.submit();
                             }
-                        }
-                        // Detect a brand‑new tag (id equals text)
-                        var data = e.params && e.params.data ? e.params.data : null;
-                        if (data && data.id === data.text) {
-                            // Derive a model key from the select name (e.g., governorate_id -> governorate)
-                            var nameAttr = $select.attr('name') || '';
-                            var key = nameAttr.replace('_id', '').replace('[]', '');
-                            var field = 'name'; // default column for config tables
-                            // POST to quick‑store endpoint
-                            $.post(route('configuration.quick-store'), {
-                                key: key,
-                                field: field,
-                                value: data.text,
-                            }).done(function(resp) {
-                                // Replace temporary option with the persisted record
-                                var newOption = new Option(resp.text, resp.id, true, true);
-                                $select.append(newOption).trigger('change');
-                            }).fail(function(xhr) {
-                                console.error('Quick store failed', xhr);
-                                if (window.showToast) {
-                                    window.showToast('error', 'خطأ', 'فشل حفظ القيمة الجديدة');
-                                }
-                            });
                         }
                     });
                 });
@@ -732,7 +896,71 @@
             });
         }
 
+        window.toggleRowDropdown = function(btn, event) {
+            if (event) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            const container = btn.closest('.relative, .dropdown');
+            const row = btn.closest('tr');
+            const menu = container ? container.querySelector('.dropdown-menu, .row-options-menu') : null;
+            if (!menu) return;
 
+            const isCurrentlyHidden = menu.classList.contains('hidden') || getComputedStyle(menu).display === 'none';
+
+            document.querySelectorAll('.dropdown-menu, .row-options-menu').forEach(m => {
+                if (m !== menu && !m.id.includes('userMenu')) {
+                    m.classList.add('hidden');
+                    m.classList.remove('show');
+                    m.style.display = '';
+                    const r = m.closest('tr');
+                    if (r) r.style.zIndex = '';
+                    const c = m.closest('.relative, .dropdown');
+                    if (c) c.style.zIndex = '';
+                }
+            });
+
+            if (isCurrentlyHidden) {
+                if (row) row.style.zIndex = '60';
+                if (container) container.style.zIndex = '60';
+
+                const rect = btn.getBoundingClientRect();
+                const spaceBelow = window.innerHeight - rect.bottom;
+                if (spaceBelow < 320 && rect.top > 320) {
+                    menu.classList.remove('top-full', 'mt-2', 'origin-top-left');
+                    menu.classList.add('bottom-full', 'mb-2', 'origin-bottom-left');
+                } else {
+                    menu.classList.remove('bottom-full', 'mb-2', 'origin-bottom-left');
+                    menu.classList.add('top-full', 'mt-2', 'origin-top-left');
+                }
+
+                menu.classList.remove('hidden');
+                menu.classList.add('show');
+                menu.style.display = 'block';
+            } else {
+                menu.classList.add('hidden');
+                menu.classList.remove('show');
+                menu.style.display = 'none';
+                if (row) row.style.zIndex = '';
+                if (container) container.style.zIndex = '';
+            }
+        };
+
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.dropdown-menu') && !e.target.closest('.row-options-menu') && !e.target.closest('[onclick*="toggleRowDropdown"]') && !e.target.closest('[data-bs-toggle="dropdown"]')) {
+                document.querySelectorAll('.dropdown-menu, .row-options-menu').forEach(m => {
+                    if (!m.id.includes('userMenu')) {
+                        m.classList.add('hidden');
+                        m.classList.remove('show');
+                        m.style.display = '';
+                        const r = m.closest('tr');
+                        if (r) r.style.zIndex = '';
+                        const c = m.closest('.relative, .dropdown');
+                        if (c) c.style.zIndex = '';
+                    }
+                });
+            }
+        });
 
     })();
     </script>

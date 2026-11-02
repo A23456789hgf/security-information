@@ -206,11 +206,25 @@ class PersonalData extends Model
     public function securityReports()
     {
         return SecurityReport::where(function ($query) {
+            $hasCondition = false;
             if ($this->national_id_number) {
                 $query->where('id_number', $this->national_id_number);
+                $hasCondition = true;
             }
             if ($this->military_number) {
-                $query->orWhere('military_number', $this->military_number);
+                if ($hasCondition) {
+                    $query->orWhere('military_number', $this->military_number);
+                } else {
+                    $query->where('military_number', $this->military_number);
+                    $hasCondition = true;
+                }
+            }
+            if ($this->name) {
+                if ($hasCondition) {
+                    $query->orWhere('full_name', $this->name);
+                } else {
+                    $query->where('full_name', $this->name);
+                }
             }
         })->get();
     }

@@ -31,9 +31,11 @@ use App\Http\Controllers\Data\DataImportController;
 use App\Http\Controllers\System\ArrestController;
 use App\Http\Controllers\System\CourseController;
 use App\Http\Controllers\System\RelativeController;
+use App\Http\Controllers\System\FieldResponseController;
 use App\Http\Controllers\System\SecurityReportController;
 use App\Http\Controllers\System\SuspectController;
 use App\Http\Controllers\System\WifeController;
+use App\Http\Controllers\DashboardController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -50,20 +52,12 @@ Route::get('/', function () {
     return redirect()->route('dashboard');
 });
 
-Route::get('/dashboard', function () {
-    $stats = [
-        'personal_today' => \App\Models\PersonalData::whereDate('created_at', now())->count(),
-        'villages_today' => \App\Models\Village::whereDate('created_at', now())->count(),
-        'personal_data_count' => \App\Models\PersonalData::count(),
-        'governorates_count' => \App\Models\Governorate::count(),
-        'directorates_count' => \App\Models\Directorate::count(),
-        'villages_count' => \App\Models\Village::count(),
-        'total_today' => 0,
-    ];
-    $stats['total_today'] = $stats['personal_today'] + $stats['villages_today'];
+// ── CSRF Token Refresh Endpoint ──
+Route::get('/csrf-token', function () {
+    return response()->json(['token' => csrf_token()]);
+})->middleware('auth')->name('csrf.token');
 
-    return view('dashboard', compact('stats'));
-})->middleware('auth')->name('dashboard');
+Route::get('/dashboard', [DashboardController::class, 'index'])->middleware('auth')->name('dashboard');
 
 // System Routes
 Route::middleware('auth')->prefix('system')->name('system.')->group(function () {
@@ -78,6 +72,7 @@ Route::middleware('auth')->prefix('system')->name('system.')->group(function () 
     Route::get('personal-data/fast-entry', [\App\Http\Controllers\PersonalDataController::class, 'fastEntry'])->name('personal-data.fast-entry');
     Route::post('personal-data/bulk-store', [\App\Http\Controllers\PersonalDataController::class, 'bulkStore'])->name('personal-data.bulk-store');
     // Personal Data Print
+    Route::get('personal-data/print-list', [\App\Http\Controllers\PersonalDataController::class, 'printList'])->name('personal-data.print-list');
     Route::get('personal-data/{personal_data}/print', [\App\Http\Controllers\PersonalDataController::class, 'print'])->name('personal-data.print');
     Route::get('personal-data/{personal_data}/print-all', [\App\Http\Controllers\PersonalDataController::class, 'printFull'])->name('personal-data.print-all');
     Route::resource('personal-data', \App\Http\Controllers\PersonalDataController::class)->parameters(['personal-data' => 'personal_data']);
@@ -107,6 +102,13 @@ Route::middleware('auth')->prefix('system')->name('system.')->group(function () 
     Route::get('security-files/{security_file}/print', [\App\Http\Controllers\System\SecurityFileController::class, 'print'])->name('security-files.print');
     Route::get('security-files/person-details/{id}', [\App\Http\Controllers\System\SecurityFileController::class, 'getPersonDetails'])->name('security-files.get-person-details');
     Route::delete('security-files/{security_file}/attachment', [\App\Http\Controllers\System\SecurityFileController::class, 'deleteAttachment'])->name('security-files.delete-attachment');
+    
+    // Hardware Scanner Endpoints (USB / WIA & Network / eSCL)
+    Route::get('security-files/scanner/devices', [\App\Http\Controllers\System\SecurityFileController::class, 'detectScannerDevices'])->name('security-files.scanner-devices');
+    Route::post('security-files/scanner/scan-wia', [\App\Http\Controllers\System\SecurityFileController::class, 'scanWia'])->name('security-files.scan-wia');
+    Route::post('security-files/scanner/scan-network', [\App\Http\Controllers\System\SecurityFileController::class, 'scanNetwork'])->name('security-files.scan-network');
+    Route::get('security-files/scanner/test-network', [\App\Http\Controllers\System\SecurityFileController::class, 'testNetworkScanner'])->name('security-files.test-network-scanner');
+
     Route::resource('security-files', \App\Http\Controllers\System\SecurityFileController::class)->parameters(['security-files' => 'security_file']);
 
     // Relatives Print & Resource
@@ -143,17 +145,29 @@ Route::middleware('auth')->prefix('system')->name('system.')->group(function () 
     Route::resource('security-reports', SecurityReportController::class)->parameters(['security-reports' => 'security_report']);
     Route::post('security-reports/store-import', [SecurityReportController::class, 'storeImport'])->name('security-reports.store-import');
 
+    // Field Responses Print & Resource
+    Route::get('field-responses/print-all', [FieldResponseController::class, 'printAll'])->name('field-responses.print-all');
+    Route::get('field-responses/{field_response}/print', [FieldResponseController::class, 'print'])->name('field-responses.print');
+    Route::get('field-responses/import', [FieldResponseController::class, 'import'])->name('field-responses.import');
+    Route::post('field-responses/upload', [FieldResponseController::class, 'upload'])->name('field-responses.upload');
+    Route::get('field-responses/export', [FieldResponseController::class, 'export'])->name('field-responses.export');
+    Route::get('field-responses/personal-data/{id}', [FieldResponseController::class, 'getPersonalData'])->name('field-responses.get-personal-data');
+    Route::resource('field-responses', FieldResponseController::class)->parameters(['field-responses' => 'field_response']);
+    Route::post('field-responses/store-import', [FieldResponseController::class, 'storeImport'])->name('field-responses.store-import');
+
     Route::get('wives/person-details/{id}', [WifeController::class, 'getPersonDetails'])->name('wives.get-person-details');
     Route::get('courses/person-details/{id}', [CourseController::class, 'getPersonDetails'])->name('courses.get-person-details');
     Route::get('personal-data/details/{id}', [\App\Http\Controllers\PersonalDataController::class, 'getDetails'])->name('personal-data.details');
 
     // Dynamic Pages Management
+    Route::get('pages/print', [App\Http\Controllers\System\PageController::class, 'print'])->name('pages.print');
     Route::resource('pages', App\Http\Controllers\System\PageController::class);
     Route::post('pages/{page}/fields', [App\Http\Controllers\System\PageController::class, 'storeField'])->name('pages.fields.store');
     Route::put('fields/{field}', [App\Http\Controllers\System\PageController::class, 'updateField'])->name('fields.update');
     Route::delete('fields/{field}', [App\Http\Controllers\System\PageController::class, 'destroyField'])->name('fields.destroy');
 
     // Dynamic Data Entry
+    Route::get('data/{page:slug}/print', [App\Http\Controllers\System\DynamicDataController::class, 'print'])->name('dynamic-data.print');
     Route::get('data/{page:slug}', [App\Http\Controllers\System\DynamicDataController::class, 'show'])->name('dynamic-data.show');
     Route::get('data/{page:slug}/create', [App\Http\Controllers\System\DynamicDataController::class, 'create'])->name('dynamic-data.create');
     Route::post('data/{page:slug}/store', [App\Http\Controllers\System\DynamicDataController::class, 'store'])->name('dynamic-data.store');
@@ -168,14 +182,26 @@ Route::middleware('auth')->prefix('system')->name('system.')->group(function () 
     Route::get('data/{page:slug}/export', [App\Http\Controllers\System\DynamicImportExportController::class, 'export'])->name('dynamic-data.export');
     Route::get('data/{page:slug}/template', [App\Http\Controllers\System\DynamicImportExportController::class, 'template'])->name('dynamic-data.template');
 
+    // Roles & Permissions Print & Resource
+    Route::get('roles/print', [App\Http\Controllers\System\RoleController::class, 'print'])->name('roles.print');
     Route::resource('roles', App\Http\Controllers\System\RoleController::class);
+
+    // Users Print & Resource
+    Route::get('users/print-all', [App\Http\Controllers\System\UserController::class, 'printAll'])->name('users.print-all');
+    Route::get('users/{user}/print', [App\Http\Controllers\System\UserController::class, 'print'])->name('users.print');
     Route::get('users/export', [App\Http\Controllers\System\UserController::class, 'export'])->name('users.export');
     Route::resource('users', App\Http\Controllers\System\UserController::class);
+
+    // Entities Print & Resource
+    Route::get('entities/print-all', [App\Http\Controllers\System\EntityController::class, 'printAll'])->name('entities.print-all');
+    Route::get('entities/{entity}/print', [App\Http\Controllers\System\EntityController::class, 'print'])->name('entities.print');
     Route::resource('entities', App\Http\Controllers\System\EntityController::class);
+
     Route::get('sections/print', [App\Http\Controllers\System\SectionController::class, 'print'])->name('sections.print');
     Route::resource('sections', App\Http\Controllers\System\SectionController::class);
 
-    // Profile Management
+    // Profile Management & Print
+    Route::get('profile/print', [App\Http\Controllers\System\ProfileController::class, 'print'])->name('profile.print');
     Route::get('profile', [App\Http\Controllers\System\ProfileController::class, 'index'])->name('profile.index');
     Route::put('profile', [App\Http\Controllers\System\ProfileController::class, 'update'])->name('profile.update');
     Route::put('profile/password', [App\Http\Controllers\System\ProfileController::class, 'updatePassword'])->name('profile.password');
@@ -185,7 +211,8 @@ Route::middleware('auth')->prefix('system')->name('system.')->group(function () 
         return view('system.ui-style-guide');
     })->name('ui-style-guide');
 
-    // System Backup
+    // System Backup & Print
+    Route::get('backup/print', [App\Http\Controllers\System\SystemBackupController::class, 'print'])->name('backup.print');
     Route::get('backup', [App\Http\Controllers\System\SystemBackupController::class, 'index'])->name('backup.index');
     Route::get('backup/export', [App\Http\Controllers\System\SystemBackupController::class, 'export'])->name('backup.export');
     Route::post('backup/import', [App\Http\Controllers\System\SystemBackupController::class, 'import'])->name('backup.import');
@@ -206,7 +233,7 @@ Route::middleware('auth')->prefix('configuration')->name('configuration.')->grou
         Route::post($resource.'/validate-import', [$controller, 'validateImport'])->name($resource.'.validate-import');
         Route::get($resource.'/template', [$controller, 'template'])->name($resource.'.template');
     };
-        Route::post('quick-store', [\App\Http\Controllers\Configuration\QuickStoreController::class, 'quickStore'])->name('quick-store');
+
     Route::get('villages/fast-entry', [VillageController::class, 'fastEntry'])->name('villages.fast-entry');
     Route::post('villages/bulk-store', [VillageController::class, 'bulkStore'])->name('villages.bulk-store');
 
@@ -293,11 +320,15 @@ Route::prefix('data')->name('data.')->group(function () {
     Route::get('/import/data', [DataImportController::class, 'getData'])->name('import.get-data');
     Route::get('/import/export', [DataImportController::class, 'export'])->name('import.export');
     Route::get('/differentiation', [DataDifferentiationController::class, 'index'])->name('differentiation.index');
-    Route::post('/differentiation/analyze', [DataDifferentiationController::class, 'analyze'])->name('differentiation.analyze');
-    Route::get('/differentiation/results', [DataDifferentiationController::class, 'getResults'])->name('differentiation.results');
-    Route::get('/differentiation/detail', [DataDifferentiationController::class, 'getMatchDetail'])->name('differentiation.detail');
-    Route::post('/differentiation/integrate-all', [DataDifferentiationController::class, 'integrateAll'])->name('differentiation.integrate-all');
-    Route::post('/differentiation/integrate-selected', [DataDifferentiationController::class, 'integrateSelected'])->name('differentiation.integrate-selected');
-    Route::post('/differentiation/add-column', [DataDifferentiationController::class, 'addSecondaryColumn'])->name('differentiation.add-column');
+    Route::post('/differentiation/parse-file', [DataDifferentiationController::class, 'parseFile'])->name('differentiation.parse-file');
+    Route::post('/differentiation/store-main', [DataDifferentiationController::class, 'storeMain'])->name('differentiation.store-main');
+    Route::post('/differentiation/store-secondary', [DataDifferentiationController::class, 'storeSecondary'])->name('differentiation.store-secondary');
+    Route::get('/differentiation/list-secondary', [DataDifferentiationController::class, 'listSecondary'])->name('differentiation.list-secondary');
+    Route::get('/differentiation/secondary/{id}', [DataDifferentiationController::class, 'showSecondary'])->name('differentiation.show-secondary');
+    Route::post('/differentiation/secondary/{id}/update', [DataDifferentiationController::class, 'updateSecondary'])->name('differentiation.update-secondary');
+    Route::delete('/differentiation/secondary/{id}', [DataDifferentiationController::class, 'deleteSecondary'])->name('differentiation.delete-secondary');
+    Route::get('/differentiation/system-fields/{source}', [DataDifferentiationController::class, 'getSystemSourceFields'])->name('differentiation.system-fields');
+    Route::post('/differentiation/execute-comparison', [DataDifferentiationController::class, 'executeComparison'])->name('differentiation.execute-comparison');
+    Route::get('/differentiation/export-results', [DataDifferentiationController::class, 'exportResults'])->name('differentiation.export-results');
 });
 // Note: personal-data.fast-entry is registered inside the auth 'system.' group above.

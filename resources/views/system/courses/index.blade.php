@@ -61,7 +61,7 @@
                     placeholder="ابحث باسم المتدرب، الدورة..." value="{{ request('search') }}">
             </div>
             <div class="md:col-span-4">
-                <select name="personal_data_id" onchange="this.form.submit()" class="w-full py-2.5 px-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-semibold text-slate-900 dark:text-white focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-all">
+                <select name="personal_data_id" onchange="this.form.submit()" class="w-full py-2.5 px-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-semibold text-slate-900 dark:text-white focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-all select2-selection">
                     <option value="">-- فرز بالمتدرب/البيانات الشخصية (الكل) --</option>
                     @foreach($personalDataList as $p)
                         <option value="{{ $p->id }}" {{ request('personal_data_id') == $p->id ? 'selected' : '' }}>
@@ -197,5 +197,26 @@
         {{ $courses->withQueryString()->links() }}
     </div>
 </div>
+@push('scripts')
+<script>
+    $(document).ready(function () {
+        if ($.fn.select2) {
+            $('.select2-selection').select2({
+                dir: 'rtl',
+                tags: true,
+                width: '100%',
+                language: {
+                    noResults: function() { return "لا توجد نتائج مطابقة (يمكنك الكتابة للإضافة)"; },
+                    searching: function() { return "جاري البحث..."; }
+                }
+            }).on('select2:select', function(e) {
+                if (this.form) {
+                    this.form.submit();
+                }
+            });
+        }
+    });
+</script>
+@endpush
 @endsection
 

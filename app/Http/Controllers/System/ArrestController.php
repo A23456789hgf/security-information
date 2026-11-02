@@ -16,6 +16,7 @@ class ArrestController extends Controller
     public function index(Request $request)
     {
         $query = Arrest::with(['personalData', 'arrestingAuthority', 'caseType']);
+        \App\Services\UserScopeService::applyScope($query);
 
         if ($search = $request->input('search')) {
             $query->where(function ($q) use ($search) {

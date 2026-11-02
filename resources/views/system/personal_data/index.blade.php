@@ -49,6 +49,8 @@
                     </a>
                 </div>
 
+                <x-print-button :url="route('system.personal-data.print-list', request()->all())" text="طباعة الكشف" />
+
                 <a href="{{ route('system.personal-data.fast-entry') }}" class="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-amber-50 border border-amber-200 text-amber-700 hover:bg-amber-100 text-sm font-bold shadow-sm transition-colors dark:bg-amber-500/10 dark:border-amber-500/20 dark:text-amber-400 dark:hover:bg-amber-500/20">
                     <i class="fas fa-bolt"></i> إدخال سريع
                 </a>
@@ -120,7 +122,7 @@
         </div>
 
         {{-- Enterprise Data Table --}}
-        <div class="overflow-x-auto">
+        <div class="overflow-x-auto min-h-[360px]">
             <table class="w-full text-sm text-right whitespace-nowrap">
                 <thead class="bg-slate-100 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300">
                     <tr>
@@ -222,35 +224,35 @@
                                     </form>
 
                                     {{-- Options Dropdown --}}
-                                    <div class="dropdown relative inline-block text-right">
-                                        <button data-bs-toggle="dropdown" aria-expanded="false" type="button" class="p-2 rounded-lg bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all focus:outline-none" title="خيارات إضافية">
+                                    <div class="relative inline-block text-right">
+                                        <button onclick="toggleRowDropdown(this, event)" type="button" class="p-2 rounded-lg bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all focus:outline-none" title="خيارات إضافية">
                                             <i class="fas fa-ellipsis-v text-sm"></i>
                                         </button>
-                                        <div class="dropdown-menu dropdown-menu-end shadow-xl border border-slate-200 dark:border-slate-700 py-1.5 z-50 text-xs bg-white dark:bg-slate-800 rounded-xl m-0 w-56">
-                                            <a class="dropdown-item flex items-center px-4 py-2 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/50 hover:text-brand-600 transition-colors" href="{{ route('system.personal-data.print', $record) }}" target="_blank">
+                                        <div class="dropdown-menu row-options-menu hidden origin-top-left absolute left-0 mt-2 w-56 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-200 dark:border-slate-700 py-1.5 z-50 text-xs">
+                                            <a class="flex items-center px-4 py-2 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/50 hover:text-brand-600 transition-colors" href="{{ route('system.personal-data.print', $record) }}" target="_blank">
                                                 <i class="fas fa-print text-slate-400 w-5 ml-1"></i> طباعة البطاقة الأساسية
                                             </a>
-                                            <a class="dropdown-item flex items-center px-4 py-2 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/50 hover:text-brand-600 transition-colors" href="{{ route('system.personal-data.print-all', $record) }}" target="_blank">
+                                            <a class="flex items-center px-4 py-2 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/50 hover:text-brand-600 transition-colors" href="{{ route('system.personal-data.print-all', $record) }}" target="_blank">
                                                 <i class="fas fa-file-contract text-slate-400 w-5 ml-1"></i> طباعة السجل الشامل
                                             </a>
                                             <div class="border-t border-slate-100 dark:border-slate-700 my-1"></div>
-                                            <a class="dropdown-item flex items-center px-4 py-2 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors" href="{{ route('system.secondary-data.create', ['personal_data_id' => $record->id]) }}">
+                                            <a class="flex items-center px-4 py-2 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors" href="{{ route('system.secondary-data.create', ['personal_data_id' => $record->id]) }}">
                                                 <i class="fas fa-database text-purple-500 w-5 ml-1"></i> إلحاق بيانات ثانوية
                                             </a>
-                                            <a class="dropdown-item flex items-center px-4 py-2 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors" href="{{ route('system.wives.create', ['personal_data_id' => $record->id]) }}">
+                                            <a class="flex items-center px-4 py-2 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors" href="{{ route('system.wives.create', ['personal_data_id' => $record->id]) }}">
                                                 <i class="fas fa-heart text-pink-500 w-5 ml-1"></i> إضافة بيانات عائلية (زوجة)
                                             </a>
-                                            <a class="dropdown-item flex items-center px-4 py-2 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors" href="{{ route('system.relatives.create', ['personal_data_id' => $record->id]) }}">
+                                            <a class="flex items-center px-4 py-2 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors" href="{{ route('system.relatives.create', ['personal_data_id' => $record->id]) }}">
                                                 <i class="fas fa-users text-indigo-500 w-5 ml-1"></i> ارتباطات (أهل وأقارب)
                                             </a>
-                                            <a class="dropdown-item flex items-center px-4 py-2 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors" href="{{ route('system.courses.create', ['personal_data_id' => $record->id]) }}">
+                                            <a class="flex items-center px-4 py-2 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors" href="{{ route('system.courses.create', ['personal_data_id' => $record->id]) }}">
                                                 <i class="fas fa-graduation-cap text-emerald-500 w-5 ml-1"></i> ربط دورات تدريبية
                                             </a>
-                                            <a class="dropdown-item flex items-center px-4 py-2 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors" href="{{ route('system.arrests.create', ['personal_data_id' => $record->id]) }}">
+                                            <a class="flex items-center px-4 py-2 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors" href="{{ route('system.arrests.create', ['personal_data_id' => $record->id]) }}">
                                                 <i class="fas fa-gavel text-rose-500 w-5 ml-1"></i> تسجيل قيد توقيف
                                             </a>
                                             <div class="border-t border-slate-100 dark:border-slate-700 my-1"></div>
-                                            <a class="dropdown-item flex items-center px-4 py-2 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 font-bold transition-colors" href="{{ route('system.security-files.create', ['personal_data_id' => $record->id]) }}">
+                                            <a class="flex items-center px-4 py-2 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 font-bold transition-colors" href="{{ route('system.security-files.create', ['personal_data_id' => $record->id]) }}">
                                                 <i class="fas fa-shield-alt text-rose-500 w-5 ml-1"></i> إنشاء ملف أمني سري
                                             </a>
                                         </div>

@@ -85,10 +85,6 @@
     padding: 0;
     overflow-x: hidden;
     transition: background-color 0.3s ease, color 0.3s ease;
-    /* Global Cairo font enforcement */
-    *, *::before, *::after {
-        font-family: 'Cairo', sans-serif !important;
-    }
   }
 
   h1, h2, h3, h4, h5, h6, .font-display {
@@ -114,9 +110,7 @@
    ═══════════════════════════════════════════════════ */
 /* Ensure bootstrap doesn't override dark mode or modern styles */
 .card, .table, .form-control, .form-select, .btn, .dropdown-menu, .modal-content {
-  * {
-    font-family: 'Cairo', sans-serif !important;
-  }
+  font-family: "Cairo", sans-serif !important;
 }
 
 /* Bootstrap Dropdown & Modal Display Rules */
@@ -125,13 +119,16 @@
 }
 
 .dropdown-menu {
-  display: none;
   position: absolute;
   z-index: 1000;
 }
 
-.dropdown-menu.show {
-  display: block !important;
+.dropdown-menu.hidden {
+  display: none !important;
+}
+
+.dropdown-menu.show, .dropdown-menu:not(.hidden) {
+  display: block;
 }
 
 .dropdown-menu-end {

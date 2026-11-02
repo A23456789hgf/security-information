@@ -22,15 +22,15 @@
         </div>
         
         <div class="flex flex-wrap items-center gap-2.5">
-            <button onclick="window.print()"
-                class="inline-flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-sm font-bold shadow-sm">
-                <i class="fas fa-print text-slate-400"></i>
-                <span>طباعة التقرير</span>
-            </button>
-            <a href="{{ route('system.personal-data.edit', $personalData) }}"
-                class="inline-flex items-center gap-2 px-4 py-2.5 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 text-amber-700 dark:text-amber-400 rounded-xl hover:bg-amber-100 dark:hover:bg-amber-500/20 transition-colors text-sm font-bold shadow-sm">
-                <i class="fas fa-edit"></i>
-                <span>تعديل السجل</span>
+            <a href="{{ route('system.personal-data.print', $personalData) }}" target="_blank"
+                class="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-all shadow-sm text-sm font-bold">
+                <i class="fas fa-print"></i>
+                <span>طباعة البطاقة الأساسية</span>
+            </a>
+            <a href="{{ route('system.personal-data.print-all', $personalData) }}" target="_blank"
+                class="inline-flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl transition-all shadow-sm text-sm font-bold">
+                <i class="fas fa-file-invoice"></i>
+                <span>طباعة الملف الشامل</span>
             </a>
             <a href="{{ route('system.personal-data.index') }}"
                 class="inline-flex items-center gap-2 px-4 py-2.5 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors text-sm font-bold">

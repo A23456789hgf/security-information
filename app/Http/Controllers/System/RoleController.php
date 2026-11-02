@@ -91,4 +91,12 @@ class RoleController extends Controller
 
         return back()->with('success', 'تم حذف الدور بنجاح');
     }
+
+    public function print()
+    {
+        $roles = Role::with('permissions')->get();
+        $permissions = PermissionHelper::getGrouped();
+
+        return view('system.roles.print', compact('roles', 'permissions'));
+    }
 }

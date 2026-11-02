@@ -18,7 +18,12 @@
                 إدارة أدوار النظام وتخصيص مصفوفات الصلاحيات ونطاقات الوصول (إجمالي الأدوار: <span class="font-bold text-slate-700 dark:text-slate-200">{{ $roles->count() }}</span>)
             </p>
         </div>
-        <div>
+        <div class="flex items-center gap-3">
+            <a href="{{ route('system.roles.print') }}" target="_blank"
+                class="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl shadow-sm hover:shadow transition-all">
+                <i class="fas fa-print"></i>
+                طباعة التقرير
+            </a>
             <a href="{{ route('system.roles.create') }}"
                 class="inline-flex items-center gap-2 px-4 py-2.5 bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold rounded-xl shadow-sm hover:shadow transition-all">
                 <i class="fas fa-plus"></i>

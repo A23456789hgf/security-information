@@ -86,4 +86,24 @@ class EntityController extends Controller
 
         return redirect()->route('system.entities.index')->with('success', 'تم حذف الجهة بنجاح');
     }
+
+    public function printAll(Request $request)
+    {
+        $entities = InternalEntity::with(['parent', 'governorate', 'directorate', 'users'])->get();
+
+        return view('system.entities.print', [
+            'isList' => true,
+            'entities' => $entities
+        ]);
+    }
+
+    public function print(InternalEntity $entity)
+    {
+        $entity->load(['parent', 'children', 'governorate', 'directorate', 'users']);
+
+        return view('system.entities.print', [
+            'isList' => false,
+            'entity' => $entity
+        ]);
+    }
 }

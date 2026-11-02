@@ -39,6 +39,16 @@
         </div>
     </div>
 
+    @if($errors->any())
+        <div class="bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 text-red-800 dark:text-red-300 p-4 rounded-xl text-xs">
+            <ul class="mb-0 list-disc list-inside space-y-1">
+                @foreach($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+
     <form id="reportForm" action="{{ route('system.security-reports.store') }}" method="POST" class="space-y-6">
         @csrf
 
@@ -242,13 +252,63 @@
 </div>
 @endsection
 
+@push('styles')
+    <link rel="stylesheet" href="{{ asset('vendor/select2/select2.min.css') }}">
+    <style>
+        .select2-container--default .select2-selection--single {
+            height: 42px !important;
+            border-radius: 0.75rem !important;
+            border-color: #e2e8f0 !important;
+            background-color: #f8fafc !important;
+            display: flex !important;
+            align-items: center !important;
+        }
+        .dark .select2-container--default .select2-selection--single {
+            background-color: #020617 !important;
+            border-color: #1e293b !important;
+            color: #ffffff !important;
+        }
+        .select2-container--default .select2-selection--single .select2-selection__rendered {
+            color: #0f172a !important;
+            font-size: 0.875rem !important;
+            font-weight: 600 !important;
+        }
+        .dark .select2-container--default .select2-selection--single .select2-selection__rendered {
+            color: #ffffff !important;
+        }
+    </style>
+@endpush
+
 @push('scripts')
+<script src="{{ asset('vendor/select2/select2.min.js') }}"></script>
 <script>
     $(document).ready(function() {
+        $('.select2-selection, select[name="internal_entity_id"]').select2({
+            dir: 'rtl',
+            language: 'ar',
+            placeholder: 'اختر أو ابحث...',
+            allowClear: true,
+            tags: true,
+            createTag: function(params) {
+                const term = $.trim(params.term);
+                if (term === '') return null;
+                return { id: term, text: term, isNew: true };
+            },
+            templateResult: function(data) {
+                if (!data.id) return data.text;
+                const $res = $('<span></span>').text(data.text);
+                if (data.isNew) {
+                    $res.append(' <span class="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300 text-[10px] font-bold px-1.5 py-0.5 rounded-md mr-1.5">جديد +</span>');
+                }
+                return $res;
+            },
+            width: '100%'
+        });
+
         const personSelect = $('#personal_data_id');
         const infoBox = $('#personal_info_box');
 
-        personSelect.on('change', function() {
+        personSelect.on('change select2:select', function() {
             const personId = $(this).val();
             if (!personId) {
                 infoBox.addClass('hidden');
@@ -286,6 +346,26 @@
         if (personSelect.val()) {
             personSelect.trigger('change');
         }
+
+        // ── CSRF Token Refresher: تحديث التوكن تلقائياً كل 30 دقيقة وعند submit ──
+        function refreshCsrfToken() {
+            fetch('/csrf-token', { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.token) {
+                        $('meta[name="csrf-token"]').attr('content', data.token);
+                        $('input[name="_token"]').val(data.token);
+                    }
+                })
+                .catch(() => {}); // silent fail
+        }
+
+        setInterval(refreshCsrfToken, 30 * 60 * 1000);
+
+        $('#reportForm').on('submit', function(e) {
+            const token = $('meta[name="csrf-token"]').attr('content');
+            $('input[name="_token"]').val(token);
+        });
     });
 </script>
 @endpush

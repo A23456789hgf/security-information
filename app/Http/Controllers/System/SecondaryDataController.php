@@ -34,6 +34,7 @@ class SecondaryDataController extends Controller
             'affiliations.politicalAffiliation',
             'previousJihadistActions',
         ]);
+        \App\Services\UserScopeService::applyScope($query);
 
         if ($search = $request->input('search')) {
             $query->whereHas('personalData', function ($q) use ($search) {

@@ -1,34 +1,48 @@
 @props([
     'title' => 'تقرير رسمي',
-    'subtitle' => 'بالأمن الوقائي بالتعبئة العامة',
+    'subCode' => 'وثيقة قيد وسجل بيانات • معتمدة رقمياً',
     'refNumber' => null,
-    'date' => null
+    'date' => null,
+    'time' => null,
+    'republic' => 'الجمهورية اليمنية',
+    'ministry' => 'وزارة الدفاع',
+    'department' => 'دائرة شؤون الأفراد والاحتياط العام'
 ])
 
-<div class="print-header-official border-b-2 border-slate-900 pb-4 mb-6 pt-2">
-    <div class="flex items-center justify-between text-right">
-        {{-- الجانب الأيمن: الترويسة الرسمية --}}
-        <div>
-            <div class="font-bold text-lg text-slate-900">الجمهورية اليمنية</div>
-            <div class="font-bold text-sm text-slate-700">{{ config('app.name', 'نظام المعلومات') }}</div>
-            <div class="text-xs text-slate-500 font-semibold mt-1">{{ $subtitle }}</div>
-        </div>
+<header class="official-header">
+    <!-- اليمين -->
+    <div class="header-right">
+        <h3 class="republic-name">{{ $republic }}</h3>
+        <h4 class="ministry-title">{{ $ministry }}</h4>
+        <p class="dept-title">{{ $department }}</p>
+    </div>
 
-        {{-- المنتصف: عنوان التقرير --}}
-        <div class="text-center">
-            <h1 class="font-bold text-xl text-slate-900 border-b-2 border-slate-700 pb-1 mb-1 px-4 inline-block">
-                {{ $title }}
-            </h1>
-            @if($refNumber)
-                <div class="text-xs font-mono text-slate-600">الرقم المرجعي: {{ $refNumber }}</div>
-            @endif
+    <!-- الوسط -->
+    <div class="header-center">
+        <div class="national-emblem-wrap">
+            <img src="{{ asset('images/logo1.png') }}" alt="شعار" class="national-logo" onerror="this.onerror=null; this.src='/images/logo1.png';">
         </div>
+        <h2 class="report-main-title">{{ $title }}</h2>
+        @if($subCode)
+            <span class="report-sub-code">{{ $subCode }}</span>
+        @endif
+    </div>
 
-        {{-- الجانب الأيسر: التاريخ والوقت --}}
-        <div class="text-left text-xs text-slate-600 space-y-1">
-            <div><strong>تاريخ الطباعة:</strong> {{ $date ?? now()->format('Y/m/d') }}</div>
-            <div><strong>توقيت الطباعة:</strong> {{ now()->format('H:i A') }}</div>
-            <div><strong>الحالة:</strong> وثيقة رسمية - سرية</div>
+    <!-- اليسار -->
+    <div class="header-left">
+        <div class="meta-verification-card">
+            <div class="meta-row">
+                <span>الرقم المرجعي:</span>
+                <strong>{{ $refNumber ?? ('#' . date('Ymd') . '-' . rand(100, 999)) }}</strong>
+            </div>
+            <div class="meta-row">
+                <span>تاريخ الإصدار:</span>
+                <span>{{ $date ?? date('Y/m/d') }}</span>
+            </div>
+            <div class="meta-row">
+                <span>وقت التصدير:</span>
+                <span>{{ $time ?? date('h:i A') }}</span>
+            </div>
         </div>
     </div>
-</div>
+</header>

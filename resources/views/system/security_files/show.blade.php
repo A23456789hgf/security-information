@@ -128,8 +128,17 @@
                 @if(!empty($securityFile->file_attachments))
                     <div class="space-y-2">
                         @foreach($securityFile->file_attachments as $idx => $path)
+                            @php
+                                $ext = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+                                $isImg = in_array($ext, ['jpg', 'jpeg', 'png', 'webp', 'gif']);
+                                $isPdf = $ext === 'pdf';
+                            @endphp
                             <a href="{{ asset('storage/' . $path) }}" target="_blank" class="p-3 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 flex items-center justify-between text-xs hover:border-brand-500 transition-colors">
-                                <span class="font-bold text-brand-600 dark:text-brand-400"><i class="fas fa-file-pdf me-2"></i> مرفق الملف #{{ $idx + 1 }}</span>
+                                <span class="font-bold text-brand-600 dark:text-brand-400 flex items-center gap-2">
+                                    <i class="fas {{ $isPdf ? 'fa-file-pdf text-rose-500' : ($isImg ? 'fa-file-image text-emerald-500' : 'fa-file-alt text-brand-500') }}"></i>
+                                    <span>مرفق الملف #{{ $idx + 1 }}</span>
+                                    <span class="text-[10px] font-mono uppercase text-slate-400">({{ $ext }})</span>
+                                </span>
                                 <span class="text-[11px] text-slate-400">استعراض / تحميل <i class="fas fa-external-link-alt ms-1"></i></span>
                             </a>
                         @endforeach
@@ -145,8 +154,17 @@
                 @if(!empty($securityFile->summary_attachments))
                     <div class="space-y-2">
                         @foreach($securityFile->summary_attachments as $idx => $path)
+                            @php
+                                $ext = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+                                $isImg = in_array($ext, ['jpg', 'jpeg', 'png', 'webp', 'gif']);
+                                $isPdf = $ext === 'pdf';
+                            @endphp
                             <a href="{{ asset('storage/' . $path) }}" target="_blank" class="p-3 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 flex items-center justify-between text-xs hover:border-indigo-500 transition-colors">
-                                <span class="font-bold text-indigo-600 dark:text-indigo-400"><i class="fas fa-file-alt me-2"></i> مرفق الملخص #{{ $idx + 1 }}</span>
+                                <span class="font-bold text-indigo-600 dark:text-indigo-400 flex items-center gap-2">
+                                    <i class="fas {{ $isPdf ? 'fa-file-pdf text-rose-500' : ($isImg ? 'fa-file-image text-emerald-500' : 'fa-file-alt text-indigo-500') }}"></i>
+                                    <span>مرفق الملخص #{{ $idx + 1 }}</span>
+                                    <span class="text-[10px] font-mono uppercase text-slate-400">({{ $ext }})</span>
+                                </span>
                                 <span class="text-[11px] text-slate-400">استعراض / تحميل <i class="fas fa-external-link-alt ms-1"></i></span>
                             </a>
                         @endforeach

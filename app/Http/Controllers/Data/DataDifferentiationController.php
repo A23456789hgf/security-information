@@ -3,510 +3,430 @@
 namespace App\Http\Controllers\Data;
 
 use App\Http\Controllers\Controller;
+use App\Models\DataRecord;
+use App\Models\DataTable;
+use App\Models\DifferentiationLog;
+use App\Models\DifferentiationSavedMatch;
+use App\Services\DifferentiationService;
 use Illuminate\Http\Request;
-use PhpOffice\PhpSpreadsheet\IOFactory;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class DataDifferentiationController extends Controller
 {
-    /**
-     * Get or create current data table
-     */
-    private function getCurrentTable()
+    protected $differentiationService;
+
+    public function __construct(DifferentiationService $differentiationService)
     {
-        $tableId = session('current_data_table_id');
-        if ($tableId) {
-            $table = \App\Models\DataTable::find($tableId);
-            if ($table) {
-                return $table;
-            }
-        }
-
-        $table = \App\Models\DataTable::where('type', request('origin', 'default'))->latest()->first();
-        if ($table) {
-            session(['current_data_table_id' => $table->id]);
-
-            return $table;
-        }
-
-        return null;
+        $this->differentiationService = $differentiationService;
     }
 
     /**
-     * Get or create differentiation results table
-     */
-    private function getOrCreateResultsTable($primaryTable)
-    {
-        if (! $primaryTable) {
-            return \App\Models\DataTable::create([
-                'name' => 'Differentiation Results '.now()->format('Y-m-d H:i'),
-                'type' => 'differentiation-results',
-                'column_headers' => [],
-            ]);
-        }
-
-        $resultsTable = \App\Models\DataTable::where('type', 'differentiation-results')
-            ->where('parent_table_id', $primaryTable->id)
-            ->latest()
-            ->first();
-
-        if (! $resultsTable) {
-            $resultsTable = \App\Models\DataTable::create([
-                'name' => 'Differentiation Results '.now()->format('Y-m-d H:i'),
-                'type' => 'differentiation-results',
-                'parent_table_id' => $primaryTable->id,
-                'column_headers' => [],
-            ]);
-        }
-
-        return $resultsTable;
-    }
-
-    /**
-     * Display differentiation page with sidebar
+     * Display differentiation index page with datasets, system sources, and logs.
      */
     public function index()
     {
-        $table = $this->getCurrentTable();
-        $primaryColumns = $table ? $table->column_headers : [];
-        $primaryData = $table ? $table->records()->orderBy('sequence')->get()->pluck('data')->toArray() : [];
+        $mainTable = DataTable::where('type', 'primary')->latest()->first();
+        $mainColumns = $mainTable ? ($mainTable->column_headers ?? []) : [];
+        $mainData = $mainTable ? $mainTable->records()->orderBy('sequence')->limit(100)->get()->pluck('data')->toArray() : [];
 
-        $resultsTableId = session('differentiation_results_table_id');
-        $resultsTable = null;
-        if ($resultsTableId) {
-            $resultsTable = \App\Models\DataTable::find($resultsTableId);
-        }
-
-        if ($resultsTable) {
-            $secondaryColumns = $resultsTable->column_headers ?? [];
-            $secondaryData = $resultsTable->records()->orderBy('sequence')->get()->pluck('data')->toArray();
-            $results = $resultsTable->differentiation_results ?? null;
-        } else {
-            $secondaryColumns = session('secondary_columns', []);
-            $secondaryData = session('secondary_data', []);
-            $results = session('differentiation_results', null);
-        }
+        $secondaryDatasets = DataTable::where('type', 'secondary')->latest()->get();
+        $systemSources = $this->differentiationService->getAvailableSystemSources();
+        $auditLogs = DifferentiationLog::with('user')->latest()->limit(50)->get();
 
         return view('data.differentiation.index', compact(
-            'primaryColumns',
-            'primaryData',
-            'secondaryColumns',
-            'secondaryData',
-            'results'
+            'mainTable',
+            'mainColumns',
+            'mainData',
+            'secondaryDatasets',
+            'systemSources',
+            'auditLogs'
         ));
     }
 
     /**
-     * Perform differentiation analysis
+     * AJAX: Upload Excel/CSV file and return headers and sample data for field mapping.
      */
-    public function analyze(Request $request)
+    public function parseFile(Request $request)
     {
         $request->validate([
-            'excel_file' => 'required|file|mimes:xlsx,xls,csv',
+            'file' => 'required|file|mimes:xlsx,xls,csv',
         ]);
 
-        $file = $request->file('excel_file');
-        $spreadsheet = IOFactory::load($file->getPathname());
-        $worksheet = $spreadsheet->getActiveSheet();
-        $rows = $worksheet->toArray();
-
-        $secondaryHeaders = array_shift($rows);
-        $secondaryData = $rows;
-
-        $table = $this->getCurrentTable();
-        $primaryData = $table ? $table->records()->orderBy('sequence')->get()->pluck('data')->toArray() : [];
-        $primaryColumns = $table ? $table->column_headers : [];
-
-        $results = $this->performDifferentiation($primaryData, $secondaryData, $primaryColumns);
-
-        $resultsTable = $this->getOrCreateResultsTable($table);
-        $resultsTable->update([
-            'column_headers' => $secondaryHeaders,
-            'differentiation_results' => $results,
-        ]);
-
-        $resultsTable->records()->delete();
-        foreach ($secondaryData as $index => $row) {
-            $resultsTable->records()->create([
-                'data' => $row,
-                'sequence' => $index,
+        try {
+            $parsed = $this->differentiationService->parseUploadedFile($request->file('file'));
+            return response()->json([
+                'success' => true,
+                'headers' => $parsed['headers'],
+                'sample' => $parsed['sample'],
+                'count' => $parsed['count'],
             ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 422);
+        }
+    }
+
+    /**
+     * AJAX: Store Main Dataset with mapping and validation.
+     */
+    public function storeMain(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|file|mimes:xlsx,xls,csv',
+            'name' => 'nullable|string|max:255',
+            'source' => 'nullable|string|max:255',
+            'description' => 'nullable|string',
+            'mapping' => 'nullable|array',
+        ]);
+
+        try {
+            $file = $request->file('file');
+            $parsed = $this->differentiationService->parseUploadedFile($file);
+            $mapping = $request->input('mapping', []);
+
+            $table = $this->differentiationService->saveMainDataset(
+                $request->input('name') ?: 'البيانات الرئيسية',
+                $request->input('source') ?: 'استيراد ملف',
+                $request->input('description') ?: '',
+                $parsed['headers'],
+                $parsed['rows'],
+                $mapping,
+                Auth::id()
+            );
+
+            return response()->json([
+                'success' => true,
+                'message' => 'تم حفظ البيانات الرئيسية بنجاح.',
+                'table_id' => $table->id,
+                'count' => count($parsed['rows']),
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 422);
+        }
+    }
+
+    /**
+     * AJAX: Store Secondary Dataset with custom name, source, and mapping.
+     */
+    public function storeSecondary(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|file|mimes:xlsx,xls,csv',
+            'name' => 'required|string|max:255',
+            'source' => 'nullable|string|max:255',
+            'description' => 'nullable|string',
+            'mapping' => 'nullable|array',
+        ]);
+
+        try {
+            $file = $request->file('file');
+            $parsed = $this->differentiationService->parseUploadedFile($file);
+            $mapping = $request->input('mapping', []);
+
+            $table = $this->differentiationService->saveSecondaryDataset(
+                $request->input('name'),
+                $request->input('source') ?: $file->getClientOriginalName(),
+                $request->input('description') ?: '',
+                $parsed['headers'],
+                $parsed['rows'],
+                $mapping,
+                Auth::id()
+            );
+
+            return response()->json([
+                'success' => true,
+                'message' => 'تم حفظ مجموعة البيانات الثانوية بنجاح.',
+                'dataset' => [
+                    'id' => $table->id,
+                    'name' => $table->name,
+                    'source' => $table->source,
+                    'records_count' => $table->records_count,
+                    'created_at' => $table->created_at->format('Y-m-d H:i'),
+                ],
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 422);
+        }
+    }
+
+    /**
+     * AJAX: List saved secondary datasets.
+     */
+    public function listSecondary()
+    {
+        $datasets = DataTable::where('type', 'secondary')->with('user')->latest()->get();
+        return response()->json([
+            'success' => true,
+            'datasets' => $datasets,
+        ]);
+    }
+
+    /**
+     * AJAX: Show secondary dataset records and details.
+     */
+    public function showSecondary($id)
+    {
+        $table = DataTable::where('type', 'secondary')->find($id);
+        if (!$table) {
+            return response()->json(['success' => false, 'message' => 'مجموعة البيانات غير موجودة.'], 404);
         }
 
-        session(['differentiation_results' => $results]);
-        session(['differentiation_results_table_id' => $resultsTable->id]);
-        session(['secondary_data' => $secondaryData]);
-        session(['secondary_columns' => $secondaryHeaders]);
+        $records = $table->records()->orderBy('sequence')->limit(200)->get()->pluck('data')->toArray();
 
         return response()->json([
             'success' => true,
-            'results' => $results,
-            'secondary_count' => count($secondaryData),
+            'table' => $table,
+            'headers' => $table->column_headers,
+            'records' => $records,
         ]);
     }
 
     /**
-     * Perform all differentiation analyses
+     * AJAX: Update secondary dataset details.
      */
-    private function performDifferentiation($primaryData, $secondaryData, $columns)
+    public function updateSecondary(Request $request, $id)
     {
-        $results = [
-            'one_to_one' => ['label' => 'واحد لواحد', 'count' => 0, 'matches' => []],
-            'two_total' => ['label' => 'مجموع اثنين', 'count' => 0, 'matches' => []],
-            'three_total' => ['label' => 'مجموع ثلاثة', 'count' => 0, 'matches' => []],
-            'four_total' => ['label' => 'مجموع أربعة', 'count' => 0, 'matches' => []],
-            'five_total' => ['label' => 'مجموع خمسة', 'count' => 0, 'matches' => []],
-            'six_total' => ['label' => 'مجموع ستة', 'count' => 0, 'matches' => []],
-            'letter_difference' => ['label' => 'اختلاف حرفي', 'count' => 0, 'matches' => []],
-            'total_variations' => ['label' => 'مجموع مع تباينات', 'count' => 0, 'matches' => []],
-            'last' => ['label' => 'الأخير', 'count' => 0, 'matches' => []],
-            'single_last_diff' => ['label' => 'مفرد مع اختلاف أخير', 'count' => 0, 'matches' => []],
-            'double_last_diff' => ['label' => 'مزدوج مع اختلاف أخير', 'count' => 0, 'matches' => []],
-            'triple_last_diff' => ['label' => 'ثلاثي مع اختلاف أخير', 'count' => 0, 'matches' => []],
-            'quadruple_last_diff' => ['label' => 'رباعي مع اختلاف أخير', 'count' => 0, 'matches' => []],
-            'centruple_last_diff' => ['label' => 'خماسي مع اختلاف أخير', 'count' => 0, 'matches' => []],
-            'sextuple_last_diff' => ['label' => 'سداسي مع اختلاف أخير', 'count' => 0, 'matches' => []],
-            'net' => ['label' => 'صافي', 'count' => 0, 'matches' => []],
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'source' => 'nullable|string|max:255',
+            'description' => 'nullable|string',
+        ]);
+
+        $table = DataTable::where('type', 'secondary')->find($id);
+        if (!$table) {
+            return response()->json(['success' => false, 'message' => 'مجموعة البيانات غير موجودة.'], 404);
+        }
+
+        $table->update([
+            'name' => $request->input('name'),
+            'source' => $request->input('source'),
+            'description' => $request->input('description'),
+        ]);
+
+        DifferentiationLog::create([
+            'user_id' => Auth::id(),
+            'action' => 'update_dataset',
+            'dataset_name' => $table->name,
+            'details' => ['table_id' => $table->id],
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'تم تحديث بيانات المجموعة بنجاح.',
+        ]);
+    }
+
+    /**
+     * AJAX: Delete a secondary dataset.
+     */
+    public function deleteSecondary($id)
+    {
+        $table = DataTable::where('type', 'secondary')->find($id);
+        if (!$table) {
+            return response()->json(['success' => false, 'message' => 'مجموعة البيانات غير موجودة.'], 404);
+        }
+
+        $name = $table->name;
+        $table->records()->delete();
+        $table->delete();
+
+        DifferentiationLog::create([
+            'user_id' => Auth::id(),
+            'action' => 'delete_dataset',
+            'dataset_name' => $name,
+            'details' => ['table_id' => $id],
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'تم حذف مجموعة البيانات الثانوية بنجاح.',
+        ]);
+    }
+
+    /**
+     * AJAX: Get selectable fields for a system page/source.
+     */
+    public function getSystemSourceFields($sourceKey)
+    {
+        $fields = $this->differentiationService->getSystemSourceFields($sourceKey);
+        return response()->json([
+            'success' => true,
+            'fields' => $fields,
+        ]);
+    }
+
+    /**
+     * AJAX: Execute Matching and Comparison between Secondary dataset and Main dataset or System Page.
+     */
+    public function executeComparison(Request $request)
+    {
+        $request->validate([
+            'secondary_id' => 'required|integer',
+            'primary_source_type' => 'required|string|in:main_table,system_source',
+            'system_source_key' => 'nullable|string',
+            'key_fields' => 'required|array|min:1',
+            'field_mapping' => 'nullable|array',
+        ]);
+
+        try {
+            $secondaryTable = DataTable::where('type', 'secondary')->find($request->input('secondary_id'));
+            if (!$secondaryTable) {
+                return response()->json(['success' => false, 'message' => 'مجموعة البيانات الثانوية غير موجودة.'], 404);
+            }
+
+            $secondaryRows = $secondaryTable->records()->orderBy('sequence')->get()->pluck('data')->toArray();
+            $secondaryHeaders = $secondaryTable->column_headers ?: [];
+
+            $primaryRows = [];
+            $primaryHeaders = [];
+            $primaryTitle = '';
+
+            if ($request->input('primary_source_type') === 'main_table') {
+                $mainTable = DataTable::where('type', 'primary')->first();
+                if (!$mainTable) {
+                    return response()->json(['success' => false, 'message' => 'لم يتم إدخال بيانات رئيسية بالنظام بعد.'], 422);
+                }
+                $primaryRows = $mainTable->records()->orderBy('sequence')->get()->pluck('data')->toArray();
+                $primaryHeaders = $mainTable->column_headers ?: [];
+                $primaryTitle = $mainTable->name;
+            } else {
+                $sourceKey = $request->input('system_source_key');
+                if (!$sourceKey) {
+                    return response()->json(['success' => false, 'message' => 'يرجى اختيار صفحة/مصدر بيانات من النظام.'], 422);
+                }
+                $primaryRows = $this->differentiationService->fetchSystemSourceRows($sourceKey);
+                $fields = $this->differentiationService->getSystemSourceFields($sourceKey);
+                $primaryHeaders = array_column($fields, 'key');
+                $primaryTitle = 'مصدر النظام: ' . $sourceKey;
+            }
+
+            $keyFields = $request->input('key_fields');
+            $fieldMapping = $request->input('field_mapping', []);
+
+            $comparison = $this->differentiationService->compareRows(
+                $primaryRows,
+                $secondaryRows,
+                $keyFields,
+                $fieldMapping
+            );
+
+            // Save match run history
+            $savedMatch = DifferentiationSavedMatch::create([
+                'user_id' => Auth::id(),
+                'title' => 'مقارنة ' . $secondaryTable->name . ' مع ' . $primaryTitle,
+                'primary_source_type' => $request->input('primary_source_type'),
+                'primary_source_id' => $request->input('system_source_key') ?: 'main_table',
+                'secondary_table_id' => $secondaryTable->id,
+                'key_fields' => $keyFields,
+                'field_mappings' => $fieldMapping,
+                'summary' => $comparison['summary'],
+                'results_data' => json_encode($comparison['results'], JSON_UNESCAPED_UNICODE),
+            ]);
+
+            // Log operation
+            DifferentiationLog::create([
+                'user_id' => Auth::id(),
+                'action' => 'match_datasets',
+                'dataset_name' => $secondaryTable->name,
+                'details' => [
+                    'primary_source' => $primaryTitle,
+                    'summary' => $comparison['summary'],
+                    'saved_match_id' => $savedMatch->id,
+                ],
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'summary' => $comparison['summary'],
+                'results' => $comparison['results'],
+                'saved_match_id' => $savedMatch->id,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 422);
+        }
+    }
+
+    /**
+     * Export comparison results as CSV stream.
+     */
+    public function exportResults(Request $request)
+    {
+        $matchId = $request->input('saved_match_id');
+        $category = $request->input('category', 'all');
+
+        $savedMatch = DifferentiationSavedMatch::find($matchId);
+        if (!$savedMatch) {
+            return response()->json(['message' => 'نتيجة المقارنة غير موجودة.'], 404);
+        }
+
+        $results = is_string($savedMatch->results_data) ? json_decode($savedMatch->results_data, true) : $savedMatch->results_data;
+
+        $fileName = 'differentiation_report_' . date('Y-m-d_H-i') . '.csv';
+
+        $headers = [
+            "Content-type" => "text/csv; charset=UTF-8",
+            "Content-Disposition" => "attachment; filename=$fileName",
+            "Pragma" => "no-cache",
+            "Cache-Control" => "must-revalidate, post-check=0, pre-check=0",
+            "Expires" => "0"
         ];
 
-        foreach ($secondaryData as $secIndex => $secRow) {
-            foreach ($primaryData as $priIndex => $priRow) {
-                $matchCount = $this->countMatchingFields($priRow, $secRow);
-                $totalFields = min(count($priRow), count($secRow));
-                $lastFieldMatch = $this->checkLastFieldMatch($priRow, $secRow);
-                $letterDiff = $this->calculateLetterDifference($priRow, $secRow);
+        $callback = function () use ($results, $category) {
+            $file = fopen('php://output', 'w');
+            fputs($file, "\xEF\xBB\xBF"); // UTF-8 BOM for Arabic Excel opening
 
-                // One-to-one: All fields match exactly
-                if ($matchCount === $totalFields && $totalFields > 0) {
-                    $results['one_to_one']['count']++;
-                    $results['one_to_one']['matches'][] = ['primary' => $priIndex, 'secondary' => $secIndex];
-                }
+            fputcsv($file, ['تقرير نتائج مطابقة ومقارنة البيانات']);
+            fputcsv($file, ['التصنيف', 'رقم السجل الثانوي', 'تفاصيل السجل', 'الفرق / الحقول المتأثرة']);
 
-                // N-total: Exactly N fields match
-                if ($matchCount === 2) {
-                    $results['two_total']['count']++;
-                    $results['two_total']['matches'][] = ['primary' => $priIndex, 'secondary' => $secIndex];
-                }
-                if ($matchCount === 3) {
-                    $results['three_total']['count']++;
-                    $results['three_total']['matches'][] = ['primary' => $priIndex, 'secondary' => $secIndex];
-                }
-                if ($matchCount === 4) {
-                    $results['four_total']['count']++;
-                    $results['four_total']['matches'][] = ['primary' => $priIndex, 'secondary' => $secIndex];
-                }
-                if ($matchCount === 5) {
-                    $results['five_total']['count']++;
-                    $results['five_total']['matches'][] = ['primary' => $priIndex, 'secondary' => $secIndex];
-                }
-                if ($matchCount === 6) {
-                    $results['six_total']['count']++;
-                    $results['six_total']['matches'][] = ['primary' => $priIndex, 'secondary' => $secIndex];
-                }
-
-                // Letter difference: One character different in any field
-                if ($letterDiff === 1) {
-                    $results['letter_difference']['count']++;
-                    $results['letter_difference']['matches'][] = ['primary' => $priIndex, 'secondary' => $secIndex];
-                }
-
-                // Total with variations: Most fields match but with small differences
-                if ($matchCount >= $totalFields - 2 && $matchCount < $totalFields && $letterDiff <= 3) {
-                    $results['total_variations']['count']++;
-                    $results['total_variations']['matches'][] = ['primary' => $priIndex, 'secondary' => $secIndex];
-                }
-
-                // Last: Last field matches
-                if ($lastFieldMatch) {
-                    $results['last']['count']++;
-                    $results['last']['matches'][] = ['primary' => $priIndex, 'secondary' => $secIndex];
-                }
-
-                // With last difference variants
-                if (! $lastFieldMatch) {
-                    if ($matchCount === 1) {
-                        $results['single_last_diff']['count']++;
-                        $results['single_last_diff']['matches'][] = ['primary' => $priIndex, 'secondary' => $secIndex];
-                    }
-                    if ($matchCount === 2) {
-                        $results['double_last_diff']['count']++;
-                        $results['double_last_diff']['matches'][] = ['primary' => $priIndex, 'secondary' => $secIndex];
-                    }
-                    if ($matchCount === 3) {
-                        $results['triple_last_diff']['count']++;
-                        $results['triple_last_diff']['matches'][] = ['primary' => $priIndex, 'secondary' => $secIndex];
-                    }
-                    if ($matchCount === 4) {
-                        $results['quadruple_last_diff']['count']++;
-                        $results['quadruple_last_diff']['matches'][] = ['primary' => $priIndex, 'secondary' => $secIndex];
-                    }
-                    if ($matchCount === 5) {
-                        $results['centruple_last_diff']['count']++;
-                        $results['centruple_last_diff']['matches'][] = ['primary' => $priIndex, 'secondary' => $secIndex];
-                    }
-                    if ($matchCount === 6) {
-                        $results['sextuple_last_diff']['count']++;
-                        $results['sextuple_last_diff']['matches'][] = ['primary' => $priIndex, 'secondary' => $secIndex];
-                    }
+            $rowsToExport = [];
+            if ($category === 'all' || $category === 'matched') {
+                foreach ($results['matched'] ?? [] as $item) {
+                    fputcsv($file, ['متطابق', $item['secondary_index'], json_encode($item['secondary_row'], JSON_UNESCAPED_UNICODE), 'تطابق كامل']);
                 }
             }
-        }
-
-        // Net: Records in secondary not matching any in primary
-        $matchedSecondary = [];
-        foreach ($results as $key => $result) {
-            if ($key !== 'net') {
-                foreach ($result['matches'] as $match) {
-                    $matchedSecondary[$match['secondary']] = true;
+            if ($category === 'all' || $category === 'different') {
+                foreach ($results['different'] ?? [] as $item) {
+                    fputcsv($file, ['مختلف', $item['secondary_index'], json_encode($item['secondary_row'], JSON_UNESCAPED_UNICODE), json_encode($item['differences'], JSON_UNESCAPED_UNICODE)]);
                 }
             }
-        }
-
-        foreach ($secondaryData as $secIndex => $secRow) {
-            if (! isset($matchedSecondary[$secIndex])) {
-                $results['net']['count']++;
-                $results['net']['matches'][] = ['secondary' => $secIndex];
+            if ($category === 'all' || $category === 'in_sec_only') {
+                foreach ($results['in_sec_only'] ?? [] as $item) {
+                    fputcsv($file, ['موجود في الثانوية فقط', $item['secondary_index'], json_encode($item['secondary_row'], JSON_UNESCAPED_UNICODE), 'غير موجود في المصدر الرئيسي']);
+                }
             }
-        }
-
-        return $results;
-    }
-
-    /**
-     * Count matching fields between two rows
-     */
-    private function countMatchingFields($row1, $row2)
-    {
-        $count = 0;
-        $minLength = min(count($row1), count($row2));
-
-        for ($i = 0; $i < $minLength; $i++) {
-            if ($this->normalizeValue($row1[$i]) === $this->normalizeValue($row2[$i])) {
-                $count++;
+            if ($category === 'all' || $category === 'in_pri_only') {
+                foreach ($results['in_pri_only'] ?? [] as $item) {
+                    fputcsv($file, ['موجود في الرئيسية فقط', $item['primary_index'], json_encode($item['primary_row'], JSON_UNESCAPED_UNICODE), 'غير موجود في الثانوية']);
+                }
             }
-        }
-
-        return $count;
-    }
-
-    /**
-     * Check if last fields match
-     */
-    private function checkLastFieldMatch($row1, $row2)
-    {
-        if (empty($row1) || empty($row2)) {
-            return false;
-        }
-
-        $last1 = $this->normalizeValue(end($row1));
-        $last2 = $this->normalizeValue(end($row2));
-
-        return $last1 === $last2;
-    }
-
-    /**
-     * Calculate total letter difference between rows
-     */
-    private function calculateLetterDifference($row1, $row2)
-    {
-        $totalDiff = 0;
-        $minLength = min(count($row1), count($row2));
-
-        for ($i = 0; $i < $minLength; $i++) {
-            $val1 = $this->normalizeValue($row1[$i]);
-            $val2 = $this->normalizeValue($row2[$i]);
-            $totalDiff += levenshtein($val1, $val2);
-        }
-
-        return $totalDiff;
-    }
-
-    /**
-     * Normalize value for comparison
-     */
-    private function normalizeValue($value)
-    {
-        if ($value === null) {
-            return '';
-        }
-
-        return mb_strtolower(trim((string) $value));
-    }
-
-    /**
-     * Get results via AJAX
-     */
-    public function getResults()
-    {
-        $resultsTableId = session('differentiation_results_table_id');
-        if ($resultsTableId) {
-            $resultsTable = \App\Models\DataTable::find($resultsTableId);
-            if ($resultsTable && $resultsTable->differentiation_results) {
-                return response()->json([
-                    'results' => $resultsTable->differentiation_results,
-                ]);
+            if ($category === 'all' || $category === 'incomplete') {
+                foreach ($results['incomplete'] ?? [] as $item) {
+                    fputcsv($file, ['بيانات ناقصة', $item['secondary_index'], json_encode($item['secondary_row'], JSON_UNESCAPED_UNICODE), $item['reason'] ?? 'مفقود قيم المفاتيح']);
+                }
             }
-        }
 
-        return response()->json([
-            'results' => session('differentiation_results', null),
+            fclose($file);
+        };
+
+        DifferentiationLog::create([
+            'user_id' => Auth::id(),
+            'action' => 'export',
+            'dataset_name' => $savedMatch->title,
+            'details' => ['category' => $category],
         ]);
-    }
 
-    /**
-     * Get matched records detail
-     */
-    public function getMatchDetail(Request $request)
-    {
-        $type = $request->input('type');
-
-        $resultsTableId = session('differentiation_results_table_id');
-        $resultsTable = null;
-        if ($resultsTableId) {
-            $resultsTable = \App\Models\DataTable::find($resultsTableId);
-        }
-
-        if ($resultsTable) {
-            $secondaryData = $resultsTable->records()->orderBy('sequence')->get()->pluck('data')->toArray();
-            $secondaryColumns = $resultsTable->column_headers ?? [];
-            $results = $resultsTable->differentiation_results ?? [];
-        } else {
-            $secondaryData = session('secondary_data', []);
-            $secondaryColumns = session('secondary_columns', []);
-            $results = session('differentiation_results', []);
-        }
-
-        $table = $this->getCurrentTable();
-        $primaryData = $table ? $table->records()->orderBy('sequence')->get()->pluck('data')->toArray() : [];
-        $primaryColumns = $table ? $table->column_headers : [];
-
-        $details = [];
-
-        if (isset($results[$type])) {
-            foreach ($results[$type]['matches'] as $match) {
-                $detail = [
-                    'primary' => isset($match['primary']) ? $primaryData[$match['primary']] ?? null : null,
-                    'secondary' => isset($match['secondary']) ? $secondaryData[$match['secondary']] ?? null : null,
-                    'secondary_index' => $match['secondary'] ?? null,
-                ];
-                $details[] = $detail;
-            }
-        }
-
-        return response()->json([
-            'type' => $type,
-            'label' => $results[$type]['label'] ?? '',
-            'details' => $details,
-            'primary_columns' => $primaryColumns,
-            'secondary_columns' => $secondaryColumns,
-        ]);
-    }
-
-    /**
-     * Integrate all secondary data into primary data
-     */
-    public function integrateAll()
-    {
-        $table = $this->getCurrentTable();
-        $secondaryData = session('secondary_data', []);
-
-        if (empty($secondaryData)) {
-            return response()->json(['success' => false, 'message' => 'لا توجد بيانات مرجعية للدمج']);
-        }
-
-        if (! $table) {
-            $table = \App\Models\DataTable::create([
-                'name' => 'Integrated Data '.now()->format('Y-m-d H:i'),
-                'type' => request('origin', 'default'),
-                'column_headers' => session('secondary_columns', []),
-            ]);
-            session(['current_data_table_id' => $table->id]);
-        }
-
-        $lastSequence = $table->records()->max('sequence') ?? -1;
-
-        foreach ($secondaryData as $index => $row) {
-            $table->records()->create([
-                'data' => $row,
-                'sequence' => $lastSequence + $index + 1,
-            ]);
-        }
-
-        $primaryData = $table->records()->orderBy('sequence')->get()->pluck('data')->toArray();
-
-        session(['data_rows' => $primaryData]);
-
-        return response()->json(['success' => true, 'message' => 'تم دمج جميع البيانات بنجاح']);
-    }
-
-    /**
-     * Integrate specific records into primary data
-     */
-    public function integrateSelected(Request $request)
-    {
-        $indices = $request->input('indices', []);
-        $secondaryData = session('secondary_data', []);
-
-        $table = $this->getCurrentTable();
-
-        if (! $table) {
-            $table = \App\Models\DataTable::create([
-                'name' => 'Integrated Data '.now()->format('Y-m-d H:i'),
-                'type' => request('origin', 'default'),
-                'column_headers' => session('secondary_columns', []),
-            ]);
-            session(['current_data_table_id' => $table->id]);
-        }
-
-        $lastSequence = $table->records()->max('sequence') ?? -1;
-        $addedCount = 0;
-
-        foreach ($indices as $i => $index) {
-            if (isset($secondaryData[$index])) {
-                $table->records()->create([
-                    'data' => $secondaryData[$index],
-                    'sequence' => $lastSequence + $addedCount + 1,
-                ]);
-                $addedCount++;
-            }
-        }
-
-        $primaryData = $table->records()->orderBy('sequence')->get()->pluck('data')->toArray();
-
-        session(['data_rows' => $primaryData]);
-
-        return response()->json(['success' => true, 'message' => 'تم دمج السجلات المختارة بنجاح']);
-    }
-
-    /**
-     * Add a column to secondary data
-     */
-    public function addSecondaryColumn(Request $request)
-    {
-        $name = $request->input('name', 'عمود جديد');
-        $columns = session('secondary_columns', []);
-        $data = session('secondary_data', []);
-
-        $columns[] = $name;
-        foreach ($data as &$row) {
-            $row[] = '';
-        }
-
-        $resultsTableId = session('differentiation_results_table_id');
-        if ($resultsTableId) {
-            $resultsTable = \App\Models\DataTable::find($resultsTableId);
-            if ($resultsTable) {
-                $resultsTable->update(['column_headers' => $columns]);
-                foreach ($resultsTable->records()->orderBy('sequence')->get() as $i => $record) {
-                    $rowData = $record->data;
-                    $rowData[] = '';
-                    $record->update(['data' => $rowData]);
-                }
-            }
-        }
-
-        session(['secondary_columns' => $columns]);
-        session(['secondary_data' => $data]);
-
-        return response()->json(['success' => true]);
+        return response()->stream($callback, 200, $headers);
     }
 }

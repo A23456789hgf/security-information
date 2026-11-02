@@ -17,6 +17,10 @@
             </div>
         </div>
         <div class="flex flex-wrap gap-3">
+            <a href="{{ route('system.entities.print', $entity) }}" target="_blank"
+                class="px-6 py-3 bg-blue-600 text-white rounded-2xl font-bold hover:bg-blue-700 transition-all shadow-xl shadow-blue-100 flex items-center gap-2 text-sm">
+                <i class="fas fa-print"></i> طباعة التقرير
+            </a>
             <a href="{{ route('system.entities.edit', $entity) }}"
                 class="px-6 py-3 bg-amber-500 text-white rounded-2xl font-bold hover:bg-amber-600 transition-all shadow-xl shadow-amber-100 flex items-center gap-2 text-sm">
                 <i class="fas fa-edit"></i> تعديل

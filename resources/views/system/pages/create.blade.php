@@ -34,7 +34,7 @@
             </div>
             <div class="p-6 md:p-8">
                 <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
-                    <div class="md:col-span-4">
+                    <div class="md:col-span-5">
                         <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">اسم الصفحة <span class="text-rose-500">*</span></label>
                         <input type="text" name="name" class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl text-sm focus:ring-2 focus:ring-brand-500/20 transition-all text-slate-800 dark:text-slate-200" required placeholder="أدخل اسم الصفحة" value="{{ old('name') }}">
                         <span class="text-xs text-slate-400 mt-1 block">سيتم توليد الرابط (URL) تلقائياً</span>
@@ -50,128 +50,18 @@
                             @endforeach
                         </select>
                     </div>
-                    <div class="md:col-span-4">
-                        <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">الأيقونة (Icon)</label>
-                        <div class="relative">
-                            <span class="absolute inset-y-0 right-0 flex items-center pr-4 text-slate-400">
-                                <i class="fas fa-icons text-sm"></i>
-                            </span>
-                            <input type="text" name="icon" class="w-full pl-4 pr-10 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl text-sm focus:ring-2 focus:ring-brand-500/20 transition-all text-slate-800 dark:text-slate-200" placeholder="مثال: fa-users" value="{{ old('icon', 'fa-file-alt') }}" dir="ltr">
-                        </div>
-                        <span class="text-xs text-slate-400 mt-1 block">فئة FontAwesome</span>
-                    </div>
                     <div class="md:col-span-3 flex items-center pt-6">
                         <label class="flex items-center gap-3 cursor-pointer">
                             <input class="w-4 h-4 text-brand-600 focus:ring-brand-500 border-gray-300 rounded" type="checkbox" name="is_unique_id" value="1" id="isUniqueId">
                             <span class="text-xs font-bold text-slate-700 dark:text-slate-300">معرف فريد (Unique ID)</span>
                         </label>
                     </div>
-                    <div class="md:col-span-6">
+                    <div class="md:col-span-12">
                         <label class="flex items-center gap-3 cursor-pointer">
                             <input class="w-4 h-4 text-brand-600 focus:ring-brand-500 border-gray-300 rounded" type="checkbox" name="is_active" value="1" id="isActive" checked>
-                            <span class="text-xs font-bold text-slate-700 dark:text-slate-300">تفعيل الصفحة</span>
+                            <span class="text-xs font-bold text-slate-700 dark:text-slate-300">تفعيل الصفحة (تظهر للمستخدمين)</span>
                         </label>
                     </div>
-                    <div class="md:col-span-6">
-                        <label class="flex items-center gap-3 cursor-pointer">
-                            <input class="w-4 h-4 text-brand-600 focus:ring-brand-500 border-gray-300 rounded" type="checkbox" name="show_in_sidebar" value="1" id="showInSidebar" checked>
-                            <span class="text-xs font-bold text-slate-700 dark:text-slate-300">إظهار الصفحة في القائمة الجانبية</span>
-                        </label>
-                    </div>
-                </div>
-
-                <div class="col-span-1 md:col-span-6 mt-6 border-t border-slate-100 dark:border-slate-800 pt-6">
-                    <label class="text-xs font-bold text-slate-400 mb-2 block px-2">موقع العرض في القائمة الجانبية (الترتيب داخل القسم)</label>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <label class="flex items-center gap-3 p-4 bg-slate-50 border border-slate-100 rounded-2xl cursor-pointer hover:bg-slate-100 transition-all">
-                            <input type="radio" name="position_type" value="at_end" checked onchange="togglePageSelect()"
-                                class="w-5 h-5 text-brand-600 rounded-full focus:ring-0">
-                            <span class="font-bold text-slate-700 text-xs">في النهاية</span>
-                        </label>
-                        <label class="flex items-center gap-3 p-4 bg-slate-50 border border-slate-100 rounded-2xl cursor-pointer hover:bg-slate-100 transition-all">
-                            <input type="radio" name="position_type" value="before" onchange="togglePageSelect()"
-                                class="w-5 h-5 text-brand-600 rounded-full focus:ring-0">
-                            <span class="font-bold text-slate-700 text-xs">قبل صفحة محددة</span>
-                        </label>
-                        <label class="flex items-center gap-3 p-4 bg-slate-50 border border-slate-100 rounded-2xl cursor-pointer hover:bg-slate-100 transition-all">
-                            <input type="radio" name="position_type" value="after" onchange="togglePageSelect()"
-                                class="w-5 h-5 text-brand-600 rounded-full focus:ring-0">
-                            <span class="font-bold text-slate-700 text-xs">بعد صفحة محددة</span>
-                        </label>
-                    </div>
-                    <div id="relativePageContainer" class="mt-4 hidden">
-                        <select name="relative_page_id" id="relative_page_id"
-                            class="w-full px-6 py-4 bg-slate-50 border-0 rounded-2xl focus:ring-2 focus:ring-brand-100 transition-all font-bold text-slate-700">
-                            <option value="">-- اختر الصفحة --</option>
-                            @foreach($pages as $p)
-                                <option value="{{ $p->id }}" data-section-id="{{ $p->section_id }}">{{ $p->name }}</option>
-                            @endforeach
-                        </select>
-                        <span class="text-[10px] text-slate-400 px-2 mt-1 block">تظهر فقط الصفحات التابعة لنفس القسم المحدد أعلاه.</span>
-                    </div>
-                </div>
-                
-                <script>
-                    function togglePageSelect() {
-                        const type = document.querySelector('input[name="position_type"]:checked').value;
-                        const container = document.getElementById('relativePageContainer');
-                        const select = document.getElementById('relative_page_id');
-                        if (type === 'before' || type === 'after') {
-                            container.classList.remove('hidden');
-                            select.required = true;
-                            filterPagesBySection();
-                        } else {
-                            container.classList.add('hidden');
-                            select.required = false;
-                        }
-                    }
-
-                    function filterPagesBySection() {
-                        const sectionId = document.querySelector('select[name="section_id"]').value;
-                        const select = document.getElementById('relative_page_id');
-                        const options = select.querySelectorAll('option[data-section-id]');
-                        let hasVisibleOptions = false;
-                        
-                        options.forEach(opt => {
-                            if (opt.getAttribute('data-section-id') === sectionId) {
-                                opt.style.display = '';
-                                hasVisibleOptions = true;
-                            } else {
-                                opt.style.display = 'none';
-                                if (select.value === opt.value) {
-                                    select.value = "";
-                                }
-                            }
-                        });
-                    }
-                    
-                    // Initialize on load if section changes
-                    document.addEventListener('DOMContentLoaded', function() {
-                        const sectionSelect = document.querySelector('select[name="section_id"]');
-                        if(sectionSelect) {
-                            sectionSelect.addEventListener('change', filterPagesBySection);
-                        }
-                    });
-                </script>
-            </div>
-        </div>
-
-        <!-- Operations Selection Card -->
-        <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden mb-6">
-            <div class="bg-slate-50/80 dark:bg-slate-800/50 p-6 border-b border-slate-100 dark:border-slate-800">
-                <h3 class="font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2 text-base">
-                    <i class="fas fa-shield-alt text-brand-500"></i> صلاحيات وعمليات الصفحة (Operations)
-                </h3>
-                <p class="text-xs text-slate-500 mt-1">حدد العمليات التي تدعمها هذه الصفحة، سيتم توليد صلاحيات (Permissions) مخصصة لكل عملية تلقائياً.</p>
-            </div>
-            <div class="p-6">
-                <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                    @foreach(\App\Models\Page::AVAILABLE_OPERATIONS as $key => $label)
-                        <label class="flex items-center gap-2 cursor-pointer p-3 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700/50 rounded-xl hover:bg-slate-100 transition-colors">
-                            <input class="w-4 h-4 text-brand-600 focus:ring-brand-500 border-gray-300 rounded" type="checkbox" name="operations[]" value="{{ $key }}" {{ in_array($key, ['view', 'create', 'edit', 'delete']) ? 'checked' : '' }}>
-                            <span class="text-xs font-bold text-slate-700 dark:text-slate-300">{{ $label }}</span>
-                        </label>
-                    @endforeach
                 </div>
             </div>
         </div>

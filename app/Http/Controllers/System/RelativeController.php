@@ -40,6 +40,7 @@ class RelativeController extends Controller
 
         if ($tab === 'enemy') {
             $query = EnemyAreaRelative::with(['personalData', 'kinship', 'ideologicalAffiliation', 'politicalAffiliation', 'financialStatus']);
+            \App\Services\UserScopeService::applyScope($query);
 
             if ($request->filled('personal_data_id')) {
                 $query->where('personal_data_id', $request->personal_data_id);
@@ -64,6 +65,7 @@ class RelativeController extends Controller
             $travelingRelatives = collect();
         } elseif ($tab === 'traveling') {
             $query = TravelingRelative::with(['personalData', 'kinship', 'country', 'ideologicalAffiliation', 'politicalAffiliation']);
+            \App\Services\UserScopeService::applyScope($query);
 
             if ($request->filled('personal_data_id')) {
                 $query->where('personal_data_id', $request->personal_data_id);
@@ -93,6 +95,7 @@ class RelativeController extends Controller
             $enemyRelatives = collect();
         } else {
             $query = Relative::with(['personalData', 'kinship', 'ideologicalAffiliation', 'politicalAffiliation']);
+            \App\Services\UserScopeService::applyScope($query);
 
             if ($request->filled('personal_data_id')) {
                 $query->where('personal_data_id', $request->personal_data_id);
@@ -235,7 +238,7 @@ class RelativeController extends Controller
                     'personal_data_id' => $personalDataId,
                     'full_name' => trim($row['full_name']),
                     'age' => ! empty($row['age']) ? (int) $row['age'] : null,
-                    'kinship_id' => $this->resolveKinship($row['kinship_id'] ?? null),
+                    'kinship_id' => ! empty($row['kinship_id']) ? $row['kinship_id'] : null,
                     'current_job' => ! empty($row['current_job']) ? trim($row['current_job']) : null,
                     'ideological_affiliation_id' => $this->resolveIdeologicalAffiliation($row['ideological_affiliation_id'] ?? null),
                     'political_affiliation_id' => $this->resolvePoliticalAffiliation($row['political_affiliation_id'] ?? null),
@@ -249,14 +252,14 @@ class RelativeController extends Controller
                 EnemyAreaRelative::create([
                     'personal_data_id' => $personalDataId,
                     'full_name' => trim($row['full_name']),
-                    'kinship_id' => $this->resolveKinship($row['kinship_id'] ?? null),
+                    'kinship_id' => ! empty($row['kinship_id']) ? $row['kinship_id'] : null,
                     'residence_place' => ! empty($row['residence_place']) ? trim($row['residence_place']) : null,
                     'job' => ! empty($row['job']) ? trim($row['job']) : null,
                     'political_affiliation_id' => $this->resolvePoliticalAffiliation($row['political_affiliation_id'] ?? null),
                     'ideological_affiliation_id' => $this->resolveIdeologicalAffiliation($row['ideological_affiliation_id'] ?? null),
                     'communication_method' => ! empty($row['communication_method']) ? trim($row['communication_method']) : null,
                     'relationship' => ! empty($row['relationship']) ? trim($row['relationship']) : null,
-                    'financial_status_id' => $this->resolveFinancialStatus($row['financial_status_id'] ?? null),
+                    'financial_status_id' => ! empty($row['financial_status_id']) ? $row['financial_status_id'] : null,
                 ]);
                 $totalAdded++;
             }
@@ -267,12 +270,12 @@ class RelativeController extends Controller
                     'personal_data_id' => $personalDataId,
                     'full_name' => trim($row['full_name']),
                     'age' => ! empty($row['age']) ? (int) $row['age'] : null,
-                    'kinship_id' => $this->resolveKinship($row['kinship_id'] ?? null),
+                    'kinship_id' => ! empty($row['kinship_id']) ? $row['kinship_id'] : null,
                     'travel_reason' => ! empty($row['travel_reason']) ? trim($row['travel_reason']) : null,
                     'current_job' => ! empty($row['current_job']) ? trim($row['current_job']) : null,
                     'workplace' => ! empty($row['workplace']) ? trim($row['workplace']) : null,
                     'affiliated_entity' => ! empty($row['affiliated_entity']) ? trim($row['affiliated_entity']) : null,
-                    'country_id' => $this->resolveCountry($row['country_id'] ?? null),
+                    'country_id' => ! empty($row['country_id']) ? $row['country_id'] : null,
                     'political_affiliation_id' => $this->resolvePoliticalAffiliation($row['political_affiliation_id'] ?? null),
                     'ideological_affiliation_id' => $this->resolveIdeologicalAffiliation($row['ideological_affiliation_id'] ?? null),
                     'march_impression' => ! empty($row['march_impression']) ? trim($row['march_impression']) : null,
@@ -360,7 +363,7 @@ class RelativeController extends Controller
             'personal_data_id' => 'required|exists:personal_data,id',
             'full_name' => 'required|string|max:255',
             'age' => 'nullable|integer|min:0|max:150',
-            'kinship_id' => 'nullable|string|max:255',
+            'kinship_id' => 'nullable|exists:kinships,id',
             'current_job' => 'nullable|string|max:255',
             'ideological_affiliation_id' => 'nullable|string|max:255',
             'political_affiliation_id' => 'nullable|string|max:255',
@@ -374,7 +377,7 @@ class RelativeController extends Controller
             'personal_data_id' => $request->personal_data_id,
             'full_name' => trim($request->full_name),
             'age' => $request->filled('age') ? (int) $request->age : null,
-            'kinship_id' => $this->resolveKinship($request->kinship_id),
+            'kinship_id' => $request->kinship_id ?: null,
             'current_job' => $request->current_job ? trim($request->current_job) : null,
             'ideological_affiliation_id' => $this->resolveIdeologicalAffiliation($request->ideological_affiliation_id),
             'political_affiliation_id' => $this->resolvePoliticalAffiliation($request->political_affiliation_id),
@@ -610,42 +613,6 @@ class RelativeController extends Controller
             'tab' => $tab,
             'isList' => true,
         ]);
-    }
-
-    protected function resolveKinship($input): ?int
-    {
-        if (empty($input)) {
-            return null;
-        }
-        $input = trim((string) $input);
-        if (is_numeric($input) && Kinship::where('id', $input)->exists()) {
-            return (int) $input;
-        }
-        return Kinship::firstOrCreate(['name' => $input])->id;
-    }
-
-    protected function resolveCountry($input): ?int
-    {
-        if (empty($input)) {
-            return null;
-        }
-        $input = trim((string) $input);
-        if (is_numeric($input) && Country::where('id', $input)->exists()) {
-            return (int) $input;
-        }
-        return Country::firstOrCreate(['name' => $input])->id;
-    }
-
-    protected function resolveFinancialStatus($input): ?int
-    {
-        if (empty($input)) {
-            return null;
-        }
-        $input = trim((string) $input);
-        if (is_numeric($input) && FinancialStatus::where('id', $input)->exists()) {
-            return (int) $input;
-        }
-        return FinancialStatus::firstOrCreate(['name' => $input])->id;
     }
 
     protected function resolveIdeologicalAffiliation($input): ?int

@@ -91,8 +91,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // Close dropdown when clicking outside
-        if (!e.target.closest('.dropdown-menu')) {
-            document.querySelectorAll('.dropdown-menu').forEach(m => m.classList.add('hidden'));
+        if (!e.target.closest('.dropdown-menu') && !e.target.closest('[onclick*="toggleRowDropdown"]') && !e.target.closest('[data-bs-toggle="dropdown"]')) {
+            document.querySelectorAll('.dropdown-menu').forEach(m => {
+                m.classList.add('hidden');
+                m.classList.remove('show');
+            });
         }
     });
 

@@ -34,6 +34,11 @@ class User extends Authenticatable
         return $this->belongsTo(InternalEntity::class, 'internal_entity_id');
     }
 
+    public function geographicScopes()
+    {
+        return $this->hasMany(UserGeographicScope::class, 'user_id');
+    }
+
     /**
      * Accessor for administrative_scope_id (alias for internal_entity_id)
      */

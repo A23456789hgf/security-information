@@ -16,6 +16,7 @@ class SecurityReportController extends Controller
     public function index(Request $request)
     {
         $query = SecurityReport::query();
+        \App\Services\UserScopeService::applyScope($query);
 
         if ($request->has('search')) {
             $search = $request->get('search');
@@ -69,10 +70,55 @@ class SecurityReportController extends Controller
      */
     public function create()
     {
-        $entities = InternalEntity::all();
-        $personalDataList = \App\Models\PersonalData::pluck('name', 'id');
+        $entities = \App\Services\UserScopeService::getScopedEntities();
+        $personalDataList = \App\Services\UserScopeService::applyScope(\App\Models\PersonalData::query())->pluck('name', 'id');
 
         return view('system.reports.create', compact('entities', 'personalDataList'));
+    }
+
+    /**
+     * Resolve input fields from personal_data_id or text tags before validation
+     */
+    private function resolveInputFields(Request $request): array
+    {
+        $data = $request->all();
+
+        if (!empty($data['personal_data_id'])) {
+            if (is_numeric($data['personal_data_id'])) {
+                $person = \App\Models\PersonalData::find($data['personal_data_id']);
+                if ($person) {
+                    $data['full_name'] = !empty($data['full_name']) ? $data['full_name'] : $person->name;
+                    $data['military_number'] = !empty($data['military_number']) ? $data['military_number'] : $person->military_number;
+                    $data['id_number'] = !empty($data['id_number']) ? $data['id_number'] : $person->national_id_number;
+                    if (empty($data['internal_entity_id']) && !empty($person->internal_entity_id)) {
+                        $data['internal_entity_id'] = $person->internal_entity_id;
+                    }
+                    if (empty($data['date_of_birth']) && $person->date_of_birth_gregorian) {
+                        $data['date_of_birth'] = $person->date_of_birth_gregorian->format('Y-m-d');
+                    }
+                }
+            } else {
+                $person = \App\Models\PersonalData::where('name', $data['personal_data_id'])->first();
+                if ($person) {
+                    $data['personal_data_id'] = $person->id;
+                    $data['full_name'] = $person->name;
+                    $data['military_number'] = !empty($data['military_number']) ? $data['military_number'] : $person->military_number;
+                    $data['id_number'] = !empty($data['id_number']) ? $data['id_number'] : $person->national_id_number;
+                    if (empty($data['internal_entity_id']) && !empty($person->internal_entity_id)) {
+                        $data['internal_entity_id'] = $person->internal_entity_id;
+                    }
+                } else {
+                    $data['full_name'] = $data['personal_data_id'];
+                    $data['personal_data_id'] = null;
+                }
+            }
+        }
+
+        if (empty($data['full_name']) && !empty($request->full_name)) {
+            $data['full_name'] = $request->full_name;
+        }
+
+        return $data;
     }
 
     /**
@@ -80,14 +126,23 @@ class SecurityReportController extends Controller
      */
     public function store(Request $request)
     {
-        $validated = $request->validate([
+        $data = $this->resolveInputFields($request);
+
+        $validator = \Illuminate\Support\Facades\Validator::make($data, [
             'full_name' => 'required|string|max:255',
             'report_name' => 'required|string|max:255',
             'report_date' => 'nullable|date',
             'internal_entity_id' => 'nullable|exists:internal_entities,id',
+        ], [
+            'full_name.required' => 'يرجى تحديد الشخص المعني بالبلاغ.',
+            'report_name.required' => 'يرجى إدخال موضوع البلاغ.',
         ]);
 
-        SecurityReport::create($request->all());
+        if ($validator->fails()) {
+            return redirect()->back()->withErrors($validator)->withInput();
+        }
+
+        SecurityReport::create($data);
 
         return redirect()->route('system.security-reports.index')
             ->with('success', 'تم إضافة البلاغ بنجاح');
@@ -106,8 +161,8 @@ class SecurityReportController extends Controller
      */
     public function edit(SecurityReport $securityReport)
     {
-        $entities = InternalEntity::all();
-        $personalDataList = \App\Models\PersonalData::pluck('name', 'id');
+        $entities = \App\Services\UserScopeService::getScopedEntities();
+        $personalDataList = \App\Services\UserScopeService::applyScope(\App\Models\PersonalData::query())->pluck('name', 'id');
 
         return view('system.reports.edit', compact('securityReport', 'entities', 'personalDataList'));
     }
@@ -117,14 +172,23 @@ class SecurityReportController extends Controller
      */
     public function update(Request $request, SecurityReport $securityReport)
     {
-        $validated = $request->validate([
+        $data = $this->resolveInputFields($request);
+
+        $validator = \Illuminate\Support\Facades\Validator::make($data, [
             'full_name' => 'required|string|max:255',
             'report_name' => 'required|string|max:255',
             'report_date' => 'nullable|date',
             'internal_entity_id' => 'nullable|exists:internal_entities,id',
+        ], [
+            'full_name.required' => 'يرجى تحديد الشخص المعني بالبلاغ.',
+            'report_name.required' => 'يرجى إدخال موضوع البلاغ.',
         ]);
 
-        $securityReport->update($request->all());
+        if ($validator->fails()) {
+            return redirect()->back()->withErrors($validator)->withInput();
+        }
+
+        $securityReport->update($data);
 
         return redirect()->route('system.security-reports.index')
             ->with('success', 'تم تحديث البلاغ بنجاح');
@@ -161,8 +225,7 @@ class SecurityReportController extends Controller
         $file = $request->file('excel_file');
 
         try {
-            // Use a plain array import to extract data without requiring a custom import class
-            $data = \Maatwebsite\Excel\Facades\Excel::toArray([], $file);
+            $data = \Maatwebsite\Excel\Facades\Excel::toArray(new class {}, $file);
             $rows = $data[0] ?? [];
 
             if (empty($rows)) {
@@ -178,7 +241,7 @@ class SecurityReportController extends Controller
                 });
 
                 if (! empty($validColumns)) {
-                    $headers = $potentialHeaders; // First non-empty row assumed as headers
+                    $headers = $potentialHeaders;
                     break;
                 }
             }
@@ -264,6 +327,7 @@ class SecurityReportController extends Controller
      */
     public function print(SecurityReport $security_report)
     {
+        $security_report->load('entity');
         return view('system.reports.print', ['report' => $security_report]);
     }
 
@@ -272,7 +336,7 @@ class SecurityReportController extends Controller
      */
     public function printAll(Request $request)
     {
-        $reports = SecurityReport::all();
+        $reports = SecurityReport::with('entity')->get();
         return view('system.reports.print', [
             'reports' => $reports,
             'isList' => true,

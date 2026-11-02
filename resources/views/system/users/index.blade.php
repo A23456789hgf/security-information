@@ -19,6 +19,11 @@
             </p>
         </div>
         <div class="flex flex-wrap items-center gap-3">
+            <a href="{{ route('system.users.print-all', request()->all()) }}" target="_blank"
+                class="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl shadow-sm hover:shadow transition-all">
+                <i class="fas fa-print"></i>
+                طباعة الكشف
+            </a>
             <a href="{{ route('system.users.export', request()->all()) }}"
                 class="inline-flex items-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-xl shadow-sm hover:shadow transition-all">
                 <i class="fas fa-file-excel"></i>
@@ -59,6 +64,8 @@
                         <th class="px-6 py-4">#</th>
                         <th class="px-6 py-4">المستخدم</th>
                         <th class="px-6 py-4">اسم الدخول</th>
+                        <th class="px-6 py-4">النطاق الإداري</th>
+                        <th class="px-6 py-4">النطاق الجغرافي</th>
                         <th class="px-6 py-4">الدور والصلاحيات</th>
                         <th class="px-6 py-4 text-center">الحالة</th>
                         <th class="px-6 py-4 text-left">الإجراءات</th>
@@ -79,12 +86,40 @@
                                         <a href="{{ route('system.users.show', $user) }}" class="font-bold text-slate-900 dark:text-white hover:text-brand-600 dark:hover:text-brand-400 transition-colors block">
                                             {{ $user->name }}
                                         </a>
-                                        <span class="text-xs text-slate-400">{{ $user->internal_entity->name ?? 'مستخدم عام' }}</span>
+                                        <span class="text-xs text-slate-400">{{ $user->phone ?? 'لا يوجد هاتف' }}</span>
                                     </div>
                                 </div>
                             </td>
                             <td class="px-6 py-4 font-mono font-semibold text-xs text-slate-700 dark:text-slate-300">
                                 {{ $user->username }}
+                            </td>
+                            <td class="px-6 py-4">
+                                <span class="inline-flex items-center px-2.5 py-1 rounded-xl text-xs font-semibold bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20">
+                                    <i class="fas fa-sitemap ml-1.5"></i>
+                                    {{ $user->internal_entity->name ?? 'عام (كافة الجهات)' }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="flex flex-col gap-1">
+                                    @forelse($user->geographicScopes as $geo)
+                                        @if($geo->scope_type === 'all')
+                                            <span class="inline-flex items-center px-2 py-0.5 rounded-lg text-[11px] font-medium bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 w-fit">
+                                                كل المحافظات والمديريات
+                                            </span>
+                                        @elseif($geo->scope_type === 'none')
+                                            <span class="inline-flex items-center px-2 py-0.5 rounded-lg text-[11px] font-medium bg-slate-500/10 text-slate-600 dark:text-slate-400 border border-slate-500/20 w-fit">
+                                                بدون محافظة
+                                            </span>
+                                        @else
+                                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[11px] font-medium bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20 w-fit">
+                                                <i class="fas fa-map-marker-alt text-[9px]"></i>
+                                                {{ $geo->governorate->name ?? 'محافظة' }}: {{ $geo->directorate->name ?? 'كل المديريات' }}
+                                            </span>
+                                        @endif
+                                    @empty
+                                        <span class="text-xs text-slate-400 font-medium">غير محدد (كل النطاقات)</span>
+                                    @endforelse
+                                </div>
                             </td>
                             <td class="px-6 py-4">
                                 <div class="flex flex-wrap gap-1.5">
@@ -110,6 +145,11 @@
                             </td>
                             <td class="px-6 py-4">
                                 <div class="flex items-center justify-end gap-1.5">
+                                    <a href="{{ route('system.users.print', $user) }}" target="_blank"
+                                        class="p-2 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/50 transition-colors"
+                                        title="طباعة الملف">
+                                        <i class="fas fa-print text-xs"></i>
+                                    </a>
                                     <a href="{{ route('system.users.show', $user) }}"
                                         class="p-2 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-brand-600 dark:hover:text-brand-400 hover:bg-brand-50 dark:hover:bg-brand-950/50 transition-colors"
                                         title="عرض الملف">

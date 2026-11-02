@@ -21,6 +21,11 @@
             </div>
         </div>
         <div class="flex items-center gap-3">
+            <a href="{{ route('system.pages.print') }}" target="_blank"
+                class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-2xl font-bold transition-all shadow-lg shadow-blue-100">
+                <i class="fas fa-print"></i>
+                <span>طباعة القائمة</span>
+            </a>
             <a href="{{ route('system.pages.create') }}"
                 class="flex items-center gap-2 bg-brand-600 hover:bg-brand-700 text-white px-6 py-3 rounded-2xl font-bold transition-all shadow-lg shadow-blue-100">
                 <i class="fas fa-plus"></i>

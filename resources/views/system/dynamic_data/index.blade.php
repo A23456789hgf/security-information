@@ -20,24 +20,22 @@
             </div>
         </div>
         <div class="flex flex-wrap gap-3">
-            @can("import_{$page->slug}")
+            <a href="{{ route('system.dynamic-data.print', $page->slug) }}" target="_blank"
+                class="px-5 py-3 bg-blue-600 text-white rounded-2xl font-bold hover:bg-blue-700 transition-all shadow-xl shadow-blue-100 flex items-center gap-2 text-sm">
+                <i class="fas fa-print"></i> طباعة
+            </a>
             <a href="{{ route('system.dynamic-data.import', $page->slug) }}"
                 class="px-5 py-3 bg-indigo-600 text-white rounded-2xl font-bold hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-100 flex items-center gap-2 text-sm">
                 <i class="fas fa-file-import"></i> استيراد
             </a>
-            @endcan
-            @can("export_{$page->slug}")
             <a href="{{ route('system.dynamic-data.export', $page->slug) }}"
                 class="px-5 py-3 bg-emerald-600 text-white rounded-2xl font-bold hover:bg-emerald-700 transition-all shadow-xl shadow-emerald-100 flex items-center gap-2 text-sm">
                 <i class="fas fa-file-excel"></i> تصدير (Excel)
             </a>
-            @endcan
-            @can("create_{$page->slug}")
             <a href="{{ route('system.dynamic-data.create', $page->slug) }}"
                 class="px-4 py-2.5 bg-brand-600 text-white rounded-xl font-bold hover:bg-brand-700 transition-all shadow-sm shadow-brand-500/30 text-xs sm:text-sm flex items-center gap-2 text-sm">
                 <i class="fas fa-plus-circle"></i> إضافة سجل جديد
             </a>
-            @endcan
         </div>
     </div>
 
@@ -97,16 +95,12 @@
                             </td>
                             <td class="px-8 py-5">
                                 <div class="flex justify-end items-center gap-2">
-                                    @can("edit_{$page->slug}")
                                     <a href="{{ route('system.dynamic-data.edit', [$page->slug, $record]) }}" class="w-9 h-9 flex items-center justify-center rounded-xl bg-amber-50 text-amber-600 hover:bg-amber-600 hover:text-white shadow-sm transition-all" title="تعديل"><i class="fas fa-pen text-xs"></i></a>
-                                    @endcan
-                                    @can("delete_{$page->slug}")
                                     <form action="{{ route('system.dynamic-data.destroy', [$page->slug, $record]) }}" method="POST" class="inline" onsubmit="return confirm('هل أنت متأكد من الحذف؟')">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="w-9 h-9 flex items-center justify-center rounded-xl bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white shadow-sm transition-all" title="حذف"><i class="fas fa-trash text-xs"></i></button>
                                     </form>
-                                    @endcan
                                 </div>
                             </td>
                         </tr>

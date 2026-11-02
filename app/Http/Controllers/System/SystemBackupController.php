@@ -25,6 +25,14 @@ class SystemBackupController extends Controller
         return view('system.backup.index');
     }
 
+    public function print()
+    {
+        $tables = DB::select('SHOW TABLE STATUS');
+        $databaseName = config('database.connections.mysql.database');
+
+        return view('system.backup.print', compact('tables', 'databaseName'));
+    }
+
     public function export()
     {
         $databaseName = config('database.connections.mysql.database');

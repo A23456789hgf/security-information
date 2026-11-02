@@ -56,16 +56,6 @@
                             <input type="text" class="w-full px-4 py-2 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-xs text-slate-500 cursor-not-allowed font-mono" value="{{ $page->slug }}" readonly disabled>
                             <span class="text-xs text-slate-400 mt-1 block">يتم توليد الرابط تلقائياً ولا يمكن تعديله.</span>
                         </div>
-                        <div>
-                            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">الأيقونة (Icon)</label>
-                            <div class="relative">
-                                <span class="absolute inset-y-0 right-0 flex items-center pr-4 text-slate-400">
-                                    <i class="fas {{ $page->icon ?? 'fa-icons' }} text-sm"></i>
-                                </span>
-                                <input type="text" name="icon" class="w-full pl-4 pr-10 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl text-sm focus:ring-2 focus:ring-brand-500/20 transition-all text-slate-800 dark:text-slate-200" placeholder="مثال: fa-users" value="{{ old('icon', $page->icon) }}" dir="ltr">
-                            </div>
-                            <span class="text-xs text-slate-400 mt-1 block">فئة FontAwesome</span>
-                        </div>
                         <div class="pt-2 space-y-3">
                             <label class="flex items-center gap-3 cursor-pointer">
                                 <input class="w-4 h-4 text-brand-600 focus:ring-brand-500 border-gray-300 rounded" type="checkbox" name="is_unique_id" value="1" id="isUniqueId" {{ $page->is_unique_id ? 'checked' : '' }}>
@@ -73,93 +63,9 @@
                             </label>
                             <label class="flex items-center gap-3 cursor-pointer">
                                 <input class="w-4 h-4 text-brand-600 focus:ring-brand-500 border-gray-300 rounded" type="checkbox" name="is_active" value="1" id="isActive" {{ $page->is_active ? 'checked' : '' }}>
-                                <span class="text-xs font-bold text-slate-700 dark:text-slate-300">تفعيل الصفحة</span>
-                            </label>
-                            <label class="flex items-center gap-3 cursor-pointer">
-                                <input class="w-4 h-4 text-brand-600 focus:ring-brand-500 border-gray-300 rounded" type="checkbox" name="show_in_sidebar" value="1" id="showInSidebar" {{ ($page->show_in_sidebar ?? true) ? 'checked' : '' }}>
-                                <span class="text-xs font-bold text-slate-700 dark:text-slate-300">إظهار الصفحة في القائمة الجانبية</span>
+                                <span class="text-xs font-bold text-slate-700 dark:text-slate-300">نشطة (تظهر للمستخدمين)</span>
                             </label>
                         </div>
-                        
-                        <div class="pt-4 border-t border-slate-100 dark:border-slate-800">
-                            <label class="text-xs font-bold text-slate-400 mb-2 block">موقع العرض في القائمة الجانبية</label>
-                            <div class="text-[10px] text-slate-500 mb-3">الترتيب الحالي: {{ $page->order_column }}. للقسم: {{ $page->section->name ?? '' }}</div>
-                            <div class="grid grid-cols-1 gap-2">
-                                <label class="flex items-center gap-2 p-2 bg-slate-50 border border-slate-100 rounded-xl cursor-pointer hover:bg-slate-100 transition-all">
-                                    <input type="radio" name="position_type" value="no_change" checked onchange="togglePageSelect()"
-                                        class="w-4 h-4 text-brand-600 rounded-full focus:ring-0">
-                                    <span class="font-bold text-slate-700 text-xs">بدون تغيير</span>
-                                </label>
-                                <label class="flex items-center gap-2 p-2 bg-slate-50 border border-slate-100 rounded-xl cursor-pointer hover:bg-slate-100 transition-all">
-                                    <input type="radio" name="position_type" value="at_end" onchange="togglePageSelect()"
-                                        class="w-4 h-4 text-brand-600 rounded-full focus:ring-0">
-                                    <span class="font-bold text-slate-700 text-xs">نقل للنهاية</span>
-                                </label>
-                                <label class="flex items-center gap-2 p-2 bg-slate-50 border border-slate-100 rounded-xl cursor-pointer hover:bg-slate-100 transition-all">
-                                    <input type="radio" name="position_type" value="before" onchange="togglePageSelect()"
-                                        class="w-4 h-4 text-brand-600 rounded-full focus:ring-0">
-                                    <span class="font-bold text-slate-700 text-xs">قبل صفحة محددة</span>
-                                </label>
-                                <label class="flex items-center gap-2 p-2 bg-slate-50 border border-slate-100 rounded-xl cursor-pointer hover:bg-slate-100 transition-all">
-                                    <input type="radio" name="position_type" value="after" onchange="togglePageSelect()"
-                                        class="w-4 h-4 text-brand-600 rounded-full focus:ring-0">
-                                    <span class="font-bold text-slate-700 text-xs">بعد صفحة محددة</span>
-                                </label>
-                            </div>
-                            <div id="relativePageContainer" class="mt-3 hidden">
-                                <select name="relative_page_id" id="relative_page_id"
-                                    class="w-full px-4 py-2 bg-slate-50 border-0 rounded-xl focus:ring-2 focus:ring-brand-100 transition-all font-bold text-slate-700 text-xs">
-                                    <option value="">-- اختر الصفحة --</option>
-                                    @foreach($pages as $p)
-                                        <option value="{{ $p->id }}" data-section-id="{{ $p->section_id }}">{{ $p->name }}</option>
-                                    @endforeach
-                                </select>
-                                <span class="text-[9px] text-slate-400 mt-1 block">تظهر فقط الصفحات التابعة لنفس القسم المحدد أعلاه.</span>
-                            </div>
-                        </div>
-
-                        <script>
-                            function togglePageSelect() {
-                                const type = document.querySelector('input[name="position_type"]:checked').value;
-                                const container = document.getElementById('relativePageContainer');
-                                const select = document.getElementById('relative_page_id');
-                                if (type === 'before' || type === 'after') {
-                                    container.classList.remove('hidden');
-                                    select.required = true;
-                                    filterPagesBySection();
-                                } else {
-                                    container.classList.add('hidden');
-                                    select.required = false;
-                                }
-                            }
-
-                            function filterPagesBySection() {
-                                const sectionId = document.querySelector('select[name="section_id"]').value;
-                                const select = document.getElementById('relative_page_id');
-                                const options = select.querySelectorAll('option[data-section-id]');
-                                let hasVisibleOptions = false;
-                                
-                                options.forEach(opt => {
-                                    if (opt.getAttribute('data-section-id') === sectionId) {
-                                        opt.style.display = '';
-                                        hasVisibleOptions = true;
-                                    } else {
-                                        opt.style.display = 'none';
-                                        if (select.value === opt.value) {
-                                            select.value = "";
-                                        }
-                                    }
-                                });
-                            }
-                            
-                            // Initialize on load if section changes
-                            document.addEventListener('DOMContentLoaded', function() {
-                                const sectionSelect = document.querySelector('select[name="section_id"]');
-                                if(sectionSelect) {
-                                    sectionSelect.addEventListener('change', filterPagesBySection);
-                                }
-                            });
-                        </script>
                         <div class="pt-4">
                             <button type="submit" class="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-2xl shadow-lg shadow-brand-500/25 transition-all flex items-center justify-center gap-2 text-sm">
                                 <i class="fas fa-save"></i>
@@ -175,41 +81,6 @@
                 <p class="text-xs text-indigo-900 dark:text-indigo-300 leading-relaxed">
                     تأكد من أن أسماء الحقول التدخلية (Database Name) فريدة داخل نفس الصفحة لضمان سلامة تخزين البيانات.
                 </p>
-            </div>
-        </div>
-
-        <!-- Operations Selection Card -->
-        <div class="lg:col-span-8 mb-6">
-            <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden">
-                <div class="bg-slate-50/80 dark:bg-slate-800/50 p-6 border-b border-slate-100 dark:border-slate-800">
-                    <h3 class="font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2 text-base">
-                        <i class="fas fa-shield-alt text-brand-500"></i> صلاحيات وعمليات الصفحة (Operations)
-                    </h3>
-                    <p class="text-xs text-slate-500 mt-1">العمليات المدعومة لهذه الصفحة حالياً. يمكنك تفعيل عمليات إضافية وسيتم توليد صلاحيات (Permissions) لها تلقائياً.</p>
-                </div>
-                <div class="p-6">
-                    <form action="{{ route('system.pages.update', $page) }}" method="POST" id="operationsForm">
-                        @csrf
-                        @method('PUT')
-                        <input type="hidden" name="name" value="{{ $page->name }}">
-                        <input type="hidden" name="section_id" value="{{ $page->section_id }}">
-                        <input type="hidden" name="is_unique_id" value="{{ $page->is_unique_id ? 1 : 0 }}">
-                        <input type="hidden" name="is_active" value="{{ $page->is_active ? 1 : 0 }}">
-                        <input type="hidden" name="show_in_sidebar" value="{{ $page->show_in_sidebar ? 1 : 0 }}">
-                        <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-4 mb-4">
-                            @php $currentOperations = $page->operations ?? ['view', 'create', 'edit', 'delete']; @endphp
-                            @foreach(\App\Models\Page::AVAILABLE_OPERATIONS as $key => $label)
-                                <label class="flex items-center gap-2 cursor-pointer p-3 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700/50 rounded-xl hover:bg-slate-100 transition-colors">
-                                    <input class="w-4 h-4 text-brand-600 focus:ring-brand-500 border-gray-300 rounded" type="checkbox" name="operations[]" value="{{ $key }}" {{ in_array($key, $currentOperations) ? 'checked' : '' }}>
-                                    <span class="text-xs font-bold text-slate-700 dark:text-slate-300">{{ $label }}</span>
-                                </label>
-                            @endforeach
-                        </div>
-                        <div class="flex justify-end">
-                            <button type="submit" class="px-6 py-2 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl shadow-sm text-xs">حفظ العمليات</button>
-                        </div>
-                    </form>
-                </div>
             </div>
         </div>
 

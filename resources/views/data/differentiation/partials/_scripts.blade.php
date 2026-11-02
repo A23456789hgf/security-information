@@ -1,528 +1,592 @@
 <script>
-// Global variables to hold active search results
-window.activeGroupData = null;
-window.activeGroupName = '';
+    // Global State Variables
+    let currentUploadStep = 1;
+    let parsedHeaders = [];
+    let parsedSampleRows = [];
+    let parsedRowCount = 0;
+    let selectedFileObj = null;
+    let currentComparisonResults = null;
+    let currentSavedMatchId = null;
+    let activeResultCategory = 'matched';
 
-function switchMainTab(tab) {
-    document.getElementById('primaryTab').classList.toggle('active', tab === 'primary');
-    document.getElementById('referenceTab').classList.toggle('active', tab === 'reference');
-    document.getElementById('primaryContent').style.display = tab === 'primary' ? 'block' : 'none';
-    document.getElementById('referenceContent').style.display = tab === 'reference' ? 'block' : 'none';
-    
-    if (tab === 'reference') {
-        document.getElementById('detailPanel').classList.remove('active');
-        document.querySelectorAll('.result-item').forEach(i => i.classList.remove('active'));
-    }
-}
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
-function showModal(id) {
-    document.getElementById(id).classList.add('active');
-}
-
-function closeModal(id) {
-    document.getElementById(id).classList.remove('active');
-}
-
-function showAddColumnModal() {
-    showModal('addColumnModal');
-}
-
-function addColumn() {
-    const name = document.getElementById('newColumnName').value.trim();
-    if (!name) return;
-
-    fetch('{{ route("data.differentiation.add-column") }}', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': '{{ csrf_token() }}'
-        },
-        body: JSON.stringify({ name })
-    })
-    .then(r => r.json())
-    .then(data => {
-        if (data.success) location.reload();
-    });
-}
-
-function integrateAll() {
-    if (!confirm('هل تريد دمج جميع البيانات المرجعية في الجدول الرئيسي؟')) return;
-
-    fetch('{{ route("data.differentiation.integrate-all") }}', {
-        method: 'POST',
-        headers: {
-            'X-CSRF-TOKEN': '{{ csrf_token() }}'
-        }
-    })
-    .then(r => r.json())
-    .then(data => {
-        alert(data.message);
-        if (data.success) location.reload();
-    });
-}
-
-function integrateSelected(indices) {
-    if (!confirm('هل تريد دمج السجلات المختارة؟')) return;
-
-    fetch('{{ route("data.differentiation.integrate-selected") }}', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': '{{ csrf_token() }}'
-        },
-        body: JSON.stringify({ indices })
-    })
-    .then(r => r.json())
-    .then(data => {
-        alert(data.message);
-        if (data.success) location.reload();
-    });
-}
-
-// File Upload Handler with Elegant Animated Multi-step Progress Bar
-document.getElementById('secondaryFile').addEventListener('change', function(e) {
-    if (!e.target.files.length) return;
-    
-    // Reset steps UI in progress modal
-    const steps = ['read', 'init', 'compare', 'results'];
-    steps.forEach(s => {
-        const item = document.getElementById(`step-${s}`);
-        item.style.opacity = '0.5';
-        item.classList.remove('active', 'completed');
-        
-        const icon = document.getElementById(`icon-${s}`);
-        icon.className = 'far fa-circle me-2';
-    });
-    
-    document.getElementById('progressBarFill').style.width = '0%';
-    document.getElementById('progressPercent').textContent = '0%';
-    document.getElementById('matchingSpinIcon').className = 'fas fa-sync fa-spin text-primary';
-    document.getElementById('matchingProgressSubtitle').textContent = 'يرجى الانتظار، يتم الآن معالجة الملفات واحتساب التباين...';
-    
-    // Open the progress modal
-    showModal('progressModal');
-    
-    // Simulate steps progress on client-side
-    let currentPercent = 0;
-    let progressTimer = null;
-    
-    const startSimulatedProgress = () => {
-        progressTimer = setInterval(() => {
-            if (currentPercent < 95) {
-                currentPercent += Math.floor(Math.random() * 4) + 1; // Increment by 1-4%
-                if (currentPercent > 95) currentPercent = 95;
-                
-                document.getElementById('progressBarFill').style.width = `${currentPercent}%`;
-                document.getElementById('progressPercent').textContent = `${currentPercent}%`;
-                
-                // Transition through stages based on percentage
-                if (currentPercent >= 0 && currentPercent < 25) {
-                    setStepActive('read');
-                } else if (currentPercent >= 25 && currentPercent < 50) {
-                    setStepCompleted('read');
-                    setStepActive('init');
-                } else if (currentPercent >= 50 && currentPercent < 75) {
-                    setStepCompleted('init');
-                    setStepActive('compare');
-                } else if (currentPercent >= 75) {
-                    setStepCompleted('compare');
-                    setStepActive('results');
-                }
+    // ── 1. Tab Navigation ──
+    function switchTab(tabName) {
+        ['Secondary', 'Main', 'Comparison', 'Logs'].forEach(t => {
+            const btn = document.getElementById('tabBtn' + t);
+            const content = document.getElementById('tabContent' + t);
+            if (btn && content) {
+                btn.classList.remove('active');
+                content.classList.add('hidden');
             }
-        }, 150);
-    };
-    
-    function setStepActive(stepId) {
-        const item = document.getElementById(`step-${stepId}`);
-        if (!item.classList.contains('active') && !item.classList.contains('completed')) {
-            item.classList.add('active');
-            item.style.opacity = '1';
-            const icon = document.getElementById(`icon-${stepId}`);
-            icon.className = 'fas fa-circle-notch fa-spin text-primary me-2';
+        });
+
+        const activeBtn = document.getElementById('tabBtn' + capitalizeFirst(tabName));
+        const activeContent = document.getElementById('tabContent' + capitalizeFirst(tabName));
+        if (activeBtn) activeBtn.classList.add('active');
+        if (activeContent) activeContent.classList.remove('hidden');
+    }
+
+    function capitalizeFirst(string) {
+        return string.charAt(0).toUpperCase() + string.slice(1);
+    }
+
+    // ── 2. Modal Stepper Management ──
+    function openUploadModal(targetType = 'secondary') {
+        document.getElementById('uploadTargetType').value = targetType;
+        document.getElementById('uploadDatasetName').value = targetType === 'main' ? 'البيانات الرئيسية' : '';
+        document.getElementById('uploadDatasetSource').value = '';
+        document.getElementById('uploadFileInput').value = '';
+        document.getElementById('selectedFileNameDisplay').classList.add('hidden');
+
+        document.getElementById('uploadModalTitle').innerHTML = targetType === 'main' 
+            ? '<i class="fas fa-database text-emerald-600 me-2"></i>استيراد وتحديث البيانات الرئيسية'
+            : '<i class="fas fa-file-excel text-brand-600 me-2"></i>استيراد مجموعة بيانات ثانوية جديدة';
+
+        currentUploadStep = 1;
+        parsedHeaders = [];
+        parsedSampleRows = [];
+        selectedFileObj = null;
+        updateStepperUI();
+
+        document.getElementById('uploadModal').classList.remove('hidden');
+    }
+
+    function closeUploadModal() {
+        document.getElementById('uploadModal').classList.add('hidden');
+    }
+
+    function updateStepperUI() {
+        [1, 2, 3].forEach(step => {
+            document.getElementById('uploadStep' + step).classList.add('hidden');
+        });
+        document.getElementById('uploadStep' + currentUploadStep).classList.remove('hidden');
+
+        const btnBack = document.getElementById('btnUploadBack');
+        const btnNext = document.getElementById('btnUploadNext');
+
+        if (currentUploadStep === 1) {
+            btnBack.classList.add('hidden');
+            btnNext.textContent = 'التالي: مطابقة الحقول';
+        } else if (currentUploadStep === 2) {
+            btnBack.classList.remove('hidden');
+            btnNext.textContent = 'التالي: المعاينة والتحقق';
+        } else if (currentUploadStep === 3) {
+            btnBack.classList.remove('hidden');
+            btnNext.textContent = 'تأكيد وحفظ البيانات';
         }
     }
-    
-    function setStepCompleted(stepId) {
-        const item = document.getElementById(`step-${stepId}`);
-        if (!item.classList.contains('completed')) {
-            item.classList.remove('active');
-            item.classList.add('completed');
-            item.style.opacity = '0.9';
-            const icon = document.getElementById(`icon-${stepId}`);
-            icon.className = 'fas fa-check-circle text-success me-2';
+
+    function onFileSelected(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        selectedFileObj = file;
+        const display = document.getElementById('selectedFileNameDisplay');
+        display.textContent = 'الملف المختار: ' + file.name + ' (' + (file.size / 1024).toFixed(1) + ' KB)';
+        display.classList.remove('hidden');
+
+        // Auto parse file via AJAX
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('_token', csrfToken);
+
+        fetch("{{ route('differentiation.parse-file') }}", {
+            method: 'POST',
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                parsedHeaders = data.headers;
+                parsedSampleRows = data.sample;
+                parsedRowCount = data.count;
+            } else {
+                alert('خطأ في قراءة الملف: ' + data.message);
+                selectedFileObj = null;
+                display.classList.add('hidden');
+            }
+        })
+        .catch(err => {
+            alert('حدث خطأ أثناء رفع الملف وقراءته.');
+            console.error(err);
+        });
+    }
+
+    function nextUploadStep() {
+        if (currentUploadStep === 1) {
+            const name = document.getElementById('uploadDatasetName').value.trim();
+            if (!name) {
+                alert('يرجى إدخال اسم لمجموعة البيانات.');
+                return;
+            }
+            if (!selectedFileObj || parsedHeaders.length === 0) {
+                alert('يرجى اختيار ملف بيانات صالحة والإنتظار لحين معالجته.');
+                return;
+            }
+
+            renderMappingGrid();
+            currentUploadStep = 2;
+            updateStepperUI();
+        } else if (currentUploadStep === 2) {
+            renderPreviewTable();
+            currentUploadStep = 3;
+            updateStepperUI();
+        } else if (currentUploadStep === 3) {
+            submitUploadData();
         }
     }
-    
-    startSimulatedProgress();
-    
-    const formData = new FormData();
-    formData.append('excel_file', e.target.files[0]);
-    formData.append('_token', '{{ csrf_token() }}');
-    
-    fetch('{{ route("data.differentiation.analyze") }}', {
-        method: 'POST',
-        body: formData
-    })
-    .then(r => r.json())
-    .then(data => {
-        clearInterval(progressTimer);
-        
-        if (data.success) {
-            // Speed up to 100% on success
-            document.getElementById('progressBarFill').style.width = '100%';
-            document.getElementById('progressPercent').textContent = '100%';
-            steps.forEach(s => setStepCompleted(s));
-            
-            document.getElementById('matchingSpinIcon').className = 'fas fa-check-circle text-success';
-            document.getElementById('matchingProgressSubtitle').textContent = 'اكتملت المطابقة بنجاح! جاري عرض النتائج...';
-            
-            setTimeout(() => {
-                location.reload();
-            }, 800);
-        } else {
-            closeModal('progressModal');
-            alert('حدث خطأ في التحليل');
+
+    function prevUploadStep() {
+        if (currentUploadStep > 1) {
+            currentUploadStep--;
+            updateStepperUI();
         }
-    })
-    .catch(err => {
-        clearInterval(progressTimer);
-        closeModal('progressModal');
-        alert('خطأ في الاتصال بالسيرفر');
-    });
-});
-
-// Click on result items to view details
-document.querySelectorAll('.result-item').forEach(item => {
-    item.addEventListener('click', function() {
-        const type = this.dataset.type;
-        const count = parseInt(this.querySelector('.result-count').textContent);
-        
-        if (count === 0) return;
-
-        document.querySelectorAll('.result-item').forEach(i => i.classList.remove('active'));
-        this.classList.add('active');
-        
-        loadDetail(type, this.querySelector('.result-label').textContent);
-    });
-});
-
-function loadDetail(type, label) {
-    fetch('{{ route("data.differentiation.detail") }}?type=' + type)
-    .then(r => r.json())
-    .then(data => {
-        // Save globally for exports/printing
-        window.activeGroupData = data;
-        window.activeGroupName = label;
-        
-        displayDetail(data, label);
-    });
-}
-
-function displayDetail(data, label) {
-    document.getElementById('detailTitle').textContent = label + ' (' + data.details.length + ')';
-    
-    let html = '';
-    
-    // Add Category Integrate Button
-    const secondaryIndices = data.details
-        .filter(d => d.secondary_index !== null)
-        .map(d => d.secondary_index);
-    
-    if (secondaryIndices.length > 0) {
-        html += `
-            <div class="action-bar">
-                <button class="-action primary" onclick="integrateSelected([${secondaryIndices.join(',')}])">
-                    <i class="fas fa-file-import"></i> دمج هذه الفئة (${secondaryIndices.length} سجل)
-                </button>
-            </div>
-        `;
     }
 
-    html += '<table>';
-    
-    // Headers
-    html += '<thead><tr><th>الرقم</th>';
-    if (data.primary_columns.length) {
-        data.primary_columns.forEach(col => html += '<th>' + col + '</th>');
-    }
-    if (data.secondary_columns.length && data.type !== 'net') {
-        html += '<th style="background:#ef4444">المصدر</th>';
-        data.secondary_columns.forEach(col => html += '<th style="background:#b91c1c">' + col + '</th>');
-    }
-    html += '<th>تصدير</th>';
-    html += '</tr></thead><tbody>';
-    
-    // Data rows
-    data.details.forEach((detail, i) => {
-        html += '<tr><td>' + (i + 1) + '</td>';
-        
-        if (detail.primary) {
-            detail.primary.forEach(cell => html += '<td>' + (cell || '-') + '</td>');
-        } else if (data.primary_columns.length) {
-            data.primary_columns.forEach(() => html += '<td>-</td>');
-        }
-        
-        if (detail.secondary && data.type !== 'net') {
-            html += '<td style="background:#fee2e2">ثانوي</td>';
-            detail.secondary.forEach(cell => html += '<td style="background:#fef2f2">' + (cell || '-') + '</td>');
-        }
-        
-        // Row operations
-        html += `<td>
-            <button class="flex flex-wrap gap-4--action" onclick="exportIndividualResult(${i})">
-                <i class="fas fa-file-csv"></i> تصدير
-            </button>
-        </td>`;
-        
-        html += '</tr>';
-    });
-    
-    html += '</tbody></table>';
-    
-    document.getElementById('detailContent').innerHTML = html;
-    document.getElementById('overviewPanel').style.display = 'none';
-    document.getElementById('detailPanel').classList.add('active');
-}
+    // ── 3. Field Mapping Grid Renderer ──
+    function renderMappingGrid() {
+        const container = document.getElementById('mappingGridContainer');
+        container.innerHTML = '';
 
-function showOverview() {
-    document.getElementById('detailPanel').classList.remove('active');
-    document.getElementById('overviewPanel').style.display = 'block';
-    document.querySelectorAll('.result-item').forEach(i => i.classList.remove('active'));
-    
-    window.activeGroupData = null;
-    window.activeGroupName = '';
-}
+        parsedHeaders.forEach((header, idx) => {
+            const rowDiv = document.createElement('div');
+            rowDiv.className = 'mapping-row flex items-center justify-between gap-4';
 
-// ----------------------------------------------------
-// EXPORT & PRINT FUNCTIONS
-// ----------------------------------------------------
-
-/**
- * Downloads high-fidelity CSV files with UTF-8 Arabic support
- */
-function downloadCSV(filename, csvData) {
-    const blob = new Blob(["\uFEFF" + csvData], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement("a");
-    if (link.download !== undefined) {
-        const url = URL.createObjectURL(blob);
-        link.setAttribute("href", url);
-        link.setAttribute("download", filename);
-        link.style.visibility = 'hidden';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    }
-}
-
-/**
- * Export matching results summary checklist from sidebar cards
- */
-function exportAllResultsSummary() {
-    let csv = "الفئة,العدد\r\n";
-    document.querySelectorAll('.result-item').forEach(item => {
-        const label = item.querySelector('.result-label').textContent.trim();
-        const count = item.querySelector('.result-count').textContent.trim();
-        csv += `"${label.replace(/"/g, '""')}",${count}\r\n`;
-    });
-    downloadCSV("ملخص_نتائج_المطابقة.csv", csv);
-}
-
-/**
- * Export active matching group results from details table
- */
-function exportActiveGroup() {
-    if (!window.activeGroupData) return;
-    
-    const data = window.activeGroupData;
-    const headers = ["الرقم"];
-    
-    if (data.primary_columns.length) {
-        data.primary_columns.forEach(col => headers.push(col));
-    }
-    if (data.secondary_columns.length && data.type !== 'net') {
-        headers.push("المصدر");
-        data.secondary_columns.forEach(col => headers.push(`ثانوي: ${col}`));
-    }
-    
-    let csv = headers.map(h => `"${h.replace(/"/g, '""')}"`).join(",") + "\r\n";
-    
-    data.details.forEach((detail, idx) => {
-        const flex flex-wrap gap-4 = [idx + 1];
-        
-        if (detail.primary) {
-            detail.primary.forEach(cell => flex flex-wrap gap-4.push(cell || '-'));
-        } else if (data.primary_columns.length) {
-            data.primary_columns.forEach(() => flex flex-wrap gap-4.push('-'));
-        }
-        
-        if (detail.secondary && data.type !== 'net') {
-            flex flex-wrap gap-4.push("ثانوي");
-            detail.secondary.forEach(cell => flex flex-wrap gap-4.push(cell || '-'));
-        }
-        
-        csv += flex flex-wrap gap-4.map(cell => `"${cell.toString().replace(/"/g, '""')}"`).join(",") + "\r\n";
-    });
-    
-    const sanitizedFilename = `مطابقة_بيانات_${window.activeGroupName.replace(/\s+/g, '_')}.csv`;
-    downloadCSV(sanitizedFilename, csv);
-}
-
-/**
- * Export a single individual matched flex flex-wrap gap-4 record
- */
-function exportIndividualResult(index) {
-    if (!window.activeGroupData || !window.activeGroupData.details[index]) return;
-    
-    const data = window.activeGroupData;
-    const detail = data.details[index];
-    const headers = [];
-    const flex flex-wrap gap-4 = [];
-    
-    if (detail.primary) {
-        data.primary_columns.forEach(col => headers.push(`رئيسي: ${col}`));
-        detail.primary.forEach(cell => flex flex-wrap gap-4.push(cell || '-'));
-    }
-    if (detail.secondary && data.type !== 'net') {
-        data.secondary_columns.forEach(col => headers.push(`ثانوي: ${col}`));
-        detail.secondary.forEach(cell => flex flex-wrap gap-4.push(cell || '-'));
-    }
-    
-    let csv = headers.map(h => `"${h.replace(/"/g, '""')}"`).join(",") + "\r\n";
-    csv += flex flex-wrap gap-4.map(cell => `"${cell.toString().replace(/"/g, '""')}"`).join(",") + "\r\n";
-    
-    downloadCSV(`سجل_مطابقة_فردي_${index + 1}.csv`, csv);
-}
-
-/**
- * Opens printable layout in clean print template window
- */
-function printActiveGroup() {
-    if (!window.activeGroupData) return;
-    
-    const data = window.activeGroupData;
-    const printWindow = window.open('', '_blank', 'width=1000,height=700');
-    
-    let headersHtml = '<th>#</th>';
-    if (data.primary_columns.length) {
-        data.primary_columns.forEach(col => headersHtml += `<th>${col}</th>`);
-    }
-    if (data.secondary_columns.length && data.type !== 'net') {
-        headersHtml += '<th style="background:#f3f4f6">المصدر</th>';
-        data.secondary_columns.forEach(col => headersHtml += `<th style="background:#fee2e2">${col}</th>`);
-    }
-    
-    let rowsHtml = '';
-    data.details.forEach((detail, i) => {
-        rowsHtml += '<tr>';
-        rowsHtml += `<td>${i + 1}</td>`;
-        
-        if (detail.primary) {
-            detail.primary.forEach(cell => rowsHtml += `<td>${cell || '-'}</td>`);
-        } else if (data.primary_columns.length) {
-            data.primary_columns.forEach(() => rowsHtml += '<td>-</td>');
-        }
-        
-        if (detail.secondary && data.type !== 'net') {
-            rowsHtml += '<td style="background:#f9fafb; font-weight:bold;">ثانوي</td>';
-            detail.secondary.forEach(cell => rowsHtml += `<td style="background:#fef2f2">${cell || '-'}</td>`);
-        }
-        rowsHtml += '</tr>';
-    });
-    
-    const printContent = `
-        <!DOCTYPE html>
-        <html dir="rtl" lang="ar">
-        <head>
-            <meta charset="utf-8">
-            <title>تقرير مطابقة البيانات - ${window.activeGroupName}</title>
-            <style>
-                body {
-                    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                    padding: 30px;
-                    color: #333;
-                    background: #fff;
-                }
-                .report-header {
-                    border-bottom: 2px solid #1a1c2e;
-                    padding-bottom: 15px;
-                    margin-bottom: 30px;
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                }
-                .title {
-                    font-size: 1.6rem;
-                    font-weight: bold;
-                    color: #1a1c2e;
-                    margin: 0;
-                }
-                .meta {
-                    font-size: 0.9rem;
-                    color: #666;
-                    text-align: left;
-                }
-                table {
-                    width: 100%;
-                    border-collapse: collapse;
-                    margin-top: 20px;
-                    font-size: 0.85rem;
-                }
-                th {
-                    background: #1a1c2e;
-                    color: #fff;
-                    padding: 10px;
-                    border: 1px solid #ddd;
-                    text-align: right;
-                }
-                td {
-                    padding: 8px 10px;
-                    border: 1px solid #ddd;
-                    text-align: right;
-                }
-                tr:nth-child(even) td {
-                    background: #fcfcfc;
-                }
-                @media print {
-                    .no-print { display: none; }
-                    body { padding: 0; }
-                }
-            </style>
-        </head>
-        <body>
-            <div class="report-header">
+            rowDiv.innerHTML = `
+                <div class="flex-1 font-bold text-xs text-slate-800 dark:text-slate-200">
+                    <span class="text-slate-400 font-mono me-2">#${idx + 1}</span>
+                    <span>${header}</span>
+                </div>
+                <div class="flex-1">
+                    <input type="text" class="mapping-input w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg px-3 py-1.5 text-xs font-medium" data-header="${header}" value="${header}">
+                </div>
                 <div>
-                    <h1 class="title">تقرير مطابقة البيانات</h1>
-                    <div style="font-size: 1.1rem; color: #555; margin-top: 5px;">فئة المطابقة: ${window.activeGroupName}</div>
+                    <label class="inline-flex items-center text-xs text-slate-500 cursor-pointer">
+                        <input type="checkbox" class="mapping-ignore rounded text-brand-600 me-1" onchange="toggleMappingIgnore(this)">
+                        <span>تجاهل</span>
+                    </label>
                 </div>
-                <div class="meta">
-                    <div>التاريخ: ${new Date().toLocaleDateString('ar-EG')}</div>
-                    <div>إجمالي السجلات: ${data.details.length}</div>
-                </div>
-            </div>
-            
-            <table>
-                <thead>
-                    <tr>${headersHtml}</tr>
-                </thead>
-                <tbody>
-                    ${rowsHtml}
-                </tbody>
-            </table>
-            
-            <script>
-                window.onload = function() {
-                    window.print();
-                    setTimeout(function() { window.close(); }, 500);
-                };
-            <\/script>
-        </body>
-        </html>
-    `;
-    
-    printWindow.document.open();
-    printWindow.document.write(printContent);
-    printWindow.document.close();
-}
+            `;
+            container.appendChild(rowDiv);
+        });
+    }
+
+    function toggleMappingIgnore(checkbox) {
+        const row = checkbox.closest('.mapping-row');
+        const input = row.querySelector('.mapping-input');
+        if (checkbox.checked) {
+            input.disabled = true;
+            input.classList.add('opacity-50', 'line-through');
+        } else {
+            input.disabled = false;
+            input.classList.remove('opacity-50', 'line-through');
+        }
+    }
+
+    function getMappingValues() {
+        const mapping = {};
+        const rows = document.querySelectorAll('.mapping-row');
+        rows.forEach(row => {
+            const input = row.querySelector('.mapping-input');
+            const checkbox = row.querySelector('.mapping-ignore');
+            const header = input.getAttribute('data-header');
+
+            if (checkbox && checkbox.checked) {
+                mapping[header] = '<ignore>';
+            } else {
+                mapping[header] = input.value.trim() || header;
+            }
+        });
+        return mapping;
+    }
+
+    // ── 4. Render Preview Table ──
+    function renderPreviewTable() {
+        const container = document.getElementById('previewTableContainer');
+        const mapping = getMappingValues();
+
+        let tableHtml = '<table class="w-full text-right border-collapse diff-table"><thead><tr><th>#</th>';
+        parsedHeaders.forEach(h => {
+            if (mapping[h] !== '<ignore>') {
+                tableHtml += `<th>${mapping[h]}</th>`;
+            }
+        });
+        tableHtml += '</tr></thead><tbody>';
+
+        parsedSampleRows.forEach((row, idx) => {
+            tableHtml += `<tr><td class="font-mono text-xs">${idx + 1}</td>`;
+            parsedHeaders.forEach(h => {
+                if (mapping[h] !== '<ignore>') {
+                    tableHtml += `<td class="text-xs">${row[h] || '-'}</td>`;
+                }
+            });
+            tableHtml += '</tr>';
+        });
+
+        tableHtml += '</tbody></table>';
+        container.innerHTML = tableHtml;
+    }
+
+    // ── 5. Submit Upload Data ──
+    function submitUploadData() {
+        const targetType = document.getElementById('uploadTargetType').value;
+        const name = document.getElementById('uploadDatasetName').value.trim();
+        const source = document.getElementById('uploadDatasetSource').value.trim();
+        const mapping = getMappingValues();
+
+        const formData = new FormData();
+        formData.append('file', selectedFileObj);
+        formData.append('name', name);
+        formData.append('source', source);
+        formData.append('_token', csrfToken);
+
+        Object.keys(mapping).forEach(key => {
+            formData.append(`mapping[${key}]`, mapping[key]);
+        });
+
+        const url = targetType === 'main' 
+            ? "{{ route('differentiation.store-main') }}" 
+            : "{{ route('differentiation.store-secondary') }}";
+
+        fetch(url, {
+            method: 'POST',
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                closeUploadModal();
+                window.location.reload();
+            } else {
+                alert('خطأ أثناء الحفظ: ' + data.message);
+            }
+        })
+        .catch(err => {
+            alert('حدث خطأ أثناء اتصال السيرفر.');
+            console.error(err);
+        });
+    }
+
+    // ── 6. Comparison Engine Helpers & UI ──
+    function onSecondaryDatasetSelected() {
+        const secId = document.getElementById('compSecondaryId').value;
+        if (!secId) return;
+
+        fetch(`{{ url('/differentiation/secondary') }}/${secId}`)
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                populateKeyFields(data.headers);
+                generateComparisonMapping(data.headers);
+            }
+        });
+    }
+
+    function populateKeyFields(headers) {
+        const container = document.getElementById('keyFieldsContainer');
+        container.innerHTML = '';
+
+        headers.forEach((h, idx) => {
+            const label = document.createElement('label');
+            label.className = 'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs font-bold cursor-pointer hover:border-brand-500';
+            const checked = idx === 0 ? 'checked' : '';
+            label.innerHTML = `<input type="checkbox" class="comp-key-checkbox rounded text-brand-600" value="${h}" ${checked}> <span>${h}</span>`;
+            container.appendChild(label);
+        });
+    }
+
+    function togglePrimarySourceSelect() {
+        const type = document.getElementById('compPrimarySourceType').value;
+        const container = document.getElementById('systemSourceContainer');
+        if (type === 'system_source') {
+            container.classList.remove('hidden');
+        } else {
+            container.classList.add('hidden');
+        }
+    }
+
+    function onSystemSourceSelected() {
+        const sourceKey = document.getElementById('compSystemSourceKey').value;
+        if (!sourceKey) return;
+
+        fetch(`{{ url('/differentiation/system-fields') }}/${sourceKey}`)
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                updateComparisonMappingDropdowns(data.fields);
+            }
+        });
+    }
+
+    function generateComparisonMapping(secondaryHeaders) {
+        const container = document.getElementById('comparisonMappingContainer');
+        container.innerHTML = '';
+
+        secondaryHeaders.forEach(h => {
+            const div = document.createElement('div');
+            div.className = 'flex items-center justify-between gap-4 p-2 bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800';
+            div.innerHTML = `
+                <span class="text-xs font-bold text-slate-700 dark:text-slate-300 w-1/3">${h}</span>
+                <span class="text-slate-400 text-xs"><i class="fas fa-arrow-left"></i></span>
+                <select class="comp-field-map-select w-2/3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg px-2.5 py-1 text-xs font-medium" data-sec-col="${h}">
+                    <option value="${h}">${h} (طبيعي)</option>
+                    <option value="<ignore>">&lt;تجاهل العمود&gt;</option>
+                </select>
+            `;
+            container.appendChild(div);
+        });
+    }
+
+    function updateComparisonMappingDropdowns(systemFields) {
+        const selects = document.querySelectorAll('.comp-field-map-select');
+        selects.forEach(sel => {
+            const currentSecCol = sel.getAttribute('data-sec-col');
+            let html = `<option value="${currentSecCol}">${currentSecCol} (مطابقة باسم العمود)</option>`;
+            html += `<option value="<ignore>">&lt;تجاهل العمود&gt;</option>`;
+            systemFields.forEach(f => {
+                html += `<option value="${f.key}">${f.label} (${f.key})</option>`;
+            });
+            sel.innerHTML = html;
+        });
+    }
+
+    // ── 7. Execute Comparison AJAX ──
+    function runComparisonExecution(e) {
+        e.preventDefault();
+
+        const secondaryId = document.getElementById('compSecondaryId').value;
+        const sourceType = document.getElementById('compPrimarySourceType').value;
+        const systemSourceKey = document.getElementById('compSystemSourceKey').value;
+
+        const keyFields = [];
+        document.querySelectorAll('.comp-key-checkbox:checked').forEach(cb => {
+            keyFields.push(cb.value);
+        });
+
+        if (keyFields.length === 0) {
+            alert('يرجى تحديد حقل مفتاح واحد على الأقل للمطابقة.');
+            return;
+        }
+
+        const fieldMapping = {};
+        document.querySelectorAll('.comp-field-map-select').forEach(sel => {
+            fieldMapping[sel.getAttribute('data-sec-col')] = sel.value;
+        });
+
+        const btn = document.getElementById('btnRunComparison');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> جاري مقارنة ومطابقة البيانات...';
+
+        fetch("{{ route('differentiation.execute-comparison') }}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrfToken
+            },
+            body: JSON.stringify({
+                secondary_id: secondaryId,
+                primary_source_type: sourceType,
+                system_source_key: systemSourceKey,
+                key_fields: keyFields,
+                field_mapping: fieldMapping
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-play me-2"></i> تنفيذ عملية المطابقة والمقارنة الآن';
+
+            if (data.success) {
+                currentComparisonResults = data.results;
+                currentSavedMatchId = data.saved_match_id;
+
+                renderComparisonSummary(data.summary);
+                document.getElementById('comparisonResultsDashboard').classList.remove('hidden');
+                switchResultTab('matched');
+            } else {
+                alert('خطأ في عملية المقارنة: ' + data.message);
+            }
+        })
+        .catch(err => {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-play me-2"></i> تنفيذ عملية المطابقة والمقارنة الآن';
+            alert('حدث خطأ أثناء إجراء المقارنة.');
+            console.error(err);
+        });
+    }
+
+    function renderComparisonSummary(summary) {
+        document.getElementById('resCountMatched').textContent = summary.matched_count;
+        document.getElementById('resCountDifferent').textContent = summary.different_count;
+        document.getElementById('resCountInSecOnly').textContent = summary.in_sec_only_count;
+        document.getElementById('resCountInPriOnly').textContent = summary.in_pri_only_count;
+        document.getElementById('resCountIncomplete').textContent = summary.incomplete_count;
+    }
+
+    // ── 8. Switch Result Tab & Render Details Table ──
+    function switchResultTab(category) {
+        activeResultCategory = category;
+        const titleEl = document.getElementById('resultTabTitle');
+        const container = document.getElementById('resultsTableContainer');
+        const exportBtn = document.getElementById('btnExportCategory');
+
+        exportBtn.href = `{{ route('differentiation.export-results') }}?saved_match_id=${currentSavedMatchId}&category=${category}`;
+
+        let categoryTitle = 'تفاصيل السجلات المتطابقة';
+        if (category === 'different') categoryTitle = 'تفاصيل السجلات المختلفة مع الفروقات';
+        if (category === 'in_sec_only') categoryTitle = 'سجلات موجودة بالثانوية فقط (غير موجودة بالرئيسية)';
+        if (category === 'in_pri_only') categoryTitle = 'سجلات موجودة بالرئيسية فقط (غير موجودة بالثانوية)';
+        if (category === 'incomplete') categoryTitle = 'سجلات ذات بيانات ناقصة';
+
+        titleEl.innerHTML = `<span class="w-2.5 h-5 bg-brand-600 rounded-full me-2"></span> ${categoryTitle}`;
+
+        const items = currentComparisonResults[category] || [];
+        if (items.length === 0) {
+            container.innerHTML = '<div class="text-center py-8 text-slate-400">لا توجد سجلات في هذا التصنيف.</div>';
+            return;
+        }
+
+        let html = '<table class="w-full text-right border-collapse diff-table"><thead><tr><th>#</th>';
+
+        if (category === 'matched' || category === 'in_sec_only') {
+            const firstRow = items[0].secondary_row || {};
+            Object.keys(firstRow).forEach(k => html += `<th>${k}</th>`);
+            html += '</tr></thead><tbody>';
+            items.forEach((item, idx) => {
+                html += `<tr><td class="font-mono text-xs">${item.secondary_index}</td>`;
+                Object.keys(firstRow).forEach(k => html += `<td class="text-xs">${item.secondary_row[k] || '-'}</td>`);
+                html += '</tr>';
+            });
+        } else if (category === 'in_pri_only') {
+            const firstRow = items[0].primary_row || {};
+            Object.keys(firstRow).forEach(k => html += `<th>${k}</th>`);
+            html += '</tr></thead><tbody>';
+            items.forEach((item, idx) => {
+                html += `<tr><td class="font-mono text-xs">${item.primary_index}</td>`;
+                Object.keys(firstRow).forEach(k => html += `<td class="text-xs">${item.primary_row[k] || '-'}</td>`);
+                html += '</tr>';
+            });
+        } else if (category === 'different') {
+            html += '<th>رقم السجل الثانوي</th><th>رقم السجل الرئيسي</th><th>تفاصيل الفروقات والاختلافات</th></tr></thead><tbody>';
+            items.forEach(item => {
+                let diffText = '';
+                item.differences.forEach(d => {
+                    diffText += `<div class="mb-1 text-xs"><span class="font-bold text-slate-700 dark:text-slate-300">[${d.field}]:</span> القيمة الرئيسية: <span class="diff-highlight">${d.primary_val}</span> مقابل الثانوية: <span class="diff-highlight">${d.secondary_val}</span></div>`;
+                });
+                html += `<tr>
+                    <td class="font-mono text-xs font-bold">${item.secondary_index}</td>
+                    <td class="font-mono text-xs font-bold">${item.primary_index}</td>
+                    <td>${diffText}</td>
+                </tr>`;
+            });
+        } else if (category === 'incomplete') {
+            html += '<th>رقم السجل</th><th>سبب النقص</th><th>بيانات السجل</th></tr></thead><tbody>';
+            items.forEach(item => {
+                html += `<tr>
+                    <td class="font-mono text-xs">${item.secondary_index}</td>
+                    <td class="text-xs text-rose-600 font-bold">${item.reason}</td>
+                    <td class="text-xs font-mono">${JSON.stringify(item.secondary_row)}</td>
+                </tr>`;
+            });
+        }
+
+        html += '</tbody></table>';
+        container.innerHTML = html;
+    }
+
+    // ── 9. Dataset View, Edit, Delete Actions ──
+    function startComparisonWithDataset(id) {
+        switchTab('comparison');
+        document.getElementById('compSecondaryId').value = id;
+        onSecondaryDatasetSelected();
+    }
+
+    function viewSecondaryDataset(id) {
+        fetch(`{{ url('/differentiation/secondary') }}/${id}`)
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById('viewModalTitle').textContent = 'معاينة بيانات: ' + data.table.name;
+                const container = document.getElementById('viewModalTableContainer');
+
+                let html = '<table class="w-full text-right border-collapse diff-table"><thead><tr><th>#</th>';
+                data.headers.forEach(h => html += `<th>${h}</th>`);
+                html += '</tr></thead><tbody>';
+
+                data.records.forEach((row, idx) => {
+                    html += `<tr><td class="font-mono text-xs">${idx + 1}</td>`;
+                    data.headers.forEach(h => html += `<td class="text-xs">${row[h] || '-'}</td>`);
+                    html += '</tr>';
+                });
+                html += '</tbody></table>';
+                container.innerHTML = html;
+
+                document.getElementById('viewDatasetModal').classList.remove('hidden');
+            }
+        });
+    }
+
+    function closeViewDatasetModal() {
+        document.getElementById('viewDatasetModal').classList.add('hidden');
+    }
+
+    function openEditDatasetModal(id, name, source) {
+        document.getElementById('editDatasetId').value = id;
+        document.getElementById('editDatasetName').value = name;
+        document.getElementById('editDatasetSource').value = source || '';
+        document.getElementById('editDatasetModal').classList.remove('hidden');
+    }
+
+    function closeEditDatasetModal() {
+        document.getElementById('editDatasetModal').classList.add('hidden');
+    }
+
+    function submitEditDataset(e) {
+        e.preventDefault();
+        const id = document.getElementById('editDatasetId').value;
+        const name = document.getElementById('editDatasetName').value;
+        const source = document.getElementById('editDatasetSource').value;
+
+        fetch(`{{ url('/differentiation/secondary') }}/${id}/update`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrfToken
+            },
+            body: JSON.stringify({ name, source })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                closeEditDatasetModal();
+                window.location.reload();
+            } else {
+                alert('خطأ: ' + data.message);
+            }
+        });
+    }
+
+    function deleteSecondaryDataset(id) {
+        if (!confirm('هل أنت تأكد من رغبتك في حذف مجموعة البيانات الثانوية هذه نهائياً؟')) return;
+
+        fetch(`{{ url('/differentiation/secondary') }}/${id}`, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRF-TOKEN': csrfToken
+            }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                window.location.reload();
+            } else {
+                alert('خطأ أثناء الحذف: ' + data.message);
+            }
+        });
+    }
 </script>
-
-

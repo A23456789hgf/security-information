@@ -122,22 +122,13 @@
 
 @section('content')
 <div class="print-container">
-    {{-- رأس التقرير --}}
-    <div class="official-header">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-            <div style="text-align: center;">
-                <h6 style="margin:0;">الجمهورية اليمنية</h6>
-                <h6 style="margin:0;">وزارة الداخلية</h6>
-            </div>
-            <div style="text-align: center;">
-                <h2 class="report-title">تقرير الملف الشخصي المتكامل</h2>
-            </div>
-            <div style="text-align: right; font-size: 12px;">
-                <p style="margin:0;">التاريخ: {{ now()->format('Y/m/d') }}</p>
-                <p style="margin:0;">رقم القيد: #{{ $personalData->id }}</p>
-            </div>
-        </div>
-    </div>
+    <div class="watermark-layer">وثيقة رسمية معتمدة</div>
+
+    <x-print-header 
+        title="تقرير الملف الشامل والمتكامل"
+        subCode="وثيقة قيد وسجل بيانات شخصية وتدريبية • معتمدة رقمياً"
+        :refNumber="'FULL-CRS-#' . str_pad($personalData->id ?? 1, 6, '0', STR_PAD_LEFT)"
+    />
 
     {{-- البيانات الأساسية --}}
     <div class="section-card">

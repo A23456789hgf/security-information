@@ -29,13 +29,9 @@ class AppServiceProvider extends ServiceProvider
             if (Schema::hasTable('sections') && Schema::hasTable('dynamic_pages')) {
                 $sections = Cache::remember('sidebar_dynamic_sections', 86400, function () {
                     return Section::with(['pages' => function ($q) {
-                        $q->where('is_active', true)
-                          ->where('show_in_sidebar', true)
-                          ->orderBy('order_column')
-                          ->orderBy('name');
+                        $q->where('is_active', true)->orderBy('name');
                     }])
                     ->where('is_active', true)
-                    ->where('show_in_sidebar', true)
                     ->orderBy('order_column')
                     ->orderBy('name')
                     ->get();

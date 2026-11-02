@@ -3,94 +3,123 @@
 @section('title', isset($isList) ? 'تقرير قائمة البيانات الثانوية' : 'تقرير البيانات الثانوية - ' . ($secondaryData->personalData->name ?? 'سجل'))
 
 @section('content')
+<div class="print-container">
+    <div class="watermark-layer">وثيقة رسمية معتمدة</div>
+
     <x-print-header 
-        :title="isset($isList) ? 'تقرير قائمة البيانات الثانوية والسلوك التعبوي' : 'بطاقة التقرير الثانوي والسلوك التعبوي'"
-        :refNumber="isset($isList) ? 'SEC-ALL-' . date('Ymd') : 'SEC-' . ($secondaryData->id ?? '00')" 
+        :title="isset($isList) ? 'تقرير قائمة البيانات الثانوية والتعبوية' : 'بطاقة التقرير الثانوي والسلوك التعبوي'"
+        :subCode="isset($isList) ? 'كشف البيانات التعبوية والتسليح • معتمد رسمياً' : 'سجل قيد ثانوي تفصيلي • معتمد رسمياً'"
+        :refNumber="isset($isList) ? 'SEC-ALL-' . date('Ymd') : 'SEC-' . str_pad($secondaryData->id ?? 1, 6, '0', STR_PAD_LEFT)" 
     />
 
-    <div class="no-print mb-6 flex justify-between items-center bg-slate-100 p-4 rounded-xl">
-        <span class="text-sm font-bold text-slate-700">معاينة التقرير الجاهز للطباعة</span>
-        <button onclick="window.print()" class="px-6 py-2.5 bg-indigo-600 text-white font-bold rounded-xl shadow hover:bg-indigo-700 transition flex items-center gap-2">
-            <i class="fas fa-print"></i> تنفيذ الطباعة الآن
-        </button>
-    </div>
-
     @if(isset($isList))
-        {{-- عرض الجدول الإجمالي للطباعة --}}
-        <table class="w-full text-right border-collapse">
-            <thead>
-                <tr>
-                    <th style="width: 50px;">#</th>
-                    <th>الاسم الكامل</th>
-                    <th>الاسم الجهادي</th>
-                    <th>الرقم العسكري</th>
-                    <th>الحالة الصحية</th>
-                    <th>الأسلحة الشخصية</th>
-                    <th>الانتماءات العقائدية والسياسية</th>
-                </tr>
-            </thead>
-            <tbody>
-                @forelse($secondaryDataList as $index => $item)
+        <div class="section-card">
+            <div class="section-header">
+                <div class="section-header-title">
+                    <i class="fas fa-shield-alt"></i>
+                    <span>قائمة السجلات الثانوية (إجمالي: {{ count($secondaryDataList) }} سجل)</span>
+                </div>
+                <span class="section-header-badge">كشف رسمي</span>
+            </div>
+            <table class="data-table">
+                <thead>
                     <tr>
-                        <td>{{ $index + 1 }}</td>
-                        <td><strong>{{ $item->personalData->name ?? 'غير محدد' }}</strong></td>
-                        <td>{{ $item->personalData->jihadi_name ?? '-' }}</td>
-                        <td>{{ $item->personalData->military_number ?? '-' }}</td>
-                        <td>{{ $item->healthStatus->name ?? 'سليم' }}</td>
+                        <th style="width: 40px; text-align: center;">#</th>
+                        <th>الاسم الرباعي واللقب</th>
+                        <th>الاسم الجهادي</th>
+                        <th>الرقم العسكري</th>
+                        <th>الحالة الصحية</th>
+                        <th>الأسلحة الشخصية</th>
+                        <th>الانتماءات السابقة</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($secondaryDataList as $index => $item)
+                        <tr>
+                            <td style="text-align: center; font-weight: 700;">{{ $index + 1 }}</td>
+                            <td style="font-weight: 800; color: #0f172a;">{{ $item->personalData->name ?? 'غير محدد' }}</td>
+                            <td>
+                                @if($item->personalData?->jihadi_name)
+                                    <span class="jihadi-name-pill">{{ $item->personalData->jihadi_name }}</span>
+                                @else
+                                    -
+                                @endif
+                            </td>
+                            <td style="font-family: monospace; font-weight: 700; color: #b91c1c;">
+                                {{ $item->personalData->military_number ?? '-' }}
+                            </td>
+                            <td>{{ $item->healthStatus->name ?? 'سليم' }}</td>
+                            <td>
+                                @if($item->weapons && $item->weapons->count() > 0)
+                                    {{ $item->weapons->pluck('weapon_type')->implode('، ') }}
+                                @else
+                                    <span style="color: #94a3b8;">لا يوجد</span>
+                                @endif
+                            </td>
+                            <td>
+                                @forelse($item->affiliations as $aff)
+                                    <div>{{ $aff->ideologicalAffiliation->name ?? '' }} / {{ $aff->politicalAffiliation->name ?? '' }}</div>
+                                @empty
+                                    -
+                                @endforelse
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="7" style="text-align: center; padding: 25px; color: #64748b;">لا توجد بيانات متاحة للطباعة</td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+    @else
+        <div class="section-card">
+            <div class="section-header">
+                <div class="section-header-title">
+                    <i class="fas fa-id-card"></i>
+                    <span>البيانات الأساسية للفرد</span>
+                </div>
+                <span class="section-header-badge">السجل الميداني</span>
+            </div>
+            <table class="data-table">
+                <tbody>
+                    <tr>
+                        <th>الاسم الرباعي واللقب</th>
+                        <td style="font-size: 13px; font-weight: 800; color: #0f172a;">{{ $secondaryData->personalData->name ?? 'غير محدد' }}</td>
+                        <th>الاسم الجهادي</th>
                         <td>
-                            @if($item->weapons && $item->weapons->count() > 0)
-                                {{ $item->weapons->pluck('weapon_type')->implode('، ') }}
+                            @if($secondaryData->personalData?->jihadi_name)
+                                <span class="jihadi-name-pill">{{ $secondaryData->personalData->jihadi_name }}</span>
                             @else
-                                لا يوجد
+                                -
                             @endif
                         </td>
-                        <td>
-                            @forelse($item->affiliations as $aff)
-                                <span class="block text-xs">
-                                    {{ $aff->ideologicalAffiliation->name ?? '' }} / {{ $aff->politicalAffiliation->name ?? '' }}
-                                </span>
-                            @empty
-                                -
-                            @endforelse
-                        </td>
                     </tr>
-                @empty
                     <tr>
-                        <td colspan="7" class="text-center py-4">لا توجد بيانات متاحة للطباعة</td>
+                        <th>الرقم العسكري</th>
+                        <td style="font-family: monospace; font-weight: 800; color: #b91c1c;">{{ $secondaryData->personalData->military_number ?? 'غير مسجل' }}</td>
+                        <th>الحالة الصحية</th>
+                        <td>{{ $secondaryData->healthStatus->name ?? 'سليم' }}</td>
                     </tr>
-                @endforelse
-            </tbody>
-        </table>
-    @else
-        {{-- عرض التقرير التفصيلي الفردي للطباعة --}}
-        <div class="report-section">
-            <div class="section-title">أولاً: البيانات الأساسية للفرد</div>
-            <table>
-                <tr>
-                    <th>الاسم الرباعي واللقب</th>
-                    <td><strong>{{ $secondaryData->personalData->name ?? 'غير محدد' }}</strong></td>
-                    <th>الاسم الجهادي</th>
-                    <td>{{ $secondaryData->personalData->jihadi_name ?? 'غير محدد' }}</td>
-                </tr>
-                <tr>
-                    <th>الرقم العسكري</th>
-                    <td>{{ $secondaryData->personalData->military_number ?? 'غير مسجل' }}</td>
-                    <th>الحالة الصحية</th>
-                    <td>{{ $secondaryData->healthStatus->name ?? 'سليم' }}</td>
-                </tr>
-                <tr>
-                    <th>المحافظة والمديرية</th>
-                    <td>{{ $secondaryData->personalData->governorate->name ?? '-' }} / {{ $secondaryData->personalData->directorate->name ?? '-' }}</td>
-                    <th>القرية / المحلة</th>
-                    <td>{{ $secondaryData->personalData->village->name ?? '-' }}</td>
-                </tr>
+                    <tr>
+                        <th>المحافظة والمديرية</th>
+                        <td>{{ $secondaryData->personalData->governorate->name ?? '-' }} / {{ $secondaryData->personalData->directorate->name ?? '-' }}</td>
+                        <th>القرية / المحلة</th>
+                        <td>{{ $secondaryData->personalData->village->name ?? '-' }}</td>
+                    </tr>
+                </tbody>
             </table>
         </div>
 
         {{-- تفاصيل الأسلحة والعتاد --}}
-        <div class="report-section">
-            <div class="section-title">ثانياً: سجل العتاد والأسلحة العسكرية الشخصية</div>
-            <table>
+        <div class="section-card">
+            <div class="section-header">
+                <div class="section-header-title">
+                    <i class="fas fa-crosshairs"></i>
+                    <span>سجل العتاد والأسلحة العسكرية الشخصية</span>
+                </div>
+            </div>
+            <table class="data-table">
                 <thead>
                     <tr>
                         <th>نوع السلاح</th>
@@ -103,15 +132,15 @@
                 <tbody>
                     @forelse($secondaryData->weapons as $weapon)
                         <tr>
-                            <td>{{ $weapon->weapon_type ?? '-' }}</td>
-                            <td>{{ $weapon->serial_number ?? '-' }}</td>
+                            <td style="font-weight: 700;">{{ $weapon->weapon_type ?? '-' }}</td>
+                            <td style="font-family: monospace;">{{ $weapon->serial_number ?? '-' }}</td>
                             <td>{{ $weapon->source ?? '-' }}</td>
                             <td>{{ $weapon->caliber ?? '-' }}</td>
                             <td>{{ $weapon->notes ?? '-' }}</td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="text-center">لا توجد أسلحة مسجلة</td>
+                            <td colspan="5" style="text-align: center; padding: 15px; color: #94a3b8;">لا توجد أسلحة مسجلة</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -119,9 +148,14 @@
         </div>
 
         {{-- الانتماءات السابقة --}}
-        <div class="report-section">
-            <div class="section-title">ثالثاً: الانتماءات العقائدية والسياسية السابقة</div>
-            <table>
+        <div class="section-card">
+            <div class="section-header">
+                <div class="section-header-title">
+                    <i class="fas fa-flag"></i>
+                    <span>الانتماءات العقائدية والسياسية السابقة</span>
+                </div>
+            </div>
+            <table class="data-table">
                 <thead>
                     <tr>
                         <th>الانتماء العقائدي</th>
@@ -134,7 +168,7 @@
                 <tbody>
                     @forelse($secondaryData->affiliations as $aff)
                         <tr>
-                            <td>{{ $aff->ideologicalAffiliation->name ?? '-' }}</td>
+                            <td style="font-weight: 700;">{{ $aff->ideologicalAffiliation->name ?? '-' }}</td>
                             <td>{{ $aff->politicalAffiliation->name ?? '-' }}</td>
                             <td>{{ $aff->affiliation_date ? (is_a($aff->affiliation_date, 'DateTimeInterface') ? $aff->affiliation_date->format('Y') : date('Y', strtotime($aff->affiliation_date))) : '-' }}</td>
                             <td>{{ $aff->workplace ?? '-' }} ({{ $aff->job_type ?? '-' }})</td>
@@ -142,7 +176,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="text-center">لا توجد انتماءات مسجلة</td>
+                            <td colspan="5" style="text-align: center; padding: 15px; color: #94a3b8;">لا توجد انتماءات سابقة مقيدة</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -150,9 +184,14 @@
         </div>
 
         {{-- الأعمال والنشاطات الجهادية السابقة --}}
-        <div class="report-section">
-            <div class="section-title">رابعاً: النشاطات والأعمال الجهادية السابقة</div>
-            <table>
+        <div class="section-card">
+            <div class="section-header">
+                <div class="section-header-title">
+                    <i class="fas fa-tasks"></i>
+                    <span>النشاطات والأعمال السابقة</span>
+                </div>
+            </div>
+            <table class="data-table">
                 <thead>
                     <tr>
                         <th>نوع النشاط / العمل</th>
@@ -165,7 +204,7 @@
                 <tbody>
                     @forelse($secondaryData->previousJihadistActions as $act)
                         <tr>
-                            <td>{{ $act->activity ?? '-' }}</td>
+                            <td style="font-weight: 700;">{{ $act->activity ?? '-' }}</td>
                             <td>{{ $act->location ?? '-' }}</td>
                             <td>{{ $act->direct_supervisor ?? '-' }}</td>
                             <td>{{ $act->activity_date ? (is_a($act->activity_date, 'DateTimeInterface') ? $act->activity_date->format('Y') : date('Y', strtotime($act->activity_date))) : '-' }} ({{ $act->duration ?? '-' }})</td>
@@ -173,11 +212,14 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="text-center">لا توجد نشاطات مسجلة</td>
+                            <td colspan="5" style="text-align: center; padding: 15px; color: #94a3b8;">لا توجد نشاطات سابقة مقيدة</td>
                         </tr>
                     @endforelse
                 </tbody>
             </table>
         </div>
     @endif
+
+    <x-print-footer />
+</div>
 @endsection

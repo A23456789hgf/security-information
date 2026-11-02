@@ -87,12 +87,12 @@ class CourseController extends Controller
 
     public function create(Request $request)
     {
-        $personalDataList = PersonalData::orderBy('name')->pluck('name', 'id');
-        $allPeople = PersonalData::select('id', 'name')->get();
+        $personalDataList = \App\Services\UserScopeService::applyScope(PersonalData::query())->orderBy('name')->pluck('name', 'id');
+        $allPeople = \App\Services\UserScopeService::applyScope(PersonalData::query())->select('id', 'name')->get();
         $courseTypes = CourseType::orderBy('name')->pluck('name', 'id');
         $fillingAgencies = FillingAgency::orderBy('name')->pluck('name', 'id');
-        $governorates = Governorate::pluck('name', 'id');
-        $directorates = Directorate::pluck('name', 'id');
+        $governorates = \App\Services\UserScopeService::getScopedGovernorates()->pluck('name', 'id');
+        $directorates = \App\Services\UserScopeService::getScopedDirectorates()->pluck('name', 'id');
         $subAreas = SubArea::pluck('name', 'id');
         $villages = Village::pluck('name', 'id');
 
@@ -115,32 +115,28 @@ class CourseController extends Controller
     {
         $request->validate([
             'personal_data_id' => 'required|exists:personal_data,id',
-            'courses' => 'required|array|min:1',
-            'courses.*.course_type_id' => 'required|exists:course_types,id',
-            'courses.*.course_date_gregorian' => 'required|date',
-            'courses.*.course_date_hijri' => 'nullable|string|max:255',
-            'courses.*.course_duration' => 'nullable|string|max:255',
-            'courses.*.sending_entity_id' => 'nullable|exists:filling_agencies,id',
-            'courses.*.course_administrator' => 'nullable|string|max:255',
-            'courses.*.notes' => 'nullable|string',
+            'course_type_id' => 'required|exists:course_types,id',
+            'course_date_gregorian' => 'required|date',
+            'course_date_hijri' => 'nullable|string|max:255',
+            'course_duration' => 'nullable|string|max:255',
+            'sending_entity_id' => 'nullable|exists:filling_agencies,id',
+            'course_administrator' => 'nullable|string|max:255',
+            'notes' => 'nullable|string',
         ]);
 
-        foreach ($request->courses as $courseData) {
-            $courseData['personal_data_id'] = $request->personal_data_id;
-            Course::create($courseData);
-        }
+        Course::create($request->all());
 
-        return redirect()->route('system.courses.index')->with('success', 'تمت إضافة الدورات بنجاح');
+        return redirect()->route('system.courses.index')->with('success', 'تمت إضافة الدورة بنجاح');
     }
 
     public function edit(Course $course)
     {
-        $personalDataList = PersonalData::orderBy('name')->pluck('name', 'id');
-        $allPeople = PersonalData::select('id', 'name')->get();
+        $personalDataList = \App\Services\UserScopeService::applyScope(PersonalData::query())->orderBy('name')->pluck('name', 'id');
+        $allPeople = \App\Services\UserScopeService::applyScope(PersonalData::query())->select('id', 'name')->get();
         $courseTypes = CourseType::orderBy('name')->pluck('name', 'id');
         $fillingAgencies = FillingAgency::orderBy('name')->pluck('name', 'id');
-        $governorates = Governorate::pluck('name', 'id');
-        $directorates = Directorate::pluck('name', 'id');
+        $governorates = \App\Services\UserScopeService::getScopedGovernorates()->pluck('name', 'id');
+        $directorates = \App\Services\UserScopeService::getScopedDirectorates()->pluck('name', 'id');
         $subAreas = SubArea::pluck('name', 'id');
         $villages = Village::pluck('name', 'id');
 
@@ -168,30 +164,11 @@ class CourseController extends Controller
             'sending_entity_id' => 'nullable|exists:filling_agencies,id',
             'course_administrator' => 'nullable|string|max:255',
             'notes' => 'nullable|string',
-            
-            // Validation for multiple new courses
-            'new_courses' => 'nullable|array',
-            'new_courses.*.course_type_id' => 'required_with:new_courses|exists:course_types,id',
-            'new_courses.*.course_date_gregorian' => 'required_with:new_courses|date',
-            'new_courses.*.course_date_hijri' => 'nullable|string|max:255',
-            'new_courses.*.course_duration' => 'nullable|string|max:255',
-            'new_courses.*.sending_entity_id' => 'nullable|exists:filling_agencies,id',
-            'new_courses.*.course_administrator' => 'nullable|string|max:255',
-            'new_courses.*.notes' => 'nullable|string',
         ]);
 
-        $course->update($request->except('new_courses'));
+        $course->update($request->all());
 
-        if ($request->has('new_courses') && is_array($request->new_courses)) {
-            foreach ($request->new_courses as $newCourseData) {
-                if (!empty($newCourseData['course_type_id'])) {
-                    $newCourseData['personal_data_id'] = $request->personal_data_id;
-                    Course::create($newCourseData);
-                }
-            }
-        }
-
-        return redirect()->route('system.courses.index')->with('success', 'تم تحديث الدورة وإضافة الدورات الجديدة بنجاح');
+        return redirect()->route('system.courses.index')->with('success', 'تم تحديث الدورة بنجاح');
     }
 
     public function destroy(Course $course)

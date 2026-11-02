@@ -62,63 +62,19 @@
                                 <span class="text-[10px] text-slate-400 px-2 mt-1 block">مثال: fa-users, fa-building, fa-shield-alt</span>
                             </div>
 
-                            <div class="col-span-1 md:col-span-2">
-                                <label class="text-xs font-bold text-slate-400 mb-2 block px-2">موقع العرض (الترتيب)</label>
-                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                    <label class="flex items-center gap-3 p-4 bg-slate-50 border border-slate-100 rounded-2xl cursor-pointer hover:bg-slate-100 transition-all">
-                                        <input type="radio" name="position_type" value="at_end" checked onchange="toggleSectionSelect()"
-                                            class="w-5 h-5 text-brand-600 rounded-full focus:ring-0">
-                                        <span class="font-bold text-slate-700 text-xs">في النهاية</span>
-                                    </label>
-                                    <label class="flex items-center gap-3 p-4 bg-slate-50 border border-slate-100 rounded-2xl cursor-pointer hover:bg-slate-100 transition-all">
-                                        <input type="radio" name="position_type" value="before" onchange="toggleSectionSelect()"
-                                            class="w-5 h-5 text-brand-600 rounded-full focus:ring-0">
-                                        <span class="font-bold text-slate-700 text-xs">قبل قسم محدد</span>
-                                    </label>
-                                    <label class="flex items-center gap-3 p-4 bg-slate-50 border border-slate-100 rounded-2xl cursor-pointer hover:bg-slate-100 transition-all">
-                                        <input type="radio" name="position_type" value="after" onchange="toggleSectionSelect()"
-                                            class="w-5 h-5 text-brand-600 rounded-full focus:ring-0">
-                                        <span class="font-bold text-slate-700 text-xs">بعد قسم محدد</span>
-                                    </label>
-                                </div>
-                                <div id="relativeSectionContainer" class="mt-4 hidden">
-                                    <select name="relative_section_id" id="relative_section_id"
-                                        class="w-full px-6 py-4 bg-slate-50 border-0 rounded-2xl focus:ring-2 focus:ring-blue-100 transition-all font-bold text-slate-700">
-                                        <option value="">-- اختر القسم --</option>
-                                        @foreach($sections as $sec)
-                                            <option value="{{ $sec->id }}">{{ $sec->name }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
+                            <div>
+                                <label class="text-xs font-bold text-slate-400 mb-2 block px-2">ترتيب العرض</label>
+                                <input type="number" name="order_column"
+                                    class="w-full px-6 py-4 bg-slate-50 border-0 rounded-2xl focus:ring-2 focus:ring-blue-100 transition-all font-bold text-slate-700 text-center"
+                                    value="{{ old('order_column', 0) }}">
                             </div>
                         </div>
 
-                        <script>
-                            function toggleSectionSelect() {
-                                const type = document.querySelector('input[name="position_type"]:checked').value;
-                                const container = document.getElementById('relativeSectionContainer');
-                                const select = document.getElementById('relative_section_id');
-                                if (type === 'before' || type === 'after') {
-                                    container.classList.remove('hidden');
-                                    select.required = true;
-                                } else {
-                                    container.classList.add('hidden');
-                                    select.required = false;
-                                }
-                            }
-                        </script>
-
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
                             <label class="flex items-center gap-3 p-4 bg-slate-50 border border-slate-100 rounded-2xl cursor-pointer hover:bg-slate-100 transition-all">
                                 <input type="checkbox" name="is_active" value="1" id="isActive" checked
                                     class="w-5 h-5 text-brand-600 rounded-2xl focus:ring-0">
-                                <span class="font-bold text-slate-700 text-xs">تفعيل القسم</span>
-                            </label>
-
-                            <label class="flex items-center gap-3 p-4 bg-slate-50 border border-slate-100 rounded-2xl cursor-pointer hover:bg-slate-100 transition-all">
-                                <input type="checkbox" name="show_in_sidebar" value="1" id="showInSidebar" checked
-                                    class="w-5 h-5 text-brand-600 rounded-2xl focus:ring-0">
-                                <span class="font-bold text-slate-700 text-xs">إظهار القسم في القائمة الجانبية</span>
+                                <span class="font-bold text-slate-700 text-xs">تفعيل وعرض القسم في القائمة الرئيسية</span>
                             </label>
                         </div>
 

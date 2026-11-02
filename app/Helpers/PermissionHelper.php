@@ -27,9 +27,7 @@ class PermissionHelper
             if ($dynamicPages->isNotEmpty()) {
                 foreach ($dynamicPages as $page) {
                     $pagePermissions = [];
-                    $operations = $page->operations ?? ['view', 'create', 'edit', 'delete']; // Fallback for old pages
-                    
-                    foreach ($operations as $op) {
+                    foreach (['view', 'create', 'edit', 'delete'] as $op) {
                         $permName = "{$op}_{$page->slug}";
                         $permission = Permission::firstOrCreate(['name' => $permName, 'guard_name' => 'web']);
                         $pagePermissions[$op] = $permission;
